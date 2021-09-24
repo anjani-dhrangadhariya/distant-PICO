@@ -36,23 +36,24 @@ from pylab import *
 
 # Import DISANT-PICO modules
 from SourceFetcher.parti_sourcefetcher import *
-from SourceFetcher.stdtype_sourcefetcher import *
 from SourceFetcher.int_sourcefetcher import *
+from SourceFetcher.outcome_sourcefetcher import *
+from SourceFetcher.stdtype_sourcefetcher import *
 
 
 ################################################################################
 # Set the logger here
 ################################################################################
-LOG_FILE = os.getcwd() + "/logs"
-if not os.path.exists(LOG_FILE):
-    os.makedirs(LOG_FILE)
+# LOG_FILE = os.getcwd() + "/logs"
+# if not os.path.exists(LOG_FILE):
+#     os.makedirs(LOG_FILE)
 
-LOG_FILE = LOG_FILE + "/" + dt.datetime.fromtimestamp(time.time()).strftime('%Y_%m_%d %H_%M_%S') + ".log"
-logFormatter = logging.Formatter("%(levelname)s %(asctime)s %(processName)s %(message)s")
-fileHandler = logging.FileHandler("{0}".format(LOG_FILE))
-rootLogger = logging.getLogger()
-rootLogger.addHandler(fileHandler)
-rootLogger.setLevel(logging.INFO)
+# LOG_FILE = LOG_FILE + "/" + dt.datetime.fromtimestamp(time.time()).strftime('%Y_%m_%d %H_%M_%S') + ".log"
+# logFormatter = logging.Formatter("%(levelname)s %(asctime)s %(processName)s %(message)s")
+# fileHandler = logging.FileHandler("{0}".format(LOG_FILE))
+# rootLogger = logging.getLogger()
+# rootLogger.addHandler(fileHandler)
+# rootLogger.setLevel(logging.INFO)
 
 ################################################################################
 # Instantiate ElasticSearch
@@ -93,7 +94,8 @@ for n, hit in enumerate( res['hits']['hits'] ): # XXX: Only a part search result
         derieved_section = fullstudy['DerivedSection']
 
         participants = fetchParticipantSources(protocol_section)
-
+        intervention_comparator = fetchIntcompSources(protocol_section)
+        outcomes = fetchOutcomeSources(protocol_section)
         study_type = fetchStdTypeSources(protocol_section)
 
 
