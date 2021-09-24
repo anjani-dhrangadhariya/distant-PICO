@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 
-def SourceFetcherDoc(a):
+def PartiSourceFetcherDoc(a):
     '''The module retrieves sources for each of the P - participant entity'''
     return a**a
 
-print( SourceFetcherDoc.__doc__ )
+print( PartiSourceFetcherDoc.__doc__ )
 
 
 '''

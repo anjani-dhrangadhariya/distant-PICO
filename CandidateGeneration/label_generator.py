@@ -36,6 +36,8 @@ from pylab import *
 
 # Import DISANT-PICO modules
 from SourceFetcher.parti_sourcefetcher import *
+from SourceFetcher.stdtype_sourcefetcher import *
+from SourceFetcher.int_sourcefetcher import *
 
 
 ################################################################################
@@ -91,6 +93,9 @@ for n, hit in enumerate( res['hits']['hits'] ): # XXX: Only a part search result
         derieved_section = fullstudy['DerivedSection']
 
         participants = fetchParticipantSources(protocol_section)
+
+        study_type = fetchStdTypeSources(protocol_section)
+
 
     except:
         logNCTID = 'Caused exception at the NCT ID: ' + NCT_id
