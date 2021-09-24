@@ -93,10 +93,14 @@ for n, hit in enumerate( res['hits']['hits'] ): # XXX: Only a part search result
         protocol_section = fullstudy['ProtocolSection']
         derieved_section = fullstudy['DerivedSection']
 
+        # Retrieve the sources of PICOS annotation
         participants = fetchParticipantSources(protocol_section)
         intervention_comparator = fetchIntcompSources(protocol_section)
         outcomes = fetchOutcomeSources(protocol_section)
         study_type = fetchStdTypeSources(protocol_section)
+
+        # Expand the sources of PICOS annotation
+
 
 
     except:
