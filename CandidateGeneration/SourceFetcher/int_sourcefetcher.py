@@ -8,14 +8,14 @@ print( IntSourceFetcherDoc.__doc__ )
 
 '''
 Description:
-    Extracts the dictionary of intervention information in the clinical trial from the NCT record
+    Extracts the dictionary of intervention information of the clinical trial from the NCT record
 
 Args:
     json_document (json): JSON string containing the protocol_section of a NCT record
         (default is False)
 
 Returns:
-    dictionary: a dictionary containing intervention information in the clinical trials
+    dictionary: a dictionary containing intervention mentions and arms group label mentions
 '''
 def fetchIntervention(protocol_section):
 
@@ -44,7 +44,7 @@ Args:
         (default is False)
 
 Returns:
-    dictionary: a dictionary containing all the synonyms for the intervention and comparator subtype sources
+    dictionary: a dictionary containing synonyms for the intervention mentions and arms group label mentions
 '''
 def fetchInterventionSyn(protocol_section):
     interventionInfo = dict()
