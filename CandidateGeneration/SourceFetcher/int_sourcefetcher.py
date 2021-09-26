@@ -26,12 +26,12 @@ def fetchIntervention(protocol_section):
             if 'Intervention' in protocol_section['ArmsInterventionsModule']['InterventionList']:
                 intervention = protocol_section['ArmsInterventionsModule']['InterventionList']['Intervention']
 
-                for eachIntervention in intervention:
+                for i, eachIntervention in enumerate(intervention):
                     if 'InterventionName' in eachIntervention:
-                        interventionInfo['name'] = eachIntervention['InterventionName']
+                        interventionInfo['name_' +str(i)] = eachIntervention['InterventionName']
 
                     if 'InterventionArmGroupLabelList' in eachIntervention:
-                        interventionInfo['arm_name'] = eachIntervention['InterventionArmGroupLabelList']
+                        interventionInfo['arm_name_' + str(i)] = eachIntervention['InterventionArmGroupLabelList']
 
     return interventionInfo
 
