@@ -72,9 +72,9 @@ def fetchOutcomeSources(json_document):
     combined_sources = dict()
 
     o_primary = fetchPrimaryOutcome(json_document)
-    combined_sources['primary_outcome'] = o_primary
+    combined_sources['o_primary'] = o_primary
 
     o_secondary = fetchSecondaryOutcome(json_document)
-    combined_sources['secondary_outcome'] = o_secondary
+    combined_sources['o_secondary'] = o_secondary
 
     return combined_sources

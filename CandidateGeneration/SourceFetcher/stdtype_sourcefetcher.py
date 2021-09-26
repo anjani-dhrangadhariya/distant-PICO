@@ -29,6 +29,9 @@ def fetchStudyType(json_document):
 
 def fetchStdTypeSources(json_document):
 
-    studyType = fetchStudyType(json_document)
+    combined_sources=dict()
 
-    return studyType
+    studyType = fetchStudyType(json_document)
+    combined_sources['s_type'] = studyType
+
+    return combined_sources

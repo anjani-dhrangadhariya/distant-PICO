@@ -112,9 +112,9 @@ def fetchParticipantSources(json_document):
     p_gender = fetchParticipantGender(json_document)
     p_sampsize = fetchParticipantSampSize(json_document)
 
-    combined_sources['condition'] = p_condition
-    combined_sources['age'] = p_age
-    combined_sources['gender'] = p_gender
-    combined_sources['sample_size'] = p_sampsize
+    combined_sources['p_condition'] = p_condition
+    combined_sources['p_age'] = p_age
+    combined_sources['p_gender'] = p_gender
+    combined_sources['p_sample_size'] = p_sampsize
 
     return combined_sources
