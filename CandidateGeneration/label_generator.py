@@ -40,6 +40,10 @@ from SourceFetcher.int_sourcefetcher import *
 from SourceFetcher.outcome_sourcefetcher import *
 from SourceFetcher.stdtype_sourcefetcher import *
 
+from TargetFetcher.all_targetsfetcher import *
+
+from SourceTargetExpander.expand_sources import *
+
 
 ################################################################################
 # Set the logger here
@@ -75,7 +79,7 @@ results_gen = helpers.scan(
 match_scores = []
 intervention_types = []
 
-res = es.search(index="ctofull2021-index", body={"query": {"match_all": {}}}, size=500)
+res = es.search(index="ctofull2021-index", body={"query": {"match_all": {}}}, size=90)
 print('Total number of records retrieved: ', res['hits']['total']['value'])
 
 # Iterate through all of the fetched CTO index documents
@@ -99,7 +103,14 @@ for n, hit in enumerate( res['hits']['hits'] ): # XXX: Only a part search result
         outcomes = fetchOutcomeSources(protocol_section)
         study_type = fetchStdTypeSources(protocol_section)
 
-        # Expand the sources of PICOS annotation
+        sources = {**participants, **intervention_comparator, **outcomes, **study_type}
+
+        # Retrieve the targets of PICOS annotation
+        targets = fetchTargets(protocol_section)
+
+        # XXX: Expand the sources of PICOS annotation
+        # expandSources(protocol_section, sources, sources)
+
 
 
 
