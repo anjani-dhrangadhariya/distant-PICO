@@ -15,18 +15,19 @@ Args:
         (default is False)
 
 Returns:
-    list: a list of strings containing primary outcome information in the clinical trials
+    dictionary: a dictionary containing primary outcome information in the clinical trials
 '''
 def fetchPrimaryOutcome(json_document):
 
-    outcomes_list = []
+    outcomes_list = dict()
 
     if 'OutcomesModule' in json_document:
             if 'PrimaryOutcomeList' in json_document['OutcomesModule']:
                 primOutcome = json_document['OutcomesModule']['PrimaryOutcomeList']['PrimaryOutcome']
-                for eachOutcome in primOutcome:
+                for i, eachOutcome in enumerate(primOutcome):
                     if 'PrimaryOutcomeMeasure' in eachOutcome:
-                        outcomes_list.append( eachOutcome['PrimaryOutcomeMeasure'] )
+                        primOutcome = eachOutcome['PrimaryOutcomeMeasure']
+                        outcomes_list['PrimaryOutcome_' + str(i)] = primOutcome
 
     return outcomes_list
 
@@ -39,18 +40,19 @@ Args:
         (default is False)
 
 Returns:
-    list: a list of strings containing secondary outcome information in the clinical trials
+    dictionary: a dictionary containing secondary outcome information in the clinical trials
 '''
 def fetchSecondaryOutcome(json_document):
 
-    outcomes_list = []
+    outcomes_list = dict()
 
     if 'OutcomesModule' in json_document:
             if 'SecondaryOutcomeList' in json_document['OutcomesModule']:
                 secondOutcome = json_document['OutcomesModule']['SecondaryOutcomeList']['SecondaryOutcome']
-                for eachOutcome in secondOutcome:
+                for i, eachOutcome in enumerate(secondOutcome) :
                     if 'SecondaryOutcomeMeasure' in eachOutcome:
-                        outcomes_list.append( eachOutcome['SecondaryOutcomeMeasure'] )
+                        secondOutcome = eachOutcome['SecondaryOutcomeMeasure']
+                        outcomes_list['SecondaryOutcome_'+str(i)] = secondOutcome
 
     return outcomes_list 
 
@@ -74,6 +76,5 @@ def fetchOutcomeSources(json_document):
 
     o_secondary = fetchSecondaryOutcome(json_document)
     combined_sources['secondary_outcome'] = o_secondary
-
 
     return combined_sources
