@@ -137,6 +137,6 @@ def fetchTargets(json_document):
     intervention_target, armgroup_target = fetchInterventionTargets(json_document)
     eligibility_target = fetchEligibilityTarget(json_document)
 
+    combined_sources = {**identification_target, **description_target, **design_target, **outcome_target, **outcome2_target, **intervention_target, **armgroup_target, **eligibility_target}
     
-
     return combined_sources
