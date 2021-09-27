@@ -6,6 +6,18 @@ def TargetsFetcherDoc(a):
 
 print( TargetsFetcherDoc.__doc__ )
 
+
+'''
+Description:
+    Extracts a dictionary of target paragraphs/sentences from the clinical trial titles from the NCT record
+
+Args:
+    json_document (json): JSON string containing the protocol_section of a NCT record
+        (default is False)
+
+Returns:
+    dictionary: a dictionary containing trial title target sentences
+'''
 def fetchIdentificationsTarget(json_document):
 
     identificationTargets = dict()
@@ -22,6 +34,17 @@ def fetchIdentificationsTarget(json_document):
 
     return identificationTargets
 
+'''
+Description:
+    Extracts a dictionary of target paragraphs/sentences from the clinical trial description/summary from the NCT record
+
+Args:
+    json_document (json): JSON string containing the protocol_section of a NCT record
+        (default is False)
+
+Returns:
+    dictionary: a dictionary containing trial description/summary target sentences
+'''
 def fetchDescriptionsTarget(json_document):
 
     descriptionTargets = dict()
@@ -38,7 +61,17 @@ def fetchDescriptionsTarget(json_document):
 
     return descriptionTargets
 
+'''
+Description:
+    Extracts a dictionary of target paragraphs/sentences from the description of the study model design in the clinical trial from the NCT record
 
+Args:
+    json_document (json): JSON string containing the protocol_section of a NCT record
+        (default is False)
+
+Returns:
+    dictionary: a dictionary containing trial design description target sentences
+'''
 def fetchDesignTarget(json_document):
 
     designTargets = dict()
@@ -53,7 +86,17 @@ def fetchDesignTarget(json_document):
 
     return designTargets
 
+'''
+Description:
+    Extracts two dictionaries of target paragraphs/sentences from the description of the reported primary and secondary outcomes in the clinical trial from the NCT record
 
+Args:
+    json_document (json): JSON string containing the protocol_section of a NCT record
+        (default is False)
+
+Returns:
+    dictionary: two dictionaries containing outcome description target sentences in the clinical trial
+'''
 def fetchOutcomesTarget(json_document):
 
     outcomeTargets = dict()
@@ -77,7 +120,17 @@ def fetchOutcomesTarget(json_document):
 
     return outcomeTargets, outcomeSecondTargets
 
+'''
+Description:
+    Extracts two dictionaries of target paragraphs/sentences from the interventions and arms group descriptions in the clinical trial from the NCT record
 
+Args:
+    json_document (json): JSON string containing the protocol_section of a NCT record
+        (default is False)
+
+Returns:
+    dictionary: two dictionaries containing interventions and arms group target sentences in the clinical trial
+'''
 def fetchInterventionTargets(json_document):
 
     interventionTargets = dict()
@@ -103,6 +156,17 @@ def fetchInterventionTargets(json_document):
 
     return interventionTargets, armgroupTargets
 
+'''
+Description:
+    Extracts the dictionary of target paragraphs/sentences from the participant eligibility information in the clinical trial from the NCT record
+
+Args:
+    json_document (json): JSON string containing the protocol_section of a NCT record
+        (default is False)
+
+Returns:
+    dictionary: a dictionary containing eligibility target sentences in the clinical trial
+'''
 def fetchEligibilityTarget(json_document):
 
     eligibilityTargets = dict()
