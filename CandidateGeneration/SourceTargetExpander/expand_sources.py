@@ -21,12 +21,44 @@ def fetchAcronyms(json_document):
 
     return acronym_dict
 
+'''
+Description:
+    The funtion expands on the gender terms of the study participants using a heuristic dictionary expansion
+
+Args:
+    dictionary value (string): free-text describing gender of the study pariticpants
+
+Returns:
+    list: returns a list (in NER terms a dictionary) of expanded gender values according to gender of the study pariticpants
+'''
+def expandGender(gender_source):
+
+    male_source = ['Male', 'Males', 'Men', 'Man', 'Boy', 'Boys']
+    female_source = ['Female', 'Females', 'Women', 'Woman', 'Girl', 'Girls']
+
+    expanded_gender_source = []
+
+    if gender_source == 'All':
+        expanded_gender_source.extend(female_source)
+        expanded_gender_source.extend(male_source)
+    elif gender_source == 'Female':
+        expanded_gender_source.extend(female_source)
+    elif gender_source == 'Male':
+        expanded_gender_source.extend(male_source)
+
+    print( expanded_gender_source )
+
+    return expanded_gender_source
+
 
 def expandSources(json_object, sources):
+
+    expanded_sources = dict()
 
     # Get predefined acronyms from each study
     # fetchAcronyms(json_object)
 
-    print(sources)
+    expanded_gender = expandGender(sources['p_gender'])
+    
 
     return None
