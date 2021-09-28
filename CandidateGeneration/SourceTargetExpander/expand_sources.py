@@ -57,7 +57,7 @@ def expandAge(age_source):
 
     # Expand standard age group
     baby_source = ['Newborn', 'Infant', 'Baby', 'Preterm', 'Neonate']
-    child_source = ['Child', 'Adolescent', 'Young Adult', 'Young']
+    child_source = ['Minors', 'Child', 'Adolescent', 'Young Adult', 'Young', 'Teen', 'Teenager', 'Teens', 'Teenagers']
     adult_source = ['Adult', 'Older Adult', 'Young Adult', 'Young']
     older_source = ['Older Adult', 'Aged', 'Elderly', 'Frail', 'Frail Older Adults', 'Frail Elders']
 
