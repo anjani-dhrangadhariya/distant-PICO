@@ -6,6 +6,9 @@ def ExpandSourcesDoc(a):
 
 print( ExpandSourcesDoc.__doc__ )
 
+# imports
+import re
+
 def fetchAcronyms(json_document):
     acronym_dict = dict()
 
@@ -50,6 +53,8 @@ def expandGender(gender_source):
 
 def expandAge(age_source):
 
+    expanded_age_source = dict()
+
     # Expand standard age group
     baby_source = ['Newborn', 'Infant', 'Baby', 'Preterm', 'Neonate']
     child_source = ['Child', 'Adolescent', 'Young Adult', 'Young']
@@ -60,9 +65,38 @@ def expandAge(age_source):
 
     # Expand the exact age
     
+    return older_source
 
-    return None
+'''
+Description:
+    The funtion expands on the study type terms of the clinical trial study design using regulax expressions
 
+Args:
+    dictionary value (string): free-text describing study type of the trial design
+
+Returns:
+    string pattern: returns a ReGEx pattern ('re.Pattern') of expanded trial design values according to the trial design
+        or a string: returns a 'N.A.' string if the trial design is not specified
+'''
+def expandStudyType(studytype_source):
+
+    expanded_studytype_source = []
+
+    ''' Expanded according the MeSH entry term (MeSH ID: D011897, ) from U.S. National Library of Medicine (NLM)'''
+    # randomized_source = ['Random', 'Randomized', 'Randomised', 'Randomization', 'Randomisation']
+    randomized_source_pattern = '([rR]andomi+[sz]e+d+)'
+
+    ''' Expanded according the MeSH entry term (MeSH ID: D065228) from U.S. National Library of Medicine (NLM)'''
+    # nonrandomized_source = ['Non-Random', 'Nonrandom', 'Non Random', 'Non-Randomized', 'Non-Randomised', 'Nonrandomized', 'Nonrandomised', 'Non Randomized', 'Non Randomised']
+    nonrandomized_source_pattern = '([nN]o[nt][- ]+[rR]andomi+[sz]e+d+)'
+    # XXX: Rather than a dictionary, expand it using a regular expression
+
+    if studytype_source == 'N/A':
+        return 'N.A.'
+    elif studytype_source == 'Randomized':
+        return re.compile(randomized_source_pattern)
+    elif studytype_source == 'Non-Randomized':
+        return re.compile(nonrandomized_source_pattern)
 
 def expandSources(json_object, sources):
 
@@ -72,7 +106,7 @@ def expandSources(json_object, sources):
     # fetchAcronyms(json_object)
 
     expanded_gender = expandGender(sources['p_gender'])
-    expandAge(sources['p_age'])
-
+    # expanded_age = expandAge(sources['p_age'])
+    expanded_studytype = expandStudyType(sources['s_type'])
 
     return None
