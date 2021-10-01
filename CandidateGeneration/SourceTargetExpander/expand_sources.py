@@ -206,10 +206,12 @@ def expandSources(json_object, sources):
     # P
     expanded_gender = expandGender(sources['p_gender'])
     expanded_age = expandAge(sources['p_age'])
+    # P - Condition needs abbreviation detection
+    # P - Sample size does not need expansion
 
-    # I/C (Arm group names are removed)
+    # I/C
     expanded_intervention = expandIntervention(sources['i_name'])
-    # Intervention synonyms do not require any expansion
+    # I - synonyms do not require any expansion
 
     # O
     # Outcomes do not require other expansion except POS tagging
@@ -217,6 +219,9 @@ def expandSources(json_object, sources):
     # S
     expanded_studytype = expandStudyType(sources['s_type'])
 
+    expanded_sources['ep_gender'] = expanded_gender
+    expanded_sources['ep_age'] = expanded_age
+    expanded_sources['ei_name'] = expanded_intervention
+    expanded_sources['es_type'] = expanded_studytype
 
-
-    return None
+    return expanded_sources
