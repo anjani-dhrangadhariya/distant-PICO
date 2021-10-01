@@ -112,7 +112,7 @@ def expandAge(age_source):
         # expanded_extAge.extend(pattern1)
         # expanded_extAge.extend(pattern2)
 
-        age_range_pattern = '([Aa]ge[ds] )?\d{1,2} (years (old)? and above)'
+        age_range_pattern = '([Aa]ge[ds] )?(\≥ |\> ||\<)?\d{1,2}( years (old)?( and above)?)'
         compiled_pattern = re.compile(age_range_pattern)
         expanded_age_source['exactAge'] = compiled_pattern
 
@@ -122,6 +122,7 @@ def expandAge(age_source):
         maxage_unit = age_source['MaximumAge'].split(' ')[1]
     
     return expanded_age_source
+
 
 '''
 Description:
@@ -154,6 +155,12 @@ def expandStudyType(studytype_source):
     elif studytype_source == 'Non-Randomized':
         return re.compile(nonrandomized_source_pattern)
 
+def expandSampleSize(sampsize_source):
+    
+    print( sampsize_source )
+
+    return None
+
 def expandSources(json_object, sources):
 
     expanded_sources = dict()
@@ -163,6 +170,8 @@ def expandSources(json_object, sources):
 
     expanded_gender = expandGender(sources['p_gender'])
     expanded_age = expandAge(sources['p_age'])
+    expanded_samplesize = expandSampleSize(sources['p_sample_size'])
     expanded_studytype = expandStudyType(sources['s_type'])
+
 
     return None
