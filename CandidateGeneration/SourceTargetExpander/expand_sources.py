@@ -54,6 +54,7 @@ def expandGender(gender_source):
 def expandAge(age_source):
 
     expanded_age_source = dict()
+    expanded_stdage = []
 
     # Expand standard age group
     baby_source = ['Newborn', 'Infant', 'Baby', 'Preterm', 'Neonate']
@@ -61,11 +62,19 @@ def expandAge(age_source):
     adult_source = ['Adult', 'Older Adult', 'Young Adult', 'Young']
     older_source = ['Older Adult', 'Aged', 'Elderly', 'Frail', 'Frail Older Adults', 'Frail Elders']
 
-    print(age_source['StdAge'])
-
-    # Expand the exact age
+    for eachStdAge in age_source['StdAge']:
+        print( eachStdAge )
+        if 'Child' in eachStdAge:
+            expanded_stdage.extend( baby_source )
+            expanded_stdage.extend( child_source )
+        elif 'Adult' in eachStdAge:
+            expanded_stdage.extend( adult_source )
+        elif 'Older Adult' in eachStdAge:
+            expanded_stdage.extend( older_source )
     
-    return older_source
+    expanded_age_source['StdAge'] = expanded_stdage
+    
+    return expanded_age_source
 
 '''
 Description:
@@ -106,7 +115,7 @@ def expandSources(json_object, sources):
     # fetchAcronyms(json_object)
 
     expanded_gender = expandGender(sources['p_gender'])
-    # expanded_age = expandAge(sources['p_age'])
+    expanded_age = expandAge(sources['p_age'])
     expanded_studytype = expandStudyType(sources['s_type'])
 
     return None
