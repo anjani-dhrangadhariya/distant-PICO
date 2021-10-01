@@ -92,22 +92,29 @@ def expandAge(age_source):
         maxage_num = age_source['MaximumAge'].split(' ')[0]
         maxage_unit = age_source['MaximumAge'].split(' ')[1]
 
-        pattern1 = str(minage_num)+'-'+str(maxage_num)
-        pattern2 = pattern1+' '+minage_unit
-        pattern3 = pattern2+' old'
+        # pattern1 = str(minage_num)+'-'+str(maxage_num)
+        # pattern2 = pattern1+' '+minage_unit
+        # pattern3 = pattern2+' old'
+        # expanded_extAge.extend(pattern1)
+        # expanded_extAge.extend(pattern2)
+        # expanded_extAge.extend(pattern3)
 
-        expanded_extAge.extend(pattern1)
-        expanded_extAge.extend(pattern2)
-        expanded_extAge.extend(pattern3)
+        age_range_pattern =  '([Aa]ge[ds] )?(((\d{1,2}( years old)?(-| to | - | and )(.{1,3})?\d{1,2}) years) old)'
+        compiled_pattern = re.compile(age_range_pattern)
+
+
 
     if 'MinimumAge' in age_source and 'MaximumAge' not in age_source:
         minage = age_source['MinimumAge']
-        pattern1 = minage+' and above'
-        pattern2 = minage+' old and above'
 
-        expanded_extAge.extend(minage)
-        expanded_extAge.extend(pattern1)
-        expanded_extAge.extend(pattern2)
+        # pattern1 = minage+' and above'
+        # pattern2 = minage+' old and above'
+        # expanded_extAge.extend(minage)
+        # expanded_extAge.extend(pattern1)
+        # expanded_extAge.extend(pattern2)
+
+        age_range_pattern = '([Aa]ge[ds] )?\d{1,2} (years (old)? and above)'
+        compiled_pattern = re.compile(age_range_pattern)
 
     if 'MaximumAge' not in age_source and 'MaximumAge' in age_source:
         # Usually this case never happens
