@@ -51,10 +51,21 @@ def expandGender(gender_source):
 
     return expanded_gender_source
 
+'''
+Description:
+    The funtion expands on the age terms of the study participants using a heuristic dictionary expansion
+
+Args:
+    dictionary value (string): free-text describing gender of the study pariticpants
+
+Returns:
+    dictionary: returns a dictionary of expanded age values and patterns according to age of the study pariticpants
+'''
 def expandAge(age_source):
 
     expanded_age_source = dict()
     expanded_stdage = []
+    expanded_extAge = []
 
     # Expand standard age group
     baby_source = ['Newborn', 'Infant', 'Baby', 'Preterm', 'Neonate']
@@ -63,7 +74,6 @@ def expandAge(age_source):
     older_source = ['Older Adult', 'Aged', 'Elderly', 'Frail', 'Frail Older Adults', 'Frail Elders']
 
     for eachStdAge in age_source['StdAge']:
-        print( eachStdAge )
         if 'Child' in eachStdAge:
             expanded_stdage.extend( baby_source )
             expanded_stdage.extend( child_source )
@@ -73,6 +83,36 @@ def expandAge(age_source):
             expanded_stdage.extend( older_source )
     
     expanded_age_source['StdAge'] = expanded_stdage
+
+    # Expand exact age
+    if 'MinimumAge' in age_source and  'MaximumAge' in age_source:
+        minage_num = age_source['MinimumAge'].split(' ')[0]
+        minage_unit = age_source['MinimumAge'].split(' ')[1]
+
+        maxage_num = age_source['MaximumAge'].split(' ')[0]
+        maxage_unit = age_source['MaximumAge'].split(' ')[1]
+
+        pattern1 = str(minage_num)+'-'+str(maxage_num)
+        pattern2 = pattern1+' '+minage_unit
+        pattern3 = pattern2+' old'
+
+        expanded_extAge.extend(pattern1)
+        expanded_extAge.extend(pattern2)
+        expanded_extAge.extend(pattern3)
+
+    if 'MinimumAge' in age_source and 'MaximumAge' not in age_source:
+        minage = age_source['MinimumAge']
+        pattern1 = minage+' and above'
+        pattern2 = minage+' old and above'
+
+        expanded_extAge.extend(minage)
+        expanded_extAge.extend(pattern1)
+        expanded_extAge.extend(pattern2)
+
+    if 'MaximumAge' not in age_source and 'MaximumAge' in age_source:
+        # Usually this case never happens
+        maxage_num = age_source['MaximumAge'].split(' ')[0]
+        maxage_unit = age_source['MaximumAge'].split(' ')[1]
     
     return expanded_age_source
 
