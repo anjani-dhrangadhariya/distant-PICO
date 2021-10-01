@@ -101,8 +101,7 @@ def expandAge(age_source):
 
         age_range_pattern =  '([Aa]ge[ds] )?(((\d{1,2}( years old)?(-| to | - | and )(.{1,3})?\d{1,2}) years) old)'
         compiled_pattern = re.compile(age_range_pattern)
-
-
+        expanded_age_source['exactAge'] = compiled_pattern
 
     if 'MinimumAge' in age_source and 'MaximumAge' not in age_source:
         minage = age_source['MinimumAge']
@@ -115,6 +114,7 @@ def expandAge(age_source):
 
         age_range_pattern = '([Aa]ge[ds] )?\d{1,2} (years (old)? and above)'
         compiled_pattern = re.compile(age_range_pattern)
+        expanded_age_source['exactAge'] = compiled_pattern
 
     if 'MaximumAge' not in age_source and 'MaximumAge' in age_source:
         # Usually this case never happens
