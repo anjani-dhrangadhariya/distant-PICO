@@ -112,7 +112,7 @@ def expandAge(age_source):
         # expanded_extAge.extend(pattern1)
         # expanded_extAge.extend(pattern2)
 
-        age_range_pattern = '([Aa]ge[ds] )?(\≥ |\> ||\<)?\d{1,2}( years (old)?( and above)?)'
+        age_range_pattern = '([Aa]ge[ds] )?(\≥ |\> ||\< )?\d{1,2}( years (old)?( and above)?)'
         compiled_pattern = re.compile(age_range_pattern)
         expanded_age_source['exactAge'] = compiled_pattern
 
@@ -120,7 +120,7 @@ def expandAge(age_source):
         # Usually this case never happens
         maxage_num = age_source['MaximumAge'].split(' ')[0]
         maxage_unit = age_source['MaximumAge'].split(' ')[1]
-    
+
     return expanded_age_source
 
 
@@ -155,11 +155,46 @@ def expandStudyType(studytype_source):
     elif studytype_source == 'Non-Randomized':
         return re.compile(nonrandomized_source_pattern)
 
-def expandSampleSize(sampsize_source):
-    
-    print( sampsize_source )
+def expandIntervention(intervention_source):
 
-    return None
+    expanded_intervention = dict()
+
+    for key, value in intervention_source.items():
+        if 'arm' not in key:
+            
+            if '&' in value and 'vs' not in value and ',' not in value  and ':' not in value and '(' not in value: # ampersand
+                values = value.split('&')
+                value.extend( values )
+                expanded_intervention[key] = values
+            
+            elif '&' not in value and 'vs' in value and ',' not in value  and ':' not in value and '(' not in value and '/' not in value: # versus
+                values = value.split('vs')
+                value.extend( values )
+                expanded_intervention[key] = values
+
+            elif '&' not in value and 'vs' not in value and ',' not in value  and ':' in value and '(' not in value and '/' not in value: # semi-colon
+                values = value.split(':')
+                value.extend( values )
+                expanded_intervention[key] = values
+
+            elif '&' not in value and 'vs' not in value and ',' in value  and ':' not in value and '(' not in value and '/' not in value: # comma
+                values = value.split(',')
+                value.extend( values )
+                expanded_intervention[key] = value
+                
+
+            elif '&' not in value and 'vs' not in value and ',' not in value  and ':' not in value and '(' not in value and '/' in value: # forward slash
+                values = value.split('/')
+                value.extend( values )
+                expanded_intervention[key] = value
+
+            else:
+                expanded_intervention[key] = value
+        else:
+            expanded_intervention[key] = value
+
+    return expanded_intervention
+
 
 def expandSources(json_object, sources):
 
@@ -168,10 +203,20 @@ def expandSources(json_object, sources):
     # Get predefined acronyms from each study
     # fetchAcronyms(json_object)
 
+    # P
     expanded_gender = expandGender(sources['p_gender'])
     expanded_age = expandAge(sources['p_age'])
-    expanded_samplesize = expandSampleSize(sources['p_sample_size'])
+
+    # I/C (Arm group names are removed)
+    expanded_intervention = expandIntervention(sources['i_name'])
+    # Intervention synonyms do not require any expansion
+
+    # O
+    # Outcomes do not require other expansion except POS tagging
+
+    # S
     expanded_studytype = expandStudyType(sources['s_type'])
+
 
 
     return None
