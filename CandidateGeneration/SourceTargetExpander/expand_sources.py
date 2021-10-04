@@ -193,6 +193,8 @@ Description:
 
 Args:
     dictionary value (string): free-text describing study interventions
+        fetch_pos (bool): True (default)
+        fetch_abb (bool): True (default)
 
 Returns:
     dictionary: returns a dictionary of expanded Intervention/Comparator terms along with POS tags and abbreviation information
@@ -261,6 +263,8 @@ Description:
 
 Args:
     dictionary value (string): free-text describing study interventions
+        fetch_pos (bool): True (default)
+        fetch_abb (bool): True (default)
 
 Returns:
     dictionary: returns a dictionary of expanded outcome terms along with POS tags and abbreviation information
