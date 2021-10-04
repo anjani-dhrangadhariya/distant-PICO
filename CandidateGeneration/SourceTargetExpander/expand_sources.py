@@ -6,11 +6,13 @@ def ExpandSourcesDoc(a):
 
 print( ExpandSourcesDoc.__doc__ )
 
-# imports
-import re
-import spacy
+# imports - general
 import time
 
+# imports - linguistic
+import re
+import spacy
+from scispacy.abbreviation import AbbreviationDetector
 
 nlp = spacy.load("en_core_web_trf")
 
