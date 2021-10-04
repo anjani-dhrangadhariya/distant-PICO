@@ -255,6 +255,16 @@ def expandIntervention(intervention_source, fetch_pos = True, fetch_abb = True):
 
     return expanded_intervention
 
+'''
+Description:
+    The funtion expands on the outcomes of the clinical trial study using heuristics and adds POS tags  and abbreviation information
+
+Args:
+    dictionary value (string): free-text describing study interventions
+
+Returns:
+    dictionary: returns a dictionary of expanded outcome terms along with POS tags and abbreviation information
+'''
 def expandOutcomes(outcome_source, fetch_pos = True, fetch_abb = True):
 
     expanded_outcome = dict()
