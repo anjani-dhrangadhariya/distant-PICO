@@ -8,6 +8,11 @@ print( ExpandSourcesDoc.__doc__ )
 
 # imports
 import re
+import spacy
+import time
+
+
+nlp = spacy.load("en_core_web_trf")
 
 def fetchAcronyms(json_document):
     acronym_dict = dict()
@@ -195,6 +200,27 @@ def expandIntervention(intervention_source):
 
     return expanded_intervention
 
+def getPOStags(to_pos):
+
+    pos_tagged = dict()
+
+    for key, value in to_pos.items():
+        doc = nlp(value)
+
+        text = [ token.text for token in doc ]
+        lemma = [ token.lemma_ for token in doc ]
+        pos = [ token.pos_ for token in doc ]
+        pos_fine = [ token.tag_ for token in doc ]
+        depth = [ token.dep_ for token in doc ]
+        shape = [ token.shape_ for token in doc ]
+        is_alpha = [ token.is_alpha for token in doc ]
+        is_stop = [ token.is_stop for token in doc ]
+
+        pos_tagged[key] = [ value, text, lemma, pos, pos_fine ]
+
+        assert len(pos_tagged) == len(to_pos)
+
+    return pos_tagged
 
 def expandSources(json_object, sources):
 
@@ -215,13 +241,21 @@ def expandSources(json_object, sources):
 
     # O
     # Outcomes do not require other expansion except POS tagging
+    expanded_prim_outcomes = getPOStags(sources['o_primary'])
+    print( expanded_prim_outcomes )
+    expanded_second_outcomes = getPOStags(sources['o_secondary'])
 
     # S
     expanded_studytype = expandStudyType(sources['s_type'])
 
     expanded_sources['ep_gender'] = expanded_gender
     expanded_sources['ep_age'] = expanded_age
+
     expanded_sources['ei_name'] = expanded_intervention
+
+    expanded_sources['eo_primary'] = expanded_prim_outcomes
+    expanded_sources['eo_secondary'] = expanded_second_outcomes
+
     expanded_sources['es_type'] = expanded_studytype
 
     return expanded_sources
