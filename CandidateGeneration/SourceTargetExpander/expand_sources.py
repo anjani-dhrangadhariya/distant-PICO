@@ -167,16 +167,16 @@ def getPOStags(value):
 
     return pos_ed
 
-def appendPOSSED(expanded_intervention, key, values):
+def appendPOSSED(expanded_dictionary, key, values):
 
     for value_i in values:
         possed_value = getPOStags(value_i)
-        if key not in expanded_intervention:
-            expanded_intervention[key] = [possed_value]
+        if key not in expanded_dictionary:
+            expanded_dictionary[key] = [possed_value]
         else:
-            expanded_intervention[key].append( possed_value )
+            expanded_dictionary[key].append( possed_value )
 
-    return expanded_intervention
+    return expanded_dictionary
 
 
 def expandIntervention(intervention_source, fetch_pos = True, fetch_abb = True):
@@ -193,8 +193,6 @@ def expandIntervention(intervention_source, fetch_pos = True, fetch_abb = True):
                     expanded_intervention = appendPOSSED(expanded_intervention, key, values)
                 else:
                     expanded_intervention[key] = values
-
-
 
             elif '&' not in value and 'vs' in value and ',' not in value  and ':' not in value and '/' not in value and '(' not in value: # versus
                 values = value.split('vs')
@@ -239,6 +237,20 @@ def expandIntervention(intervention_source, fetch_pos = True, fetch_abb = True):
 
     return expanded_intervention
 
+def expandOutcomes(outcome_source, fetch_pos = True, fetch_abb = True):
+
+    expanded_outcome = dict()
+
+    for key, value in outcome_source.items():
+        if fetch_pos == True:
+            expanded_outcome = appendPOSSED(expanded_outcome, key, [value])
+        else:
+            expanded_outcome[key] = value
+
+    print( expanded_outcome )
+
+    return expanded_outcome
+
 
 def expandSources(json_object, sources):
 
@@ -256,7 +268,7 @@ def expandSources(json_object, sources):
 
     # O
     # Outcomes do not require other expansion except POS tagging
-    # expanded_prim_outcomes = getPOStags(sources['o_primary'])
+    expanded_prim_outcomes = expandOutcomes(sources['o_primary'])
     # expanded_second_outcomes = getPOStags(sources['o_secondary'])
 
     # S
