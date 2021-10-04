@@ -79,7 +79,7 @@ results_gen = helpers.scan(
 match_scores = []
 intervention_types = []
 
-res = es.search(index="ctofull2021-index", body={"query": {"match_all": {}}}, size=90)
+res = es.search(index="ctofull2021-index", body={"query": {"match_all": {}}}, size=5)
 print('Total number of records retrieved: ', res['hits']['total']['value'])
 
 # Iterate through all of the fetched CTO index documents
@@ -109,9 +109,7 @@ for n, hit in enumerate( res['hits']['hits'] ): # XXX: Only a part search result
         targets = fetchTargets(protocol_section)
 
         # XXX: Expand the sources of PICOS annotation
-        # expandSources(protocol_section, sources, sources)
-
-
+        expanded_sources = expandSources(protocol_section, sources)
 
 
     except:
