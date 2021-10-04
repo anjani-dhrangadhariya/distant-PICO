@@ -14,7 +14,11 @@ import re
 import spacy
 from scispacy.abbreviation import AbbreviationDetector
 
-nlp = spacy.load("en_core_web_trf")
+
+nlp = spacy.load("en_core_sci_sm")
+
+# Add the abbreviation detector to spacy pipeline
+nlp.add_pipe("abbreviation_detector")
 
 def fetchAcronyms(json_document):
     acronym_dict = dict()
@@ -99,25 +103,12 @@ def expandAge(age_source):
         maxage_num = age_source['MaximumAge'].split(' ')[0]
         maxage_unit = age_source['MaximumAge'].split(' ')[1]
 
-        # pattern1 = str(minage_num)+'-'+str(maxage_num)
-        # pattern2 = pattern1+' '+minage_unit
-        # pattern3 = pattern2+' old'
-        # expanded_extAge.extend(pattern1)
-        # expanded_extAge.extend(pattern2)
-        # expanded_extAge.extend(pattern3)
-
         age_range_pattern =  '([Aa]ge[ds] )?(((\d{1,2}( years old)?(-| to | - | and )(.{1,3})?\d{1,2}) years) old)'
         compiled_pattern = re.compile(age_range_pattern)
         expanded_age_source['exactAge'] = compiled_pattern
 
     if 'MinimumAge' in age_source and 'MaximumAge' not in age_source:
         minage = age_source['MinimumAge']
-
-        # pattern1 = minage+' and above'
-        # pattern2 = minage+' old and above'
-        # expanded_extAge.extend(minage)
-        # expanded_extAge.extend(pattern1)
-        # expanded_extAge.extend(pattern2)
 
         age_range_pattern = '([Aa]ge[ds] )?(\≥ |\> ||\< )?\d{1,2}( years (old)?( and above)?)'
         compiled_pattern = re.compile(age_range_pattern)
@@ -207,6 +198,7 @@ def getPOStags(to_pos):
     pos_tagged = dict()
 
     for key, value in to_pos.items():
+
         doc = nlp(value)
 
         text = [ token.text for token in doc ]
@@ -219,6 +211,14 @@ def getPOStags(to_pos):
         is_stop = [ token.is_stop for token in doc ]
 
         pos_tagged[key] = [ value, text, lemma, pos, pos_fine ]
+        
+        altered_tok = [tok.text for tok in doc]
+        for abrv in doc._.abbreviations:
+            altered_tok[abrv.start] = str(abrv._.long_form)
+
+            print(f"{abrv} \t ({abrv.start}, {abrv.end}) {abrv._.long_form} \t  {value}")
+            print( " ".join(altered_tok) )       
+        
 
         assert len(pos_tagged) == len(to_pos)
 
@@ -227,9 +227,6 @@ def getPOStags(to_pos):
 def expandSources(json_object, sources):
 
     expanded_sources = dict()
-
-    # Get predefined acronyms from each study
-    # fetchAcronyms(json_object)
 
     # P
     expanded_gender = expandGender(sources['p_gender'])
@@ -244,7 +241,6 @@ def expandSources(json_object, sources):
     # O
     # Outcomes do not require other expansion except POS tagging
     expanded_prim_outcomes = getPOStags(sources['o_primary'])
-    print( expanded_prim_outcomes )
     expanded_second_outcomes = getPOStags(sources['o_secondary'])
 
     # S
