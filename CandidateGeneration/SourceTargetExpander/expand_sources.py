@@ -16,7 +16,6 @@ from scispacy.abbreviation import AbbreviationDetector
 
 
 nlp = spacy.load("en_core_sci_sm")
-
 # Add the abbreviation detector to spacy pipeline
 nlp.add_pipe("abbreviation_detector")
 
@@ -150,6 +149,16 @@ def expandStudyType(studytype_source):
     elif studytype_source == 'Non-Randomized':
         return re.compile(nonrandomized_source_pattern)
 
+'''
+Description:
+    The function fetches POS tags to the input string
+
+Args:
+    String: free-text string
+
+Returns:
+    list: returns a list with POS tags of the input string
+'''
 def getPOStags(value):
 
     doc = nlp(value)
@@ -178,7 +187,16 @@ def appendPOSSED(expanded_dictionary, key, values):
 
     return expanded_dictionary
 
+'''
+Description:
+    The funtion expands on the Intervention/Comparator terms of the clinical trial study using heuristics and adds POS tags  and abbreviation information
 
+Args:
+    dictionary value (string): free-text describing study interventions
+
+Returns:
+    dictionary: returns a dictionary of expanded Intervention/Comparator terms along with POS tags and abbreviation information
+'''
 def expandIntervention(intervention_source, fetch_pos = True, fetch_abb = True):
 
     expanded_intervention = dict()
