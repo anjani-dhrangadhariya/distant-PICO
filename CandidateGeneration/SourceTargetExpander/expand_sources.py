@@ -23,15 +23,12 @@ nlp.add_pipe("abbreviation_detector")
 def fetchAcronyms(json_document):
     acronym_dict = dict()
 
-    if 'IdentificationModule' in json_document:
-        
-        if 'Acronym' in json_document['IdentificationModule']:
-            Acronym = json_document['IdentificationModule']['Acronym']
-            title = json_document['IdentificationModule']['BriefTitle']
-            offtitle = json_document['IdentificationModule']['OfficialTitle']
-            print( Acronym , '----------', offtitle, '----------', title)
-            
-            acronym_dict['acronym'] = Acronym
+    altered_tok = [tok.text for tok in doc]
+    for abrv in doc._.abbreviations:
+        altered_tok[abrv.start] = str(abrv._.long_form)
+
+        print(f"{abrv} \t ({abrv.start}, {abrv.end}) {abrv._.long_form} \t  {value}")
+        print( " ".join(altered_tok) )       
 
     return acronym_dict
 
@@ -153,76 +150,95 @@ def expandStudyType(studytype_source):
     elif studytype_source == 'Non-Randomized':
         return re.compile(nonrandomized_source_pattern)
 
-def expandIntervention(intervention_source):
+def getPOStags(value):
+
+    doc = nlp(value)
+
+    text = [ token.text for token in doc ]
+    lemma = [ token.lemma_ for token in doc ]
+    pos = [ token.pos_ for token in doc ]
+    pos_fine = [ token.tag_ for token in doc ]
+    depth = [ token.dep_ for token in doc ]
+    shape = [ token.shape_ for token in doc ]
+    is_alpha = [ token.is_alpha for token in doc ]
+    is_stop = [ token.is_stop for token in doc ]
+
+    pos_ed = [ value, text, lemma, pos, pos_fine ]
+
+    return pos_ed
+
+def appendPOSSED(expanded_intervention, key, values):
+
+    for value_i in values:
+        possed_value = getPOStags(value_i)
+        if key not in expanded_intervention:
+            expanded_intervention[key] = [possed_value]
+        else:
+            expanded_intervention[key].append( possed_value )
+
+    return expanded_intervention
+
+
+def expandIntervention(intervention_source, fetch_pos = True, fetch_abb = True):
 
     expanded_intervention = dict()
 
     for key, value in intervention_source.items():
         if 'arm' not in key:
             
-            if '&' in value and 'vs' not in value and ',' not in value  and ':' not in value and '(' not in value: # ampersand
+            if '&' in value and 'vs' not in value and ',' not in value  and ':' not in value and '(' not in value: # ampersand              
                 values = value.split('&')
-                value.extend( values )
-                expanded_intervention[key] = values
-            
-            elif '&' not in value and 'vs' in value and ',' not in value  and ':' not in value and '(' not in value and '/' not in value: # versus
+                values.append( value )
+                if fetch_pos == True:
+                    expanded_intervention = appendPOSSED(expanded_intervention, key, values)
+                else:
+                    expanded_intervention[key] = values
+
+
+
+            elif '&' not in value and 'vs' in value and ',' not in value  and ':' not in value and '/' not in value and '(' not in value: # versus
                 values = value.split('vs')
-                value.extend( values )
-                expanded_intervention[key] = values
+                values.append( value )
+                if fetch_pos == True:
+                    expanded_intervention = appendPOSSED(expanded_intervention, key, values)
+                else:
+                    expanded_intervention[key] = values
 
-            elif '&' not in value and 'vs' not in value and ',' not in value  and ':' in value and '(' not in value and '/' not in value: # semi-colon
+            elif '&' not in value and 'vs' not in value and ',' not in value  and ':' in value and '/' not in value and '(' not in value: # semi-colon
                 values = value.split(':')
-                value.extend( values )
-                expanded_intervention[key] = values
+                values.append( value )
+                if fetch_pos == True:
+                    expanded_intervention = appendPOSSED(expanded_intervention, key, values)
+                else:
+                    expanded_intervention[key] = values
 
-            elif '&' not in value and 'vs' not in value and ',' in value  and ':' not in value and '(' not in value and '/' not in value: # comma
+            elif '&' not in value and 'vs' not in value and ',' in value  and ':' not in value and '/' not in value and '(' not in value: # comma
                 values = value.split(',')
-                value.extend( values )
-                expanded_intervention[key] = value
-                
+                values.append( value )
+                if fetch_pos == True:
+                    expanded_intervention = appendPOSSED(expanded_intervention, key, values)
+                else:
+                    expanded_intervention[key] = values
 
-            elif '&' not in value and 'vs' not in value and ',' not in value  and ':' not in value and '(' not in value and '/' in value: # forward slash
+            elif '&' not in value and 'vs' not in value and ',' not in value  and ':' not in value and '/' in value and '(' not in value: # forward slash
                 values = value.split('/')
-                value.extend( values )
-                expanded_intervention[key] = value
+                values.append( value )
+                if fetch_pos == True:
+                    expanded_intervention = appendPOSSED(expanded_intervention, key, values)
+                else:
+                    expanded_intervention[key] = values
 
             else:
-                expanded_intervention[key] = value
+                if fetch_pos == True:
+                    expanded_intervention = appendPOSSED(expanded_intervention, key, [value])
+                else:
+                    expanded_intervention[key] = values
+
         else:
             expanded_intervention[key] = value
 
     return expanded_intervention
 
-def getPOStags(to_pos):
-
-    pos_tagged = dict()
-
-    for key, value in to_pos.items():
-
-        doc = nlp(value)
-
-        text = [ token.text for token in doc ]
-        lemma = [ token.lemma_ for token in doc ]
-        pos = [ token.pos_ for token in doc ]
-        pos_fine = [ token.tag_ for token in doc ]
-        depth = [ token.dep_ for token in doc ]
-        shape = [ token.shape_ for token in doc ]
-        is_alpha = [ token.is_alpha for token in doc ]
-        is_stop = [ token.is_stop for token in doc ]
-
-        pos_tagged[key] = [ value, text, lemma, pos, pos_fine ]
-        
-        altered_tok = [tok.text for tok in doc]
-        for abrv in doc._.abbreviations:
-            altered_tok[abrv.start] = str(abrv._.long_form)
-
-            print(f"{abrv} \t ({abrv.start}, {abrv.end}) {abrv._.long_form} \t  {value}")
-            print( " ".join(altered_tok) )       
-        
-
-        assert len(pos_tagged) == len(to_pos)
-
-    return pos_tagged
 
 def expandSources(json_object, sources):
 
@@ -235,13 +251,13 @@ def expandSources(json_object, sources):
     # P - Sample size does not need expansion
 
     # I/C
-    expanded_intervention = expandIntervention(sources['i_name'])
+    expanded_intervention = expandIntervention(sources['i_name'], fetch_pos=True, fetch_abb=True)
     # I - synonyms do not require any expansion
 
     # O
     # Outcomes do not require other expansion except POS tagging
-    expanded_prim_outcomes = getPOStags(sources['o_primary'])
-    expanded_second_outcomes = getPOStags(sources['o_secondary'])
+    # expanded_prim_outcomes = getPOStags(sources['o_primary'])
+    # expanded_second_outcomes = getPOStags(sources['o_secondary'])
 
     # S
     expanded_studytype = expandStudyType(sources['s_type'])
@@ -251,8 +267,8 @@ def expandSources(json_object, sources):
 
     expanded_sources['ei_name'] = expanded_intervention
 
-    expanded_sources['eo_primary'] = expanded_prim_outcomes
-    expanded_sources['eo_secondary'] = expanded_second_outcomes
+    # expanded_sources['eo_primary'] = expanded_prim_outcomes
+    # expanded_sources['eo_secondary'] = expanded_second_outcomes
 
     expanded_sources['es_type'] = expanded_studytype
 
