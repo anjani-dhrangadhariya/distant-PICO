@@ -10,6 +10,8 @@ nlp = spacy.load("en_core_sci_sm")
 # Add the abbreviation detector to spacy pipeline
 nlp.add_pipe("abbreviation_detector")
 
+def removeSpaceTrailsString(s):
+    return " ".join(s.split())
 
 def fetchAcronyms(value):
 
