@@ -10,18 +10,27 @@ nlp = spacy.load("en_core_sci_sm")
 # Add the abbreviation detector to spacy pipeline
 nlp.add_pipe("abbreviation_detector")
 
-def fetchAcronyms(json_document):
-    acronym_dict = dict()
+
+def fetchAcronyms(value):
+
+    doc = nlp(value)
+
 
     altered_tok = [tok.text for tok in doc]
+
+    abbreviations = []
+
     for abrv in doc._.abbreviations:
         altered_tok[abrv.start] = str(abrv._.long_form)
 
-        print(f"{abrv} \t ({abrv.start}, {abrv.end}) {abrv._.long_form} \t  {value}")
-        print( " ".join(altered_tok) )       
+        # print(f"{abrv} \t ({abrv.start}, {abrv.end}) {abrv._.long_form} \t  {value}")
+        # print( " ".join(altered_tok) )
 
-    return acronym_dict
+        abbreviations.append( abrv )
+        abbreviations.append( abrv._.long_form )
 
+    if abbreviations:
+        return abbreviations
 
 '''
 Description:
@@ -50,7 +59,7 @@ def getPOStags(value):
 
     return pos_ed
 
-def appendPOSSED(expanded_dictionary, key, values):
+def appendPOSSED(expanded_dictionary, values, key):
 
     for value_i in values:
         possed_value = getPOStags(value_i)
