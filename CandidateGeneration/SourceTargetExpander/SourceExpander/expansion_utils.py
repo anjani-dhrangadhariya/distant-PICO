@@ -78,11 +78,3 @@ def appendPOSSED(expanded_dictionary, values, key):
             expanded_dictionary[key].append( possed_value )
 
     return expanded_dictionary
-
-
-def appendAbbreviations(expanded_dictionary):
-
-    for key, value in expanded_dictionary.items():
-        print(  )
-
-    return expanded_dictionary
