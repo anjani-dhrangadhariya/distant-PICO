@@ -17,7 +17,6 @@ def fetchAcronyms(value):
 
     doc = nlp(value)
 
-
     altered_tok = [tok.text for tok in doc]
 
     abbreviations = []
@@ -28,8 +27,8 @@ def fetchAcronyms(value):
         # print(f"{abrv} \t ({abrv.start}, {abrv.end}) {abrv._.long_form} \t  {value}")
         # print( " ".join(altered_tok) )
 
-        abbreviations.append( abrv )
-        abbreviations.append( abrv._.long_form )
+        abbreviations.append( str(abrv) )
+        abbreviations.append( str(abrv._.long_form) )
 
     if abbreviations:
         return abbreviations
@@ -48,7 +47,9 @@ def getPOStags(value):
 
     doc = nlp(value)
 
-    text = [ token.text for token in doc ]
+    pos_dict = dict()
+
+    tokens = [ token.text for token in doc ]
     lemma = [ token.lemma_ for token in doc ]
     pos = [ token.pos_ for token in doc ]
     pos_fine = [ token.tag_ for token in doc ]
@@ -57,9 +58,15 @@ def getPOStags(value):
     is_alpha = [ token.is_alpha for token in doc ]
     is_stop = [ token.is_stop for token in doc ]
 
-    pos_ed = [ value, text, lemma, pos, pos_fine ]
+    pos_dict['text'] = value
+    pos_dict['tokens'] = tokens
+    pos_dict['lemma'] = lemma
+    pos_dict['pos'] = pos
+    pos_dict['pos_fine'] = pos_fine   
 
-    return pos_ed
+    # pos_ed = [ value, text, lemma, pos, pos_fine ]
+
+    return pos_dict
 
 def appendPOSSED(expanded_dictionary, values, key):
 
@@ -69,5 +76,13 @@ def appendPOSSED(expanded_dictionary, values, key):
             expanded_dictionary[key] = [possed_value]
         else:
             expanded_dictionary[key].append( possed_value )
+
+    return expanded_dictionary
+
+
+def appendAbbreviations(expanded_dictionary):
+
+    for key, value in expanded_dictionary.items():
+        print(  )
 
     return expanded_dictionary

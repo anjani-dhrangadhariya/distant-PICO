@@ -43,6 +43,7 @@ from SourceFetcher.stdtype_sourcefetcher import *
 from TargetFetcher.all_targetsfetcher import *
 
 from SourceTargetExpander.expand_sources import *
+from SourceTargetExpander.expand_targets import *
 
 
 ################################################################################
@@ -79,7 +80,7 @@ results_gen = helpers.scan(
 match_scores = []
 intervention_types = []
 
-res = es.search(index="ctofull2021-index", body={"query": {"match_all": {}}}, size=100)
+res = es.search(index="ctofull2021-index", body={"query": {"match_all": {}}}, size=50)
 print('Total number of records retrieved: ', res['hits']['total']['value'])
 
 # Iterate through all of the fetched CTO index documents
@@ -108,9 +109,16 @@ for n, hit in enumerate( res['hits']['hits'] ): # XXX: Only a part search result
         # Retrieve the targets of PICOS annotation
         targets = fetchTargets(protocol_section)
 
-        # XXX: Expand the sources of PICOS annotation
+        # Expand the sources of PICOS annotation
         expanded_sources = expandSources(protocol_section, sources)
 
+        # Expand the targets of PICOS annotation
+        expanded_targets = expandTargets(protocol_section, targets)
+
+        # XXX: How to adjust for the abbreviation detection?
+
+
+        # Direct matching begins
 
     except:
         logNCTID = 'Caused exception at the NCT ID: ' + NCT_id

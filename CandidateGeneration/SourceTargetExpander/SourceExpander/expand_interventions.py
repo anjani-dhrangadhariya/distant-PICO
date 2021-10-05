@@ -28,7 +28,10 @@ def expandIntervention(intervention_source, fetch_pos = True, fetch_abb = True):
 
     expanded_intervention = dict()
 
+    # print(intervention_source)
+
     for key, value in intervention_source.items():
+
         if 'arm' not in key:
             
             if '&' in value and 'vs' not in value and ',' not in value  and ':' not in value and '(' not in value: # ampersand              
@@ -36,6 +39,10 @@ def expandIntervention(intervention_source, fetch_pos = True, fetch_abb = True):
                 values.append( value )
                 if fetch_pos == True:
                     expanded_intervention = appendPOSSED(expanded_intervention, values, key)
+                if fetch_abb == True:
+                    abbreviations = fetchAcronyms(value)
+                    if abbreviations is not None:
+                        expanded_intervention[key][0]['abb'] = abbreviations
                 else:
                     expanded_intervention[key] = values
 
@@ -44,6 +51,10 @@ def expandIntervention(intervention_source, fetch_pos = True, fetch_abb = True):
                 values.append( value )
                 if fetch_pos == True:
                     expanded_intervention = appendPOSSED(expanded_intervention, values, key)
+                if fetch_abb == True:
+                    abbreviations = fetchAcronyms(value)
+                    if abbreviations is not None:
+                        expanded_intervention[key][0]['abb'] = abbreviations
                 else:
                     expanded_intervention[key] = values
 
@@ -52,6 +63,10 @@ def expandIntervention(intervention_source, fetch_pos = True, fetch_abb = True):
                 values.append( value )
                 if fetch_pos == True:
                     expanded_intervention = appendPOSSED(expanded_intervention, values, key)
+                if fetch_abb == True:
+                    abbreviations = fetchAcronyms(value)
+                    if abbreviations is not None:
+                        expanded_intervention[key][0]['abb'] = abbreviations
                 else:
                     expanded_intervention[key] = values
 
@@ -60,20 +75,34 @@ def expandIntervention(intervention_source, fetch_pos = True, fetch_abb = True):
                 values.append( value )
                 if fetch_pos == True:
                     expanded_intervention = appendPOSSED(expanded_intervention, values, key)
+                if fetch_abb == True:
+                    abbreviations = fetchAcronyms(value)
+                    if abbreviations is not None:
+                        expanded_intervention[key][0]['abb'] = abbreviations
                 else:
                     expanded_intervention[key] = values
 
             elif '&' not in value and 'vs' not in value and ',' not in value  and ':' not in value and '/' in value and '(' not in value: # forward slash
                 values = value.split('/')
                 values.append( value )
+
                 if fetch_pos == True:
                     expanded_intervention = appendPOSSED(expanded_intervention, values, key)
+                if fetch_abb == True:
+                    abbreviations = fetchAcronyms(value)
+                    if abbreviations is not None:
+                        expanded_intervention[key][0]['abb'] = abbreviations
                 else:
                     expanded_intervention[key] = values
 
             else:
                 if fetch_pos == True:
                     expanded_intervention = appendPOSSED(expanded_intervention, [value], key)
+                if fetch_abb == True:
+                    abbreviations = fetchAcronyms(value)
+                    if abbreviations is not None:
+                        expanded_intervention[key][0]['abb'] = abbreviations
+
                 else:
                     expanded_intervention[key] = values
 

@@ -12,27 +12,20 @@ import time
 
 # imports - linguistic
 import re
-import spacy
-from scispacy.abbreviation import AbbreviationDetector
 
 # 
 from SourceTargetExpander.SourceExpander.expansion_utils import *
-
-
-nlp = spacy.load("en_core_sci_sm")
-# Add the abbreviation detector to spacy pipeline
-nlp.add_pipe("abbreviation_detector")
 
 def expandTargets(json_object, targets):
 
     expanded_targets = dict()
 
     for key, value in targets.items():
-        # print( value )
         newline_removed = value.replace("\n", " ").replace("\r", " ")
         trailingspaces_removed = removeSpaceTrailsString(newline_removed)
-        # print( trailingspaces_removed )
-        expanded_targets[key] = trailingspaces_removed
 
+        # Get POS-tags for the target string
+        possed_targets = getPOStags(trailingspaces_removed)
+        expanded_targets[key] = possed_targets
 
-    print( expanded_targets )
+    return expanded_targets
