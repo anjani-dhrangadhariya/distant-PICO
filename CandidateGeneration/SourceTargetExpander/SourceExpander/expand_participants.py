@@ -97,3 +97,19 @@ def expandAge(age_source):
         maxage_unit = age_source['MaximumAge'].split(' ')[1]
 
     return expanded_age_source
+
+def expandCondition(condition_source):
+
+    expanded_condition_source = []
+
+    for cond_i in condition_source:
+        expanded_acronyms = fetchAcronyms( cond_i )
+        
+        if expanded_acronyms is not None:
+            #expanded_condition_source.append( cond_i )
+            expanded_condition_source.extend( expanded_acronyms )
+
+        else:
+            expanded_condition_source.append( cond_i )
+
+    return expanded_condition_source
