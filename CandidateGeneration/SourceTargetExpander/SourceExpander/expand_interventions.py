@@ -35,7 +35,7 @@ def expandIntervention(intervention_source, fetch_pos = True, fetch_abb = True):
                 values = value.split('&')
                 values.append( value )
                 if fetch_pos == True:
-                    expanded_intervention = appendPOSSED(expanded_intervention, key, values)
+                    expanded_intervention = appendPOSSED(expanded_intervention, values, key)
                 else:
                     expanded_intervention[key] = values
 
@@ -43,7 +43,7 @@ def expandIntervention(intervention_source, fetch_pos = True, fetch_abb = True):
                 values = value.split('vs')
                 values.append( value )
                 if fetch_pos == True:
-                    expanded_intervention = appendPOSSED(expanded_intervention, key, values)
+                    expanded_intervention = appendPOSSED(expanded_intervention, values, key)
                 else:
                     expanded_intervention[key] = values
 
@@ -51,7 +51,7 @@ def expandIntervention(intervention_source, fetch_pos = True, fetch_abb = True):
                 values = value.split(':')
                 values.append( value )
                 if fetch_pos == True:
-                    expanded_intervention = appendPOSSED(expanded_intervention, key, values)
+                    expanded_intervention = appendPOSSED(expanded_intervention, values, key)
                 else:
                     expanded_intervention[key] = values
 
@@ -59,7 +59,7 @@ def expandIntervention(intervention_source, fetch_pos = True, fetch_abb = True):
                 values = value.split(',')
                 values.append( value )
                 if fetch_pos == True:
-                    expanded_intervention = appendPOSSED(expanded_intervention, key, values)
+                    expanded_intervention = appendPOSSED(expanded_intervention, values, key)
                 else:
                     expanded_intervention[key] = values
 
@@ -67,13 +67,13 @@ def expandIntervention(intervention_source, fetch_pos = True, fetch_abb = True):
                 values = value.split('/')
                 values.append( value )
                 if fetch_pos == True:
-                    expanded_intervention = appendPOSSED(expanded_intervention, key, values)
+                    expanded_intervention = appendPOSSED(expanded_intervention, values, key)
                 else:
                     expanded_intervention[key] = values
 
             else:
                 if fetch_pos == True:
-                    expanded_intervention = appendPOSSED(expanded_intervention, key, [value])
+                    expanded_intervention = appendPOSSED(expanded_intervention, [value], key)
                 else:
                     expanded_intervention[key] = values
 

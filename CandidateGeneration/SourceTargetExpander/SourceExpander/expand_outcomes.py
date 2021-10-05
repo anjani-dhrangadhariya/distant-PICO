@@ -30,7 +30,7 @@ def expandOutcomes(outcome_source, fetch_pos = True, fetch_abb = True):
 
     for key, value in outcome_source.items():
         if fetch_pos == True:
-            expanded_outcome = appendPOSSED(expanded_outcome, key, [value])
+            expanded_outcome = appendPOSSED(expanded_outcome, [value], key)
         else:
             expanded_outcome[key] = value
 
