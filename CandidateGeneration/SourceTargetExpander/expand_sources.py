@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 def ExpandSourcesDoc(a):
-    '''The module generates distant annotations for PICO entities using a cominbation of distant supervision and dynamic programming'''
+    '''The module expands Individual annotation sources.'''
     return a**a
 
 print( ExpandSourcesDoc.__doc__ )
@@ -30,19 +30,19 @@ def expandSources(json_object, sources):
 
     # -------------------------------------------------------------------------------------
     # P
+    # -------------------------------------------------------------------------------------
     expanded_gender = expandGender(sources['p_gender'])
     expanded_age = expandAge(sources['p_age'])
-    # P - Condition needs abbreviation detection
     expanded_condition = expandCondition(sources['p_condition'])
-    # P - Sample size does not need expansion
-    # print( sources['p_sample_size'] )
 
     expanded_sources['ep_gender'] = expanded_gender
     expanded_sources['ep_age'] = expanded_age
     expanded_sources['ep_condition'] = expanded_condition
+    expanded_sources['ep_sample_size'] = sources['p_sample_size']
 
     # -------------------------------------------------------------------------------------
-    # I/C I - (synonyms do not require any expansion)
+    # I/C
+    # -------------------------------------------------------------------------------------
     expanded_intervention_ = expandIntervention(sources['i_name'], fetch_pos=True, fetch_abb=True)
 
     if bool(sources['i_synonym']) == True:
@@ -54,7 +54,7 @@ def expandSources(json_object, sources):
 
     # -------------------------------------------------------------------------------------
     # O
-    # Outcomes do not require other expansion except POS tagging
+    # -------------------------------------------------------------------------------------
     expanded_prim_outcomes = expandOutcomes(sources['o_primary'])
     expanded_second_outcomes = expandOutcomes(sources['o_secondary'])
 
@@ -63,10 +63,9 @@ def expandSources(json_object, sources):
 
     # -------------------------------------------------------------------------------------
     # S
+    # -------------------------------------------------------------------------------------
     expanded_studytype = expandStudyType(sources['s_type'])
 
     expanded_sources['es_type'] = expanded_studytype
-
-    # -------------------------------------------------------------------------------------
 
     return expanded_sources
