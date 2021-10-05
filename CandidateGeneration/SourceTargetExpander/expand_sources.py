@@ -32,7 +32,7 @@ def expandSources(json_object, sources):
     expanded_gender = expandGender(sources['p_gender'])
     expanded_age = expandAge(sources['p_age'])
     # P - Condition needs abbreviation detection
-    # print( sources['p_condition'] )
+    expanded_condition = expandCondition(sources['p_condition'])
     # P - Sample size does not need expansion
     # print( sources['p_sample_size'] )
 
@@ -51,6 +51,7 @@ def expandSources(json_object, sources):
 
     expanded_sources['ep_gender'] = expanded_gender
     expanded_sources['ep_age'] = expanded_age
+    expanded_sources['ep_condition'] = expanded_condition
 
     expanded_sources['ei_name'] = expanded_intervention
 
