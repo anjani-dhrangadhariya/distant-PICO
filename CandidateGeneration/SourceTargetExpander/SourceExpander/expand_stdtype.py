@@ -4,13 +4,8 @@ import time
 # imports - linguistic
 import re
 import spacy
-from scispacy.abbreviation import AbbreviationDetector
 
 from SourceTargetExpander.SourceExpander.expansion_utils import *
-
-nlp = spacy.load("en_core_sci_sm")
-# Add the abbreviation detector to spacy pipeline
-nlp.add_pipe("abbreviation_detector")
 
 '''
 Description:

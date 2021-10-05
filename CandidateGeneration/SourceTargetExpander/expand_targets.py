@@ -16,6 +16,18 @@ import re
 # 
 from SourceTargetExpander.SourceExpander.expansion_utils import *
 
+'''
+TODO
+Description:
+    The function preprocesses and expands the targets
+
+Args:
+    String: free-text string
+        
+
+Returns:
+    Dictionary (dict): expanded targets
+'''
 def expandTargets(json_object, targets):
 
     expanded_targets = dict()

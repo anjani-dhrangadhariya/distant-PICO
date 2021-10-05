@@ -3,16 +3,30 @@ import time
 
 # imports - linguistic
 import re
-import spacy
-from scispacy.abbreviation import AbbreviationDetector
 
-nlp = spacy.load("en_core_sci_sm")
-# Add the abbreviation detector to spacy pipeline
-nlp.add_pipe("abbreviation_detector")
+'''
+Description:
+    The function removes trailing spaces from a string and replaces them with a single string
 
+Args:
+    string (str): free-text string
+
+Returns:
+    string (str): clean string 
+'''
 def removeSpaceTrailsString(s):
     return " ".join(s.split())
 
+'''
+Description:
+    The function extracts acronyms using Scispacy abbreviation detector
+
+Args:
+    string (str): free-text string
+
+Returns:
+    List (list): tuple with detected abbreviation and the long form of the abbreviation
+'''
 def fetchAcronyms(value):
 
     doc = nlp(value)
@@ -35,13 +49,13 @@ def fetchAcronyms(value):
 
 '''
 Description:
-    The function fetches POS tags to the input string
+    The function fetches POS tags for the input string
 
 Args:
     String: free-text string
 
 Returns:
-    list: returns a list with POS tags of the input string
+    Dictionary (dict): returns a dictionary containing free-text string with its tokenized string, token lemma, POS tags for the tokens, finer POS tags for the token
 '''
 def getPOStags(value):
 
@@ -68,6 +82,19 @@ def getPOStags(value):
 
     return pos_dict
 
+'''
+TODO
+Description:
+    
+
+Args:
+    Dictionary (dict): free-text string
+        value (string):
+        key (string):
+
+Returns:
+    Dictionary (dict):
+'''
 def appendPOSSED(expanded_dictionary, values, key):
 
     for value_i in values:

@@ -41,10 +41,10 @@ def expandGender(gender_source):
 
 '''
 Description:
-    The funtion expands on the age terms of the study participants using a heuristic dictionary expansion
+    The funtion expands the Participant age terms extracted from the clinical trial study using a heuristic dictionary expansion and ReGex
 
 Args:
-    dictionary value (string): free-text describing gender of the study pariticpants
+     dictionary (dict): dictionary describing age of the study pariticpants (exact age value and standardized age groups corresponding to MeSH)
 
 Returns:
     dictionary: returns a dictionary of expanded age values and patterns according to age of the study pariticpants
@@ -72,7 +72,7 @@ def expandAge(age_source):
     
     expanded_age_source['StdAge'] = expanded_stdage
 
-    # Expand exact age
+    # Expand exact age pattern
     if 'MinimumAge' in age_source and  'MaximumAge' in age_source:
         minage_num = age_source['MinimumAge'].split(' ')[0]
         minage_unit = age_source['MinimumAge'].split(' ')[1]
@@ -98,6 +98,18 @@ def expandAge(age_source):
 
     return expanded_age_source
 
+'''
+Description:
+    The funtion expands the Participant condition mentions extracted from the clinical trial study by abbreviations using scispacy
+
+Args:
+    dictionary value (string): free-text describing study participants conditions
+        fetch_pos (bool): True (default)
+        fetch_abb (bool): True (default)
+
+Returns:
+    dictionary: returns a dictionary of expanded condition terms along with their abbreviations
+'''
 def expandCondition(condition_source):
 
     expanded_condition_source = []

@@ -14,15 +14,15 @@ nlp.add_pipe("abbreviation_detector")
 
 '''
 Description:
-    The funtion expands on the outcomes of the clinical trial study using heuristics and adds POS tags  and abbreviation information
+    The funtion expands the Outcome mentions (usually whole sentences) extracted from the clinical trial study by adding POS tags and abbreviations using scispacy
 
 Args:
-    dictionary value (string): free-text describing study interventions
+    dictionary value (string): free-text describing study outcomes
         fetch_pos (bool): True (default)
         fetch_abb (bool): True (default)
 
 Returns:
-    dictionary: returns a dictionary of expanded outcome terms along with POS tags and abbreviation information
+    dictionary: returns a dictionary of expanded outcome terms along with POS tags
 '''
 def expandOutcomes(outcome_source, fetch_pos = True, fetch_abb = True):
 

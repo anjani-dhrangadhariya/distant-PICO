@@ -1,23 +1,14 @@
 # imports - general
 import time
 
-# imports - linguistic
-import re
-import spacy
-from scispacy.abbreviation import AbbreviationDetector
-
 from SourceTargetExpander.SourceExpander.expansion_utils import *
-
-nlp = spacy.load("en_core_sci_sm")
-# Add the abbreviation detector to spacy pipeline
-nlp.add_pipe("abbreviation_detector")
 
 '''
 Description:
-    The funtion expands on the Intervention/Comparator terms of the clinical trial study using heuristics and adds POS tags  and abbreviation information
+    The funtion expands the Intervention/Comparator terms extracted from the clinical trial study using 'if/else' heuristics and adds POS tags and abbreviations using scispacy
 
 Args:
-    dictionary value (string): free-text describing study interventions
+    dictionary (dict): dictionary storing "intervention" and "arms groups" terms
         fetch_pos (bool): True (default)
         fetch_abb (bool): True (default)
 
