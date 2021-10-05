@@ -28,6 +28,7 @@ def expandSources(json_object, sources):
 
     expanded_sources = dict()
 
+    # -------------------------------------------------------------------------------------
     # P
     expanded_gender = expandGender(sources['p_gender'])
     expanded_age = expandAge(sources['p_age'])
@@ -36,28 +37,36 @@ def expandSources(json_object, sources):
     # P - Sample size does not need expansion
     # print( sources['p_sample_size'] )
 
-    # I/C
-    expanded_intervention = expandIntervention(sources['i_name'], fetch_pos=True, fetch_abb=True)
-    # I - synonyms do not require any expansion
-    #    print( sources['i_synonym'] )
+    expanded_sources['ep_gender'] = expanded_gender
+    expanded_sources['ep_age'] = expanded_age
+    expanded_sources['ep_condition'] = expanded_condition
 
+    # -------------------------------------------------------------------------------------
+    # I/C I - (synonyms do not require any expansion)
+    expanded_intervention_ = expandIntervention(sources['i_name'], fetch_pos=True, fetch_abb=True)
+
+    if bool(sources['i_synonym']) == True:
+        expanded_intervention = {**expanded_intervention_, **sources['i_synonym']}
+    elif bool(sources['i_synonym']) == False:
+        expanded_intervention = expanded_intervention_
+
+    expanded_sources['ei_name'] = expanded_intervention
+
+    # -------------------------------------------------------------------------------------
     # O
     # Outcomes do not require other expansion except POS tagging
     expanded_prim_outcomes = expandOutcomes(sources['o_primary'])
     expanded_second_outcomes = expandOutcomes(sources['o_secondary'])
 
-    # S
-    expanded_studytype = expandStudyType(sources['s_type'])
-
-    expanded_sources['ep_gender'] = expanded_gender
-    expanded_sources['ep_age'] = expanded_age
-    expanded_sources['ep_condition'] = expanded_condition
-
-    expanded_sources['ei_name'] = expanded_intervention
-
     expanded_sources['eo_primary'] = expanded_prim_outcomes
     expanded_sources['eo_secondary'] = expanded_second_outcomes
 
+    # -------------------------------------------------------------------------------------
+    # S
+    expanded_studytype = expandStudyType(sources['s_type'])
+
     expanded_sources['es_type'] = expanded_studytype
+
+    # -------------------------------------------------------------------------------------
 
     return expanded_sources
