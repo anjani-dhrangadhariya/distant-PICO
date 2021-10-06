@@ -34,7 +34,6 @@ def expandSources(json_object, sources):
     expanded_gender = expandGender(sources['p_gender'])
     expanded_age = expandAge(sources['p_age'])
     expanded_condition = expandCondition(sources['p_condition'])
-    print( expanded_condition )
 
     expanded_sources['ep_gender'] = expanded_gender
     expanded_sources['ep_age'] = expanded_age
