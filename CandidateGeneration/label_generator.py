@@ -21,8 +21,6 @@ from elasticsearch import Elasticsearch, helpers
 from elasticsearch_dsl import Search,  Q
 
 import difflib, re
-import nltk
-from nltk.tokenize import WhitespaceTokenizer, sent_tokenize, word_tokenize
 
 from collections import Counter
 from collections import defaultdict
@@ -45,6 +43,8 @@ from TargetFetcher.all_targetsfetcher import *
 from SourceTargetExpander.expand_sources import *
 from SourceTargetExpander.expand_targets import *
 
+from SourceTargetAligner.source_target_mapping import generateMapping
+from SourceTargetAligner.align_pariticipants import *
 
 ################################################################################
 # Set the logger here
@@ -115,14 +115,31 @@ for n, hit in enumerate( res['hits']['hits'] ): # XXX: Only a part search result
         # Expand the targets of PICOS annotation
         expanded_targets = expandTargets(protocol_section, targets)
 
-        # print( expanded_targets )
-
         # XXX: How to adjust for the abbreviation detection? Decide this based on direct matching process
+
+        # Get the mappings between sources and their relevant targets
+        mapping = generateMapping()
+        # print(mapping)
+        # print(NCT_id , ': ', expanded_targets.keys())
+        # print( expanded_sources.keys() )
+
 
         # XXX: Direct matching begins
         for key, value in expanded_sources.items():
+            
+            # only get the gender values
+            if 'gender' in key:
+                candidate_targets = mapping[key]
+                gender_annotations = alignParGender( value, expanded_targets, candidate_targets )
+                if gender_annotations:    
+                    print( gender_annotations )
 
-            print( key )
+            # only get the gender values
+            # if 'sample_size' in key:
+            #     candidate_targets = mapping[key]
+            #     sampsize_annotations = alignParSampSize( value, expanded_targets, candidate_targets )          
+            #     print( sampsize_annotations )           
+
 
     except:
         logNCTID = 'Caused exception at the NCT ID: ' + NCT_id
