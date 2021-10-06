@@ -114,13 +114,9 @@ def align_highconf_longtarget(target, source):
                         token.extend( token_i )
                 
             if annot:
-                # print( annot )
                 token_annot = [ token, annot ]
                 collect_annotations['sentence' + str(i)] = token_annot
 
     assert len(token) == len(annot)
-
-    if collect_annotations:
-        print( collect_annotations )
 
     return collect_annotations
