@@ -115,11 +115,14 @@ for n, hit in enumerate( res['hits']['hits'] ): # XXX: Only a part search result
         # Expand the targets of PICOS annotation
         expanded_targets = expandTargets(protocol_section, targets)
 
+        # print( expanded_targets )
+
         # XXX: How to adjust for the abbreviation detection? Decide this based on direct matching process
 
         # XXX: Direct matching begins
-        # for key, value in expanded_sources.items():
-        #     print( key )
+        for key, value in expanded_sources.items():
+
+            print( key )
 
     except:
         logNCTID = 'Caused exception at the NCT ID: ' + NCT_id

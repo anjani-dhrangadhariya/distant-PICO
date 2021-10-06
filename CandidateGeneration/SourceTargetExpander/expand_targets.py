@@ -12,6 +12,8 @@ import time
 
 # imports - linguistic
 import re
+import spacy
+from scispacy.abbreviation import AbbreviationDetector
 
 # 
 from SourceTargetExpander.SourceExpander.expansion_utils import *
