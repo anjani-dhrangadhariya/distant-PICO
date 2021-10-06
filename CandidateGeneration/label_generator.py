@@ -44,7 +44,7 @@ from SourceTargetExpander.expand_sources import *
 from SourceTargetExpander.expand_targets import *
 
 from SourceTargetAligner.source_target_mapping import generateMapping
-from SourceTargetAligner.align_pariticipants import *
+from SourceTargetAligner.labeling_operators import *
 
 ################################################################################
 # Set the logger here
@@ -130,16 +130,28 @@ for n, hit in enumerate( res['hits']['hits'] ): # XXX: Only a part search result
             # only get the gender values
             if 'gender' in key:
                 candidate_targets = mapping[key]
-                gender_annotations = alignParGender( value, expanded_targets, candidate_targets )
-                if gender_annotations:    
-                    print( gender_annotations )
+                gender_annotations = directAligner( value, expanded_targets, candidate_targets )
+                # if gender_annotations:    
+                #     print( gender_annotations )
 
             # only get the gender values
-            # if 'sample_size' in key:
-            #     candidate_targets = mapping[key]
-            #     sampsize_annotations = alignParSampSize( value, expanded_targets, candidate_targets )          
-            #     print( sampsize_annotations )           
+            if 'sample_size' in key:
+                candidate_targets = mapping[key]
+                sampsize_annotations = directAligner( [value], expanded_targets, candidate_targets )   # direct aligner expects values as lists       
+                # if sampsize_annotations:  
+                #     print( sampsize_annotations )
 
+            if 'age' in key:
+                candidate_targets = mapping[key]
+                stdage_annotations = directAligner( value['StdAge'], expanded_targets, candidate_targets )
+                if stdage_annotations:  
+                    print( stdage_annotations )
+
+            if 'condition' in key:
+                candidate_targets = mapping[key]
+                condition_annotations = longTailAligner( value, expanded_targets, candidate_targets )
+                # if condition_annotations:  
+                #     print( condition_annotations )
 
     except:
         logNCTID = 'Caused exception at the NCT ID: ' + NCT_id
