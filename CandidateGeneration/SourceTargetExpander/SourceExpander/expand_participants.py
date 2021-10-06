@@ -24,7 +24,7 @@ Returns:
 '''
 def expandGender(gender_source):
 
-    male_source = ['Male', 'Males', 'Men', 'Man', 'Boy', 'Boys']
+    male_source = ['Male', 'Males', ' Men ', ' Man ', 'Boy', 'Boys']
     female_source = ['Female', 'Females', 'Women', 'Woman', 'Girl', 'Girls']
 
     expanded_gender_source = []
