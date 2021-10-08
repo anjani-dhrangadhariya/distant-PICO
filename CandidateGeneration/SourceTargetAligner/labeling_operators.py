@@ -45,3 +45,24 @@ def longTailAligner(source, targets, candidateTargets):
                     condition_annotations[eachCandidate].append( annotations )
 
     return condition_annotations
+
+
+def regexAligner(source, targets, candidateTargets):
+
+    combined_annotations = dict()
+
+    for eachReGeX in source: # each source_i
+
+        for eachCandidate in candidateTargets: # each target_i
+
+            target_i = targets[eachCandidate]['text']
+
+            annotations = align_regex_longtarget( target_i.lower() , eachReGeX )
+
+            if annotations:
+                if eachCandidate not in combined_annotations:
+                    combined_annotations[eachCandidate] = [annotations]
+                else:
+                    combined_annotations[eachCandidate].append( annotations )
+    
+    return combined_annotations
