@@ -19,8 +19,6 @@ def expandIntervention(intervention_source, fetch_pos = True, fetch_abb = True):
 
     expanded_intervention = dict()
 
-    # print(intervention_source)
-
     for key, value in intervention_source.items():
 
         if 'arm' not in key:

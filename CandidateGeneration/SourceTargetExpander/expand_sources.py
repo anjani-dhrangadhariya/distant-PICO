@@ -43,14 +43,13 @@ def expandSources(json_object, sources):
     # -------------------------------------------------------------------------------------
     # I/C
     # -------------------------------------------------------------------------------------
-    expanded_intervention_ = expandIntervention(sources['i_name'], fetch_pos=True, fetch_abb=True)
-
-    if bool(sources['i_synonym']) == True:
-        expanded_intervention = {**expanded_intervention_, **sources['i_synonym']}
-    elif bool(sources['i_synonym']) == False:
-        expanded_intervention = expanded_intervention_
+    expanded_intervention = expandIntervention(sources['i_name'], fetch_pos=True, fetch_abb=True)
 
     expanded_sources['ei_name'] = expanded_intervention
+
+    if bool(sources['i_synonym']) == True:
+        expanded_sources['ei_syn'] = sources['i_synonym']
+
 
     # -------------------------------------------------------------------------------------
     # O
