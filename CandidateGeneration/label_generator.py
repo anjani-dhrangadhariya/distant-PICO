@@ -119,13 +119,11 @@ for n, hit in enumerate( res['hits']['hits'] ): # XXX: Only a part search result
 
         # Get the mappings between sources and their relevant targets
         mapping = generateMapping()
-        # print(mapping)
-        # print(NCT_id , ': ', expanded_targets.keys())
-        # print( expanded_sources.keys() )
 
-
-        # XXX: Direct matching begins
+        # Direct matching begins
         for key, value in expanded_sources.items():
+
+            # print( expanded_sources.keys() )
             
             # only get the gender values
             if 'gender' in key:
@@ -144,14 +142,39 @@ for n, hit in enumerate( res['hits']['hits'] ): # XXX: Only a part search result
             if 'age' in key:
                 candidate_targets = mapping[key]
                 stdage_annotations = directAligner( value['StdAge'], expanded_targets, candidate_targets )
-                if stdage_annotations:  
-                    print( stdage_annotations )
+                # if stdage_annotations:  
+                #     print( stdage_annotations )
+
+                exctage_annotattions = regexAligner( [value['exactAge']], expanded_targets, candidate_targets ) # reGeX aligner expects values as lists   
+                # if exctage_annotattions:  
+                #     print( exctage_annotattions )
+                
 
             if 'condition' in key:
                 candidate_targets = mapping[key]
-                condition_annotations = longTailAligner( value, expanded_targets, candidate_targets )
+                # condition_annotations = longTailAligner( value, expanded_targets, candidate_targets )
                 # if condition_annotations:  
                 #     print( condition_annotations )
+
+            if 'ei_name' in key:
+                candidate_targets = mapping[key]
+                print( value )
+            #     int_syn_annotations = longTailAligner( value['int_syn'], expanded_targets, candidate_targets )
+            #     if int_syn_annotations:  
+            #         print( int_syn_annotations )
+
+            if 'ei_syn' in key:
+                candidate_targets = mapping[key]
+                int_syn_annotations = longTailAligner( value['int_syn'], expanded_targets, candidate_targets )
+                # if int_syn_annotations:  
+                #     print( int_syn_annotations )
+
+            if 'es_type' in key:
+                # print(value)
+                candidate_targets = mapping[key]
+                studytype_annotations = regexAligner( [value], expanded_targets, candidate_targets )   # direct aligner expects values as lists       
+                # if studytype_annotations:  
+                #     print( studytype_annotations )
 
     except:
         logNCTID = 'Caused exception at the NCT ID: ' + NCT_id
