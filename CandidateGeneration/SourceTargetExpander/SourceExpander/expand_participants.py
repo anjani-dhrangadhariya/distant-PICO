@@ -89,7 +89,7 @@ def expandAge(age_source):
         minage = age_source['MinimumAge']
 
         # age_range_pattern = r'([Aa]ge[ds] )?(\≥ |\> ||\< )?\d{1,2}( years (old)?( and above)?)'
-        age_range_pattern =  r'(([Aa]ge[ds]? ?)\b([0-9]{1,2})\b(\s+years?|\s+months?)?(\s+old|-old)?\s?(and above)?)'
+        age_range_pattern =  r'(([Aa]ge[ds]? ?)\b([0-9]{1,2})\b(\s+years?|\s+months?)?(\s+old|-old)?\s?(and above| and older)?)'
         compiled_pattern = re.compile(age_range_pattern)
         expanded_age_source['exactAge'] = compiled_pattern
 
