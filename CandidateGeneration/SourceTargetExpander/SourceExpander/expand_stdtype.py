@@ -23,13 +23,12 @@ def expandStudyType(studytype_source):
     expanded_studytype_source = []
 
     ''' Expanded according the MeSH entry term (MeSH ID: D011897) from U.S. National Library of Medicine (NLM)'''
-    # randomized_source = ['Random', 'Randomized', 'Randomised', 'Randomization', 'Randomisation']
-    randomized_source_pattern = '([rR]andomi+[sz]+e+d+)'
+    # randomized_source = ['Random', 'Randomized', 'Randomised', 'Randomization', 'Randomisation', 'Randomly']
+    randomized_source_pattern = '([rR]andom(i[sz]ed|ly|i[sz]ation)?)' # only group 1 will be considered
 
     ''' Expanded according the MeSH entry term (MeSH ID: D065228) from U.S. National Library of Medicine (NLM)'''
     # nonrandomized_source = ['Non-Random', 'Nonrandom', 'Non Random', 'Non-Randomized', 'Non-Randomised', 'Nonrandomized', 'Nonrandomised', 'Non Randomized', 'Non Randomised']
-    nonrandomized_source_pattern = '([nN]o[nt][- ]?[rR]andomi+[sz]+e+d+)'
-    # XXX: Rather than a dictionary, expand it using a regular expression
+    nonrandomized_source_pattern = '([nN]o[nt][- ]?[rR]andom(i[sz]ed|ly|i[sz]ation)?)' # only group 1 will be considered
 
     if studytype_source == 'N/A':
         return 'N.A.'
