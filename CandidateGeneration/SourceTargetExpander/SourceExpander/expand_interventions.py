@@ -57,10 +57,8 @@ def expandIntervention(intervention_source, fetch_pos = True, fetch_abb = True):
                 key1 = key + '_' + str(i)
                 if fetch_pos == True:
                     expanded_intervention = appendPOSSED(expanded_intervention, [eachValue], key1)
-            
-            print( expanded_intervention )
 
-        # else:
+        # else: # XXX: Arms group intervention terms here! Won't be used for experimentation or candidate generation
         #     expanded_intervention[key] = value
 
     return expanded_intervention
