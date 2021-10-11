@@ -30,7 +30,7 @@ from SourceTargetAligner.scoring import *
 ####################################################################
 # Function to extract the aligned candidate annotations
 ####################################################################
-def extractReGeXannotation(source, target, match):
+def extractReGeXannotation(source, target, match, PICOS):
 
     token = list()
     annot = list()
@@ -43,7 +43,7 @@ def extractReGeXannotation(source, target, match):
     annotation = [0] * len(target)
     for n, i in enumerate(annotation):
         if n >= annotation_start_position and n <= annotation_stop_position: # if its anything between the start and the stop position of annotation
-            annotation[n] = 1
+            annotation[n] = PICOS
 
     for span in span_generator:
         
@@ -64,7 +64,7 @@ def extractReGeXannotation(source, target, match):
     return token, annot
 
 
-def extractAnnotation(source, target, match):
+def extractAnnotation(source, target, match, PICOS):
     
     token = list()
     annot = list()
@@ -77,7 +77,7 @@ def extractAnnotation(source, target, match):
     annotation = [0] * len(target)
     for n, i in enumerate(annotation):
         if n >= annotation_start_position and n <= annotation_stop_position: # if its anything between the start and the stop position of annotation
-            annotation[n] = 1
+            annotation[n] = PICOS
 
     for span in span_generator:
         
@@ -100,7 +100,7 @@ def extractAnnotation(source, target, match):
 ###############################################################################################
 # Function to align source intervention terms with high confidence short targets
 ###############################################################################################
-def align_highconf_shorttarget(target, source):
+def align_highconf_shorttarget(target, source, PICOS):
     annot = list()
     token = list()
 
@@ -110,7 +110,7 @@ def align_highconf_shorttarget(target, source):
         matches = fullMatchScore(s, source, target)
         for match in matches:
             if match[0] == 1.0:                    
-                token, annot = extractAnnotation(source, target, match)
+                token, annot = extractAnnotation(source, target, match, PICOS)
 
     assert len(token) == len(annot)
     return token, annot
@@ -118,7 +118,7 @@ def align_highconf_shorttarget(target, source):
 ###############################################################################################
 # Function to align source terms with high confidence long targets
 ###############################################################################################
-def align_highconf_longtarget(target, source):
+def align_highconf_longtarget(target, source, PICOS):
 
     target_sentences = list()
    
@@ -140,7 +140,7 @@ def align_highconf_longtarget(target, source):
             if 1.0 in match_scores:
                 for match in matches:
                     if match[0] == 1.0:  
-                        token_i, annot_i = extractAnnotation(source, eachSentence, match)
+                        token_i, annot_i = extractAnnotation(source, eachSentence, match, PICOS)
                         annot.extend( annot_i )
                         token.extend( token_i )
                 
@@ -155,7 +155,7 @@ def align_highconf_longtarget(target, source):
 ###############################################################################################
 # Function to align source ReGeX to long targets
 ###############################################################################################
-def align_regex_longtarget(target, source):
+def align_regex_longtarget(target, source, PICOS):
  
     target_sentences = list()
 
@@ -169,17 +169,18 @@ def align_regex_longtarget(target, source):
 
             annot = list()
             token = list()
-            
+            matched = list()
+
             r1 = source.finditer(eachSentence)
 
             for match in r1:
-                print(match.group(1))
-                token_i, annot_i = extractReGeXannotation(source, eachSentence, match)
+                token_i, annot_i = extractReGeXannotation(source, eachSentence, match, PICOS)
                 annot.extend( annot_i )
                 token.extend( token_i )
 
             if annot:
                 token_annot = [ token, annot ]
+                collect_annotations
                 collect_annotations['sentence' + str(i)] = token_annot
 
 

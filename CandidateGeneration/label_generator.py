@@ -122,55 +122,58 @@ for n, hit in enumerate( res['hits']['hits'] ): # Only a part search results fro
 
         #################################################################
         # Direct matching begins
+        # P = 1, I/C = 2, O = 3, S = 4
+        # expanded_sources: All the sources from a NCTID
+        # expanded_targets: All the targets from a NCTID
         #################################################################
 
         for key, value in expanded_sources.items():
 
             if 'ei_syn' in key:
                 candidate_targets = mapping[key]
-                int_annotations = longTailInterventionAligner( value, expanded_targets, candidate_targets )
+                int_annotations = longTailInterventionAligner( value, expanded_targets, candidate_targets, 2 )
                 # if int_annotations:  
                 #     print( int_annotations )
 
             if 'ei_name' in key:
                 candidate_targets = mapping[key]
-                int_annotations = longTailInterventionAligner( value, expanded_targets, candidate_targets )
+                int_annotations = longTailInterventionAligner( value, expanded_targets, candidate_targets, 2 )
                 # if int_annotations:  
                 #     print( int_annotations )
 
             if 'gender' in key:
                 candidate_targets = mapping[key]
-                gender_annotations = directAligner( value, expanded_targets, candidate_targets )
+                gender_annotations = directAligner( value, expanded_targets, candidate_targets, 1 )
                 # if gender_annotations:    
                 #     print( gender_annotations )
 
             if 'sample_size' in key:
                 candidate_targets = mapping[key]
-                sampsize_annotations = directAligner( [value], expanded_targets, candidate_targets )   # direct aligner expects values as lists       
+                sampsize_annotations = directAligner( [value], expanded_targets, candidate_targets, 1 )   # direct aligner expects values as lists       
                 # if sampsize_annotations:  
                 #     print( sampsize_annotations )
 
             if 'age' in key:
                 candidate_targets = mapping[key]
-                stdage_annotations = directAligner( value['StdAge'], expanded_targets, candidate_targets )
+                stdage_annotations = directAligner( value['StdAge'], expanded_targets, candidate_targets, 1 )
                 # if stdage_annotations:  
                 #     print( stdage_annotations )
 
-                exctage_annotattions = regexAligner( [value['exactAge']], expanded_targets, candidate_targets ) # reGeX aligner expects values as lists   
+                exctage_annotattions = regexAligner( [value['exactAge']], expanded_targets, candidate_targets, 1 ) # reGeX aligner expects values as lists   
                 # if exctage_annotattions:  
                 #     print( exctage_annotattions )
                 
 
             if 'condition' in key:
                 candidate_targets = mapping[key]
-                condition_annotations = longTailConditionAligner( value, expanded_targets, candidate_targets )
+                condition_annotations = longTailConditionAligner( value, expanded_targets, candidate_targets, 1 )
                 # if condition_annotations:  
                 #     print( condition_annotations )
 
 
             if 'es_type' in key:
                 candidate_targets = mapping[key]
-                # studytype_annotations = regexAligner( [value], expanded_targets, candidate_targets )   # direct aligner expects values as lists       
+                studytype_annotations = regexAligner( [value], expanded_targets, candidate_targets, 4 )   # direct aligner expects values as lists       
                 # if studytype_annotations:  
                 #     print( studytype_annotations )
 

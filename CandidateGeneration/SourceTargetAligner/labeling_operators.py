@@ -12,7 +12,7 @@ from SourceTargetAligner.aligner import *
 '''
 Direct Aligner
 '''
-def directAligner(source, targets, candidateTargets):
+def directAligner(source, targets, candidateTargets, PICOS):
 
     combined_annotations = dict()
 
@@ -23,7 +23,7 @@ def directAligner(source, targets, candidateTargets):
             res = key.startswith(tuple(candidateTargets))
             if res == True:
                 target_i = targets[key]['text']
-                annotations = align_highconf_longtarget( target_i.lower() , eachSource.lower() )
+                annotations = align_highconf_longtarget( target_i.lower() , eachSource.lower() , PICOS)
 
                 if annotations:
                     if eachSource not in combined_annotations:
@@ -39,7 +39,7 @@ def directAligner(source, targets, candidateTargets):
 '''
 ReGeX Aligner
 '''
-def regexAligner(source, targets, candidateTargets):
+def regexAligner(source, targets, candidateTargets, PICOS):
 
     combined_annotations = dict()
 
@@ -52,7 +52,7 @@ def regexAligner(source, targets, candidateTargets):
 
                 target_i = targets[key]['text']
 
-                annotations = align_regex_longtarget( target_i.lower() , eachReGeX )
+                annotations = align_regex_longtarget( target_i.lower() , eachReGeX , PICOS)
 
                 if annotations:
                     if key not in combined_annotations:
@@ -65,7 +65,7 @@ def regexAligner(source, targets, candidateTargets):
 '''
 LongTail Intervention Aligner
 '''
-def longTailInterventionAligner(source, targets, candidateTargets):
+def longTailInterventionAligner(source, targets, candidateTargets, PICOS):
 
     intervention_annotations = dict()
 
@@ -82,7 +82,7 @@ def longTailInterventionAligner(source, targets, candidateTargets):
             if res == True:
                 target_i = targets[key]['text']
 
-                annotations = align_highconf_longtarget( target_i.lower() , intervention_term.lower() )
+                annotations = align_highconf_longtarget( target_i.lower() , intervention_term.lower() , PICOS)
 
                 if annotations:
                     if key not in intervention_annotations[str(i)]:
@@ -96,7 +96,7 @@ def longTailInterventionAligner(source, targets, candidateTargets):
 '''
 LongTail Condition Aligner
 '''
-def longTailConditionAligner(source, targets, candidateTargets):
+def longTailConditionAligner(source, targets, candidateTargets, PICOS):
 
     condition_annotations = dict()
 
@@ -111,7 +111,7 @@ def longTailConditionAligner(source, targets, candidateTargets):
             if res == True:        
 
                 target_i = targets[key]['text']
-                annotations = align_highconf_longtarget( target_i.lower() , eachCondition.lower() )
+                annotations = align_highconf_longtarget( target_i.lower() , eachCondition.lower() , PICOS)
 
                 if annotations:
                     if key not in condition_annotations[str(i)]:
