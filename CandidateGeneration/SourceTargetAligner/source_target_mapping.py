@@ -4,8 +4,8 @@ def generateMapping():
 
     mapping = dict()
 
-    mapping['ep_sample_size'] =  [ 'BriefSummary', 'DetailedDescription']
-    mapping['ep_gender'] =  ['BriefSummary', 'DetailedDescription', 'PriOutcomeDesc', 'SecOutcomeDesc']
+    mapping['ep_sample_size'] =  ['BriefSummary', 'DetailedDescription']
+    mapping['ep_gender'] =  ['EligibilityCriteria', 'BriefSummary', 'DetailedDescription', 'PriOutcomeDesc', 'SecOutcomeDesc']
     mapping['ep_age'] =  ['EligibilityCriteria', 'BriefTitle', 'OfficialTitle', 'BriefSummary', 'DetailedDescription']
     mapping['ep_condition'] =  ['EligibilityCriteria', 'BriefTitle', 'OfficialTitle', 'BriefSummary', 'DetailedDescription']
 
