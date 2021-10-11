@@ -1,13 +1,16 @@
 #!/usr/bin/env python
 
-def ParticipantAlignerDoc(a):
-    '''The module generates scored alignment between Participant sources and relevant targets.'''
+def LabelingOperatorDoc(a):
+    '''The module includes labeling operators for different sources.'''
     return a**a
 
-print( ParticipantAlignerDoc.__doc__ )
+print( LabelingOperatorDoc.__doc__ )
 
 from SourceTargetAligner.aligner import *
 
+'''
+Direct Aligner
+'''
 def directAligner(source, targets, candidateTargets):
 
     combined_annotations = dict()
@@ -29,6 +32,9 @@ def directAligner(source, targets, candidateTargets):
 
     return combined_annotations
 
+'''
+ReGeX Aligner
+'''
 def regexAligner(source, targets, candidateTargets):
 
     combined_annotations = dict()
@@ -53,6 +59,9 @@ def regexAligner(source, targets, candidateTargets):
     
     return combined_annotations
 
+'''
+LongTail Intervention Aligner
+'''
 def longTailInterventionAligner(source, targets, candidateTargets):
 
     intervention_annotations = dict()
@@ -77,21 +86,27 @@ def longTailInterventionAligner(source, targets, candidateTargets):
 
     return intervention_annotations
 
-def longTailAligner(source, targets, candidateTargets):
+'''
+LongTail Condition Aligner
+'''
+def longTailConditionAligner(source, targets, candidateTargets):
 
     condition_annotations = dict()
 
     for eachCondition in source: # each source_i
 
-        for eachCandidate in candidateTargets: # each target_i
+        for key, value in targets.items(): # each target_i
 
-            target_i = targets[eachCandidate]['text']
-            annotations = align_highconf_longtarget( target_i.lower() , eachCondition.lower() )
+            res = key.startswith(tuple(candidateTargets))
+            if res == True:        
 
-            if annotations:
-                if eachCandidate not in condition_annotations:
-                    condition_annotations[eachCandidate] = [annotations]
-                else:
-                    condition_annotations[eachCandidate].append( annotations )
+                target_i = targets[key]['text']
+                annotations = align_highconf_longtarget( target_i.lower() , eachCondition.lower() )
+
+                if annotations:
+                    if key not in condition_annotations:
+                        condition_annotations[key] = [annotations]
+                    else:
+                        condition_annotations[key].append( annotations )
 
     return condition_annotations
