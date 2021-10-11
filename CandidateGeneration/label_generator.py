@@ -84,8 +84,8 @@ res = es.search(index="ctofull2021-index", body={"query": {"match_all": {}}}, si
 print('Total number of records retrieved: ', res['hits']['total']['value'])
 
 # Iterate through all of the fetched CTO index documents
-# for hit in results_gen: # XXX: Entire CTO
-for n, hit in enumerate( res['hits']['hits'] ): # XXX: Only a part search results from the CTO
+# for hit in results_gen: # Entire CTO
+for n, hit in enumerate( res['hits']['hits'] ): # Only a part search results from the CTO
 
     write_hit = collections.defaultdict(dict) # Dictionary to store the annotations for the CTO record being iterated
 
@@ -120,19 +120,30 @@ for n, hit in enumerate( res['hits']['hits'] ): # XXX: Only a part search result
         # Get the mappings between sources and their relevant targets
         mapping = generateMapping()
 
+        #################################################################
         # Direct matching begins
+        #################################################################
+
         for key, value in expanded_sources.items():
 
-            # print( expanded_sources.keys() )
-            
-            # only get the gender values
+            if 'ei_syn' in key:
+                candidate_targets = mapping[key]
+                int_annotations = longTailInterventionAligner( value, expanded_targets, candidate_targets )
+                if int_annotations:  
+                    print( int_annotations )
+
+            if 'ei_name' in key:
+                candidate_targets = mapping[key]
+                int_annotations = longTailInterventionAligner( value, expanded_targets, candidate_targets )
+                if int_annotations:  
+                    print( int_annotations )
+
             if 'gender' in key:
                 candidate_targets = mapping[key]
                 gender_annotations = directAligner( value, expanded_targets, candidate_targets )
-                # if gender_annotations:    
-                #     print( gender_annotations )
+                if gender_annotations:    
+                    print( gender_annotations )
 
-            # only get the gender values
             if 'sample_size' in key:
                 candidate_targets = mapping[key]
                 sampsize_annotations = directAligner( [value], expanded_targets, candidate_targets )   # direct aligner expects values as lists       
@@ -156,12 +167,6 @@ for n, hit in enumerate( res['hits']['hits'] ): # XXX: Only a part search result
                 # if condition_annotations:  
                 #     print( condition_annotations )
 
-            if 'ei_name' in key:
-                candidate_targets = mapping[key]
-                print( value )
-            #     int_syn_annotations = longTailAligner( value['int_syn'], expanded_targets, candidate_targets )
-            #     if int_syn_annotations:  
-            #         print( int_syn_annotations )
 
             if 'ei_syn' in key:
                 candidate_targets = mapping[key]
