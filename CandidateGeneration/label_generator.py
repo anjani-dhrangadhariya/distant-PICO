@@ -129,20 +129,20 @@ for n, hit in enumerate( res['hits']['hits'] ): # Only a part search results fro
             if 'ei_syn' in key:
                 candidate_targets = mapping[key]
                 int_annotations = longTailInterventionAligner( value, expanded_targets, candidate_targets )
-                if int_annotations:  
-                    print( int_annotations )
+                # if int_annotations:  
+                #     print( int_annotations )
 
             if 'ei_name' in key:
                 candidate_targets = mapping[key]
                 int_annotations = longTailInterventionAligner( value, expanded_targets, candidate_targets )
-                if int_annotations:  
-                    print( int_annotations )
+                # if int_annotations:  
+                #     print( int_annotations )
 
             if 'gender' in key:
                 candidate_targets = mapping[key]
                 gender_annotations = directAligner( value, expanded_targets, candidate_targets )
-                if gender_annotations:    
-                    print( gender_annotations )
+                # if gender_annotations:    
+                #     print( gender_annotations )
 
             if 'sample_size' in key:
                 candidate_targets = mapping[key]
@@ -156,7 +156,7 @@ for n, hit in enumerate( res['hits']['hits'] ): # Only a part search results fro
                 # if stdage_annotations:  
                 #     print( stdage_annotations )
 
-                exctage_annotattions = regexAligner( [value['exactAge']], expanded_targets, candidate_targets ) # reGeX aligner expects values as lists   
+                # exctage_annotattions = regexAligner( [value['exactAge']], expanded_targets, candidate_targets ) # reGeX aligner expects values as lists   
                 # if exctage_annotattions:  
                 #     print( exctage_annotattions )
                 
@@ -168,14 +168,7 @@ for n, hit in enumerate( res['hits']['hits'] ): # Only a part search results fro
                 #     print( condition_annotations )
 
 
-            if 'ei_syn' in key:
-                candidate_targets = mapping[key]
-                int_syn_annotations = longTailAligner( value['int_syn'], expanded_targets, candidate_targets )
-                # if int_syn_annotations:  
-                #     print( int_syn_annotations )
-
             if 'es_type' in key:
-                # print(value)
                 candidate_targets = mapping[key]
                 studytype_annotations = regexAligner( [value], expanded_targets, candidate_targets )   # direct aligner expects values as lists       
                 # if studytype_annotations:  

@@ -29,6 +29,30 @@ def directAligner(source, targets, candidateTargets):
 
     return combined_annotations
 
+def regexAligner(source, targets, candidateTargets):
+
+    combined_annotations = dict()
+
+    for eachReGeX in source: # each source_i
+
+        # for eachCandidate in candidateTargets: # each target_i
+        for key, value in targets.items(): # each target_i
+
+            res = key.startswith(tuple(candidateTargets))
+            if res == True:
+
+                target_i = targets[key]['text']
+
+                annotations = align_regex_longtarget( target_i.lower() , eachReGeX )
+
+                if annotations:
+                    if key not in combined_annotations:
+                        combined_annotations[key] = [annotations]
+                    else:
+                        combined_annotations[key].append( annotations )
+    
+    return combined_annotations
+
 def longTailInterventionAligner(source, targets, candidateTargets):
 
     intervention_annotations = dict()
@@ -71,24 +95,3 @@ def longTailAligner(source, targets, candidateTargets):
                     condition_annotations[eachCandidate].append( annotations )
 
     return condition_annotations
-
-
-def regexAligner(source, targets, candidateTargets):
-
-    combined_annotations = dict()
-
-    for eachReGeX in source: # each source_i
-
-        for eachCandidate in candidateTargets: # each target_i
-
-            target_i = targets[eachCandidate]['text']
-
-            annotations = align_regex_longtarget( target_i.lower() , eachReGeX )
-
-            if annotations:
-                if eachCandidate not in combined_annotations:
-                    combined_annotations[eachCandidate] = [annotations]
-                else:
-                    combined_annotations[eachCandidate].append( annotations )
-    
-    return combined_annotations

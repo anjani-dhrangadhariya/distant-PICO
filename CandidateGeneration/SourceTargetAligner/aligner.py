@@ -156,7 +156,7 @@ def align_highconf_longtarget(target, source):
 # Function to align source ReGeX to long targets
 ###############################################################################################
 def align_regex_longtarget(target, source):
-  
+ 
     target_sentences = list()
 
     if target is not None :
