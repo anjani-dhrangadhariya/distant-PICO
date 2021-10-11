@@ -156,21 +156,21 @@ for n, hit in enumerate( res['hits']['hits'] ): # Only a part search results fro
                 # if stdage_annotations:  
                 #     print( stdage_annotations )
 
-                # exctage_annotattions = regexAligner( [value['exactAge']], expanded_targets, candidate_targets ) # reGeX aligner expects values as lists   
+                exctage_annotattions = regexAligner( [value['exactAge']], expanded_targets, candidate_targets ) # reGeX aligner expects values as lists   
                 # if exctage_annotattions:  
                 #     print( exctage_annotattions )
                 
 
             if 'condition' in key:
                 candidate_targets = mapping[key]
-                # condition_annotations = longTailAligner( value, expanded_targets, candidate_targets )
+                condition_annotations = longTailConditionAligner( value, expanded_targets, candidate_targets )
                 # if condition_annotations:  
                 #     print( condition_annotations )
 
 
             if 'es_type' in key:
                 candidate_targets = mapping[key]
-                studytype_annotations = regexAligner( [value], expanded_targets, candidate_targets )   # direct aligner expects values as lists       
+                # studytype_annotations = regexAligner( [value], expanded_targets, candidate_targets )   # direct aligner expects values as lists       
                 # if studytype_annotations:  
                 #     print( studytype_annotations )
 

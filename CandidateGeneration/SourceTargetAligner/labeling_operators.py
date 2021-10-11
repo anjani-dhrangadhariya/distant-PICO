@@ -6,6 +6,7 @@ def LabelingOperatorDoc(a):
 
 print( LabelingOperatorDoc.__doc__ )
 
+import enum
 from SourceTargetAligner.aligner import *
 
 '''
@@ -15,7 +16,7 @@ def directAligner(source, targets, candidateTargets):
 
     combined_annotations = dict()
 
-    for eachSource in source: # each source_i
+    for i, eachSource in enumerate(source): # each source_i
 
         for key, value in targets.items(): # each target_i
 
@@ -25,10 +26,13 @@ def directAligner(source, targets, candidateTargets):
                 annotations = align_highconf_longtarget( target_i.lower() , eachSource.lower() )
 
                 if annotations:
-                    if key not in combined_annotations:
-                        combined_annotations[key] = [annotations]
+                    if eachSource not in combined_annotations:
+                        combined_annotations[str(i)] = {'source': eachSource}
+
+                    if key not in combined_annotations[str(i)]:
+                        combined_annotations[str(i)][key] = [annotations]
                     else:
-                        combined_annotations[key].append( annotations )
+                        combined_annotations[str(i)][key].append( annotations )
 
     return combined_annotations
 
@@ -41,7 +45,6 @@ def regexAligner(source, targets, candidateTargets):
 
     for eachReGeX in source: # each source_i
 
-        # for eachCandidate in candidateTargets: # each target_i
         for key, value in targets.items(): # each target_i
 
             res = key.startswith(tuple(candidateTargets))
@@ -66,9 +69,12 @@ def longTailInterventionAligner(source, targets, candidateTargets):
 
     intervention_annotations = dict()
 
-    for eachKey, eachValue in source.items(): # each source_i
+    for i, (eachKey, eachValue) in enumerate(source.items()): # each source_i
 
         intervention_term = list(eachValue)[0]['text']
+
+        if intervention_term not in intervention_annotations:
+            intervention_annotations[str(i)] = {'source': intervention_term}
 
         for key, value in targets.items(): # each target_i
 
@@ -79,10 +85,11 @@ def longTailInterventionAligner(source, targets, candidateTargets):
                 annotations = align_highconf_longtarget( target_i.lower() , intervention_term.lower() )
 
                 if annotations:
-                    if key not in intervention_annotations:
-                        intervention_annotations[key] = [annotations]
+                    if key not in intervention_annotations[str(i)]:
+                        intervention_annotations[str(i)][key] = [annotations]
                     else:
-                        intervention_annotations[key].append( annotations )
+                        intervention_annotations[str(i)][key].append( annotations )
+
 
     return intervention_annotations
 
@@ -93,7 +100,10 @@ def longTailConditionAligner(source, targets, candidateTargets):
 
     condition_annotations = dict()
 
-    for eachCondition in source: # each source_i
+    for i, eachCondition in enumerate(source): # each source_i
+
+        if eachCondition not in condition_annotations:
+            condition_annotations[str(i)] = {'source': eachCondition}
 
         for key, value in targets.items(): # each target_i
 
@@ -104,9 +114,9 @@ def longTailConditionAligner(source, targets, candidateTargets):
                 annotations = align_highconf_longtarget( target_i.lower() , eachCondition.lower() )
 
                 if annotations:
-                    if key not in condition_annotations:
-                        condition_annotations[key] = [annotations]
+                    if key not in condition_annotations[str(i)]:
+                        condition_annotations[str(i)][key] = [annotations]
                     else:
-                        condition_annotations[key].append( annotations )
-
+                        condition_annotations[str(i)][key].append( annotations )
+    
     return condition_annotations

@@ -169,9 +169,11 @@ def align_regex_longtarget(target, source):
 
             annot = list()
             token = list()
+            
             r1 = source.finditer(eachSentence)
 
             for match in r1:
+                print(match.group(1))
                 token_i, annot_i = extractReGeXannotation(source, eachSentence, match)
                 annot.extend( annot_i )
                 token.extend( token_i )

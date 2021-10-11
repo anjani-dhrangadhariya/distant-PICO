@@ -118,7 +118,7 @@ def expandCondition(condition_source):
 
     for cond_i in condition_source:
         expanded_acronyms = fetchAcronyms( cond_i )
-        
+
         if expanded_acronyms is not None:
             #expanded_condition_source.append( cond_i )
             expanded_condition_source.extend( expanded_acronyms )
