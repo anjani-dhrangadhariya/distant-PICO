@@ -54,9 +54,12 @@ def fetchInterventionSyn(protocol_section):
             if 'Intervention' in protocol_section['ArmsInterventionsModule']['InterventionList']:
                 intervention = protocol_section['ArmsInterventionsModule']['InterventionList']['Intervention']
 
-                for eachIntervention in intervention:
+                for i, eachIntervention in enumerate(intervention):
                     if 'InterventionOtherNameList' in eachIntervention:
-                        interventionInfo['int_syn'] = eachIntervention['InterventionOtherNameList']['InterventionOtherName']
+                        synonym_list = eachIntervention['InterventionOtherNameList']['InterventionOtherName']
+                        for j, eachSynonym in enumerate(synonym_list):
+                            key = 'int_syn_' + str(i) + '_' + str(j)
+                            interventionInfo[key] = eachSynonym
 
     return interventionInfo
 
