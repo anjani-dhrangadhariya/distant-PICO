@@ -22,8 +22,8 @@ def directAligner(source, targets, candidateTargets, PICOS):
 
             res = key.startswith(tuple(candidateTargets))
             if res == True:
-                target_i = targets[key]['text']
-                annotations = align_highconf_longtarget( target_i.lower() , eachSource.lower() , PICOS)
+                target_i = targets[key]
+                annotations = align_highconf_longtarget( target_i , eachSource.lower() , PICOS)
 
                 if annotations:
                     if eachSource not in combined_annotations:
@@ -50,9 +50,9 @@ def regexAligner(source, targets, candidateTargets, PICOS):
             res = key.startswith(tuple(candidateTargets))
             if res == True:
 
-                target_i = targets[key]['text']
+                target_i = targets[key]
 
-                annotations = align_regex_longtarget( target_i.lower() , eachReGeX , PICOS)
+                annotations = align_regex_longtarget( target_i , eachReGeX , PICOS)
 
                 if annotations:
                     if key not in combined_annotations:
@@ -80,16 +80,15 @@ def longTailInterventionAligner(source, targets, candidateTargets, PICOS):
 
             res = key.startswith(tuple(candidateTargets))
             if res == True:
-                target_i = targets[key]['text']
+                target_i = targets[key]
 
-                annotations = align_highconf_longtarget( target_i.lower() , intervention_term.lower() , PICOS)
+                annotations = align_highconf_longtarget( target_i, intervention_term.lower() , PICOS)
 
                 if annotations:
                     if key not in intervention_annotations[str(i)]:
                         intervention_annotations[str(i)][key] = [annotations]
                     else:
                         intervention_annotations[str(i)][key].append( annotations )
-
 
     return intervention_annotations
 
@@ -110,8 +109,8 @@ def longTailConditionAligner(source, targets, candidateTargets, PICOS):
             res = key.startswith(tuple(candidateTargets))
             if res == True:        
 
-                target_i = targets[key]['text']
-                annotations = align_highconf_longtarget( target_i.lower() , eachCondition.lower() , PICOS)
+                target_i = targets[key]
+                annotations = align_highconf_longtarget( target_i , eachCondition.lower() , PICOS)
 
                 if annotations:
                     if key not in condition_annotations[str(i)]:

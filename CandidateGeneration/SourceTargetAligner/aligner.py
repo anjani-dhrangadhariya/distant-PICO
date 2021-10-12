@@ -98,24 +98,6 @@ def extractAnnotation(source, target, match, PICOS):
     return token, annot
 
 ###############################################################################################
-# Function to align source intervention terms with high confidence short targets
-###############################################################################################
-def align_highconf_shorttarget(target, source, PICOS):
-    annot = list()
-    token = list()
-
-    if target is not None:
-        # Match the source to the target
-        s = difflib.SequenceMatcher(None, target, source, autojunk=True)
-        matches = fullMatchScore(s, source, target)
-        for match in matches:
-            if match[0] == 1.0:                    
-                token, annot = extractAnnotation(source, target, match, PICOS)
-
-    assert len(token) == len(annot)
-    return token, annot
-
-###############################################################################################
 # Function to align source terms with high confidence long targets
 ###############################################################################################
 def align_highconf_longtarget(target, source, PICOS):
@@ -124,14 +106,20 @@ def align_highconf_longtarget(target, source, PICOS):
    
     if target is not None :
         # Sentence tokenization
-        target_sentences = sent_tokenize(target)
         collect_annotations = dict()
         
         # Iterate each sentence
-        for i, eachSentence in enumerate(target_sentences):
+        for key, value in target.items():
+
+            eachSentence = value['text'].lower()
+            eachSentence_tokens = value['tokens']
+            eachSentence_pos = value['pos']
+            eachSentence_posfine = value['pos_fine']
 
             annot = list()
             token = list()
+            pos = list()
+            pos_fine = list()
 
             s = difflib.SequenceMatcher(None, eachSentence, source, autojunk=True)
             matches = fullMatchScore(s, source, target)
@@ -143,10 +131,15 @@ def align_highconf_longtarget(target, source, PICOS):
                         token_i, annot_i = extractAnnotation(source, eachSentence, match, PICOS)
                         annot.extend( annot_i )
                         token.extend( token_i )
-                
+                        pos.extend( eachSentence_pos )
+                        pos_fine.extend( eachSentence_posfine )
+                        # print( len(token), len(annot), len(eachSentence_pos), len(eachSentence_posfine) ) # TODO: We are not extending them because the lengths of tokens and annot do not correspond to the length of pos and pos_fine
+
             if annot:
+                
                 token_annot = [ token, annot ]
-                collect_annotations['sentence' + str(i)] = token_annot
+                # token_annot = [ token, annot, eachSentence_pos, eachSentence_posfine ]
+                collect_annotations[key] = token_annot
 
     assert len(token) == len(annot)
 
@@ -161,14 +154,22 @@ def align_regex_longtarget(target, source, PICOS):
 
     if target is not None :
         # Sentence tokenization
-        target_sentences = sent_tokenize(target)
+        # target_sentences = sent_tokenize(target)
         collect_annotations = dict()
        
         # Iterate each sentence
-        for i, eachSentence in enumerate(target_sentences):
+        # for i, eachSentence in enumerate(target_sentences):
+        for key, value in target.items():
+
+            eachSentence = value['text'].lower()
+            eachSentence_tokens = value['tokens']
+            eachSentence_pos = value['pos']
+            eachSentence_posfine = value['pos_fine']
 
             annot = list()
             token = list()
+            pos = list()
+            pos_fine = list()
             matched = list()
 
             r1 = source.finditer(eachSentence)
@@ -177,11 +178,14 @@ def align_regex_longtarget(target, source, PICOS):
                 token_i, annot_i = extractReGeXannotation(source, eachSentence, match, PICOS)
                 annot.extend( annot_i )
                 token.extend( token_i )
+                pos.extend( eachSentence_pos )
+                pos_fine.extend( eachSentence_posfine )
+                # print( len(token), len(annot), len(eachSentence_pos), len(eachSentence_posfine) ) # TODO: We are not extending them because the lengths of tokens and annot do not correspond to the length of pos and pos_fine
 
             if annot:
                 token_annot = [ token, annot ]
-                collect_annotations
-                collect_annotations['sentence' + str(i)] = token_annot
+                # token_annot = [ token, annot, eachSentence_pos, eachSentence_posfine ]
+                collect_annotations[key] = token_annot
 
-
+    # print( collect_annotations )
     return collect_annotations

@@ -80,7 +80,7 @@ results_gen = helpers.scan(
 match_scores = []
 intervention_types = []
 
-res = es.search(index="ctofull2021-index", body={"query": {"match_all": {}}}, size=50)
+res = es.search(index="ctofull2021-index", body={"query": {"match_all": {}}}, size=40)
 print('Total number of records retrieved: ', res['hits']['total']['value'])
 
 # Iterate through all of the fetched CTO index documents
@@ -120,6 +120,7 @@ for n, hit in enumerate( res['hits']['hits'] ): # Only a part search results fro
         # Get the mappings between sources and their relevant targets
         mapping = generateMapping()
 
+
         #################################################################
         # Direct matching begins
         # P = 1, I/C = 2, O = 3, S = 4
@@ -132,8 +133,8 @@ for n, hit in enumerate( res['hits']['hits'] ): # Only a part search results fro
             if 'ei_syn' in key:
                 candidate_targets = mapping[key]
                 int_annotations = longTailInterventionAligner( value, expanded_targets, candidate_targets, 2 )
-                # if int_annotations:  
-                #     print( int_annotations )
+                if int_annotations:  
+                    print( int_annotations )
 
             if 'ei_name' in key:
                 candidate_targets = mapping[key]

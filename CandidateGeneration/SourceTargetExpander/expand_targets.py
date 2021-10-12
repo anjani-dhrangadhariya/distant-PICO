@@ -51,7 +51,6 @@ def expandTargets(json_object, targets):
 
         # Convert long targets to sentences
         target_sentences = nlp(trailingspaces_removed)
-
         sent_parsed = dict()
         
         for ith, eachSent in enumerate(target_sentences.sents):
