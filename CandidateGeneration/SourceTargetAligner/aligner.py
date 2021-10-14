@@ -187,5 +187,4 @@ def align_regex_longtarget(target, source, PICOS):
                 # token_annot = [ token, annot, eachSentence_pos, eachSentence_posfine ]
                 collect_annotations[key] = token_annot
 
-    # print( collect_annotations )
     return collect_annotations
