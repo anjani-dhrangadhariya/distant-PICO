@@ -10,9 +10,18 @@ import enum
 from SourceTargetAligner.aligner import *
 
 '''
-Direct Aligner
-'''
+Description:
+    The function directly aligns a list of concepts from the source dictionary to the target
 
+Args:
+    source (list): list to candidate concepts to be aligned with the targets
+        targets (dict): A dictionary with all the targets for distant-PICOS
+        candidateTargets (dict): A dictionary to select appropriate targets for each of the PICOS sources
+        PICOS (int): Label for the entity being weakly annotations
+
+Returns:
+    list: returns a list of tuples containing [match score, matching block]
+'''
 def directAligner(source, targets, candidateTargets, PICOS):
 
     combined_annotations = dict()
