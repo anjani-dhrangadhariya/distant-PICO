@@ -12,6 +12,7 @@ from SourceTargetAligner.aligner import *
 '''
 Direct Aligner
 '''
+
 def directAligner(source, targets, candidateTargets, PICOS):
 
     combined_annotations = dict()
