@@ -83,101 +83,118 @@ intervention_types = []
 res = es.search(index="ctofull2021-index", body={"query": {"match_all": {}}}, size=40)
 print('Total number of records retrieved: ', res['hits']['total']['value'])
 
+
 # Iterate through all of the fetched CTO index documents
-# for hit in results_gen: # Entire CTO
-for n, hit in enumerate( res['hits']['hits'] ): # Only a part search results from the CTO
 
-    write_hit = collections.defaultdict(dict) # Dictionary to store the annotations for the CTO record being iterated
+theFile ='/mnt/nas2/data/systematicReview/clinical_trials_gov/distant_pico_pre/secondary_outcomes.txt'
+with open(theFile, 'a+') as wf:
 
-    fullstudy = hit['_source']['FullStudiesResponse']['FullStudies'][0]['Study']
-    NCT_id = hit['_source']['FullStudiesResponse']['Expression']
-    write_hit['id'] = NCT_id
+    for n, hit in enumerate( res['hits']['hits'] ): # Only a part search results from the CTO
+    # for hit in results_gen: # Entire CTO
+        write_hit = collections.defaultdict(dict) # Dictionary to store the annotations for the CTO record being iterated
 
-    try:
+        fullstudy = hit['_source']['FullStudiesResponse']['FullStudies'][0]['Study']
+        NCT_id = hit['_source']['FullStudiesResponse']['Expression']
+        write_hit['id'] = NCT_id
 
-        protocol_section = fullstudy['ProtocolSection']
-        derieved_section = fullstudy['DerivedSection']
+        try:
 
-        # Retrieve the sources of PICOS annotation
-        participants = fetchParticipantSources(protocol_section)
-        intervention_comparator = fetchIntcompSources(protocol_section)
-        outcomes = fetchOutcomeSources(protocol_section)
-        study_type = fetchStdTypeSources(protocol_section)
+            protocol_section = fullstudy['ProtocolSection']
+            derieved_section = fullstudy['DerivedSection']
 
-        sources = {**participants, **intervention_comparator, **outcomes, **study_type}
+            # Retrieve the sources of PICOS annotation
+            participants = fetchParticipantSources(protocol_section)
+            intervention_comparator = fetchIntcompSources(protocol_section)
+            outcomes = fetchOutcomeSources(protocol_section)
+            study_type = fetchStdTypeSources(protocol_section)
 
-        # Retrieve the targets of PICOS annotation
-        targets = fetchTargets(protocol_section)
+            sources = {**participants, **intervention_comparator, **outcomes, **study_type}
 
-        # Expand the sources of PICOS annotation
-        expanded_sources = expandSources(protocol_section, sources)
+            # Retrieve the targets of PICOS annotation
+            targets = fetchTargets(protocol_section)
 
-        # Expand the targets of PICOS annotation
-        expanded_targets = expandTargets(protocol_section, targets)
+            # Expand the sources of PICOS annotation
+            expanded_sources = expandSources(protocol_section, sources)
 
-        # XXX: How to adjust for the abbreviation detection? Decide this based on direct matching process
+            # Expand the targets of PICOS annotation
+            expanded_targets = expandTargets(protocol_section, targets)
 
-        # Get the mappings between sources and their relevant targets
-        mapping = generateMapping()
+            # XXX: How to adjust for the abbreviation detection? Decide this based on direct matching process
 
-
-        #################################################################
-        # Direct matching begins
-        # P = 1, I/C = 2, O = 3, S = 4
-        # expanded_sources: All the sources from a NCTID
-        # expanded_targets: All the targets from a NCTID
-        #################################################################
-
-        for key, value in expanded_sources.items():
-
-            if 'ei_syn' in key:
-                candidate_targets = mapping[key]
-                int_annotations = longTailInterventionAligner( value, expanded_targets, candidate_targets, 2 )
-                if int_annotations:  
-                    print( int_annotations )
-
-            if 'ei_name' in key:
-                candidate_targets = mapping[key]
-                int_annotations = longTailInterventionAligner( value, expanded_targets, candidate_targets, 2 )
-                # if int_annotations:  
-                #     print( int_annotations )
-
-            if 'gender' in key:
-                candidate_targets = mapping[key]
-                gender_annotations = directAligner( value, expanded_targets, candidate_targets, 1 )
-                # if gender_annotations:    
-                #     print( gender_annotations )
-
-            if 'sample_size' in key:
-                candidate_targets = mapping[key]
-                sampsize_annotations = directAligner( [value], expanded_targets, candidate_targets, 1 )   # direct aligner expects values as lists       
-                # if sampsize_annotations:  
-                #     print( sampsize_annotations )
-
-            if 'age' in key:
-                candidate_targets = mapping[key]
-                stdage_annotations = directAligner( value['StdAge'], expanded_targets, candidate_targets, 1 )
-                # if stdage_annotations:  
-                #     print( stdage_annotations )
-
-                exctage_annotattions = regexAligner( [value['exactAge']], expanded_targets, candidate_targets, 1 ) # reGeX aligner expects values as lists   
-                # if exctage_annotattions:  
-                #     print( exctage_annotattions )
-                
-
-            if 'condition' in key:
-                candidate_targets = mapping[key]
-                condition_annotations = longTailConditionAligner( value, expanded_targets, candidate_targets, 1 )
-                # if condition_annotations:  
-                #     print( condition_annotations )
+            # Get the mappings between sources and their relevant targets
+            mapping = generateMapping()
 
 
-            if 'es_type' in key:
-                candidate_targets = mapping[key]
-                studytype_annotations = regexAligner( [value], expanded_targets, candidate_targets, 4 )   # direct aligner expects values as lists       
-                # if studytype_annotations:  
-                #     print( studytype_annotations )
+            #################################################################
+            # Direct matching begins
+            # P = 1, I/C = 2, O = 3, S = 4
+            # expanded_sources: All the sources from a NCTID
+            # expanded_targets: All the targets from a NCTID
+            #################################################################           
+            for key, value in expanded_sources.items():
 
-    except:
-        logNCTID = 'Caused exception at the NCT ID: ' + NCT_id
-        logging.info(logNCTID)
+                if 'ei_syn' in key:
+                    candidate_targets = mapping[key]
+                    # int_annotations = longTailInterventionAligner( value, expanded_targets, candidate_targets, 2 )
+                    # if int_annotations:  
+                    #     print( int_annotations )
+
+                if 'ei_name' in key:
+                    candidate_targets = mapping[key]
+                    # int_annotations = longTailInterventionAligner( value, expanded_targets, candidate_targets, 2 )
+                    # if int_annotations:  
+                    #     print( int_annotations )
+
+                if 'gender' in key:
+                    candidate_targets = mapping[key]
+                    # gender_annotations = directAligner( value, expanded_targets, candidate_targets, 1 )
+                    # if gender_annotations:    
+                    #     print( gender_annotations )
+
+                if 'sample_size' in key:
+                    candidate_targets = mapping[key]
+                    # sampsize_annotations = directAligner( [value], expanded_targets, candidate_targets, 1 )   # direct aligner expects values as lists       
+                    # if sampsize_annotations:  
+                    #     print( sampsize_annotations )
+
+                if 'age' in key:
+                    candidate_targets = mapping[key]
+                    # stdage_annotations = directAligner( value['StdAge'], expanded_targets, candidate_targets, 1 )
+                    # if stdage_annotations:  
+                    #     print( stdage_annotations )
+
+                    # exctage_annotattions = regexAligner( [value['exactAge']], expanded_targets, candidate_targets, 1 ) # reGeX aligner expects values as lists   
+                    # if exctage_annotattions:  
+                    #     print( exctage_annotattions )
+                    
+
+                if 'condition' in key:
+                    candidate_targets = mapping[key]
+                    # condition_annotations = longTailConditionAligner( value, expanded_targets, candidate_targets, 1 )
+                    # if condition_annotations:  
+                    #     print( condition_annotations )
+
+
+                if 'es_type' in key:
+                    candidate_targets = mapping[key]
+                    # studytype_annotations = regexAligner( [value], expanded_targets, candidate_targets, 4 )   # direct aligner expects values as lists       
+                    # if studytype_annotations:  
+                    #     print( studytype_annotations )
+
+                if 'eo_primary' in key:
+                    candidate_targets = mapping[key]
+                    primout_annotations = longTailOutcomeAligner( value, expanded_targets, candidate_targets, 3 )
+                    if primout_annotations:  
+                        print( primout_annotations )
+
+                if 'eo_secondary' in key:
+                    candidate_targets = mapping[key]
+                    secondout_annotations = longTailOutcomeAligner( value, expanded_targets, candidate_targets, 3 )
+                    if secondout_annotations:  
+                        print( secondout_annotations )
+
+
+        except:
+
+            logNCTID = 'Caused exception at the NCT ID: ' + NCT_id
+            logging.info(logNCTID)
