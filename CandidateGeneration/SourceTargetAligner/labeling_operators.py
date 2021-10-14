@@ -119,3 +119,34 @@ def longTailConditionAligner(source, targets, candidateTargets, PICOS):
                         condition_annotations[str(i)][key].append( annotations )
     
     return condition_annotations
+
+
+'''
+LongTail Outcome Aligner
+'''
+def longTailOutcomeAligner(source, targets, candidateTargets, PICOS):
+
+    outcome_annotations = dict()
+
+    for i, (eachKey, eachValue) in enumerate(source.items()): # each source_i
+
+        outcome_term = list(eachValue)[0]['text']
+
+        if outcome_term not in outcome_annotations:
+            outcome_annotations[str(i)] = {'source': outcome_term}
+
+        for key, value in targets.items(): # each target_i
+
+            res = key.startswith(tuple(candidateTargets))
+            if res == True:
+                target_i = targets[key]
+
+                annotations = align_highconf_longtarget( target_i, outcome_term.lower() , PICOS)
+
+                if annotations:
+                    if key not in outcome_annotations[str(i)]:
+                        outcome_annotations[str(i)][key] = [annotations]
+                    else:
+                        outcome_annotations[str(i)][key].append( annotations )
+
+    return outcome_annotations
