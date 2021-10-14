@@ -11,7 +11,7 @@ from SourceTargetAligner.aligner import *
 
 '''
 Description:
-    The function directly aligns a list of concepts from the source dictionary to the target
+    The function directly aligns a list of concepts from the source dictionary to the appropriate targets
 
 Args:
     source (list): list to candidate concepts to be aligned with the targets
@@ -20,7 +20,7 @@ Args:
         PICOS (int): Label for the entity being weakly annotations
 
 Returns:
-    list: returns a list of tuples containing [match score, matching block]
+    dictionary: weakly annotated sources with the givens sources and PICOS labeling scheme
 '''
 def directAligner(source, targets, candidateTargets, PICOS):
 
@@ -47,7 +47,17 @@ def directAligner(source, targets, candidateTargets, PICOS):
     return combined_annotations
 
 '''
-ReGeX Aligner
+Description:
+    The function directly aligns a list of regular expressions from the source list to the appropriate targets
+
+Args:
+    source (list): list to candidate regular expressions (ReGeX) to be aligned with the targets
+        targets (dict): A dictionary with all the targets for distant-PICOS
+        candidateTargets (dict): A dictionary to select appropriate targets for each of the PICOS sources
+        PICOS (int): Label for the entity being weakly annotations
+
+Returns:
+    dictionary: weakly annotated sources with the givens sources and PICOS labeling scheme
 '''
 def regexAligner(source, targets, candidateTargets, PICOS):
 
@@ -73,7 +83,17 @@ def regexAligner(source, targets, candidateTargets, PICOS):
     return combined_annotations
 
 '''
-LongTail Intervention Aligner
+Description:
+    The function directly aligns a list of "intervention" terms from the source list to the appropriate targets
+
+Args:
+    source (list): list to candidate intervention terms to be aligned with the targets
+        targets (dict): A dictionary with all the targets for distant-PICOS
+        candidateTargets (dict): A dictionary to select appropriate targets for each of the PICOS sources
+        PICOS (int): Label for the entity being weakly annotations
+
+Returns:
+    dictionary: weakly annotated sources with the givens sources and PICOS labeling scheme
 '''
 def longTailInterventionAligner(source, targets, candidateTargets, PICOS):
 
@@ -103,7 +123,17 @@ def longTailInterventionAligner(source, targets, candidateTargets, PICOS):
     return intervention_annotations
 
 '''
-LongTail Condition Aligner
+Description:
+    The function directly aligns a list of "Participant: Condition" terms from the source list to the appropriate targets
+
+Args:
+    source (list): list to candidate participant condition terms to be aligned with the targets
+        targets (dict): A dictionary with all the targets for distant-PICOS
+        candidateTargets (dict): A dictionary to select appropriate targets for each of the PICOS sources
+        PICOS (int): Label for the entity being weakly annotations
+
+Returns:
+    dictionary: weakly annotated sources with the givens sources and PICOS labeling scheme
 '''
 def longTailConditionAligner(source, targets, candidateTargets, PICOS):
 
@@ -130,9 +160,18 @@ def longTailConditionAligner(source, targets, candidateTargets, PICOS):
     
     return condition_annotations
 
-
 '''
-LongTail Outcome Aligner
+Description:
+    The function directly aligns a list of "Outcome: (Primary and Secondary)" terms from the source list to the appropriate targets
+
+Args:
+    source (list): list to candidate outcome terms to be aligned with the targets
+        targets (dict): A dictionary with all the targets for distant-PICOS
+        candidateTargets (dict): A dictionary to select appropriate targets for each of the PICOS sources
+        PICOS (int): Label for the entity being weakly annotations
+
+Returns:
+    dictionary: weakly annotated sources with the givens sources and PICOS labeling scheme
 '''
 def longTailOutcomeAligner(source, targets, candidateTargets, PICOS):
 
