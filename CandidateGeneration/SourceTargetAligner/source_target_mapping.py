@@ -1,5 +1,14 @@
 
+'''
+Description:
+    This function generates mapping between the sources and targets sentences.
 
+Args:
+    None
+
+Returns:
+    dictionary: returns a "key: many values" dictionary mapping PICOS sources to appropriate targets
+'''
 def generateMapping():
 
     mapping = dict()
