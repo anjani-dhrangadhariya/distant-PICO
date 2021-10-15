@@ -87,7 +87,7 @@ Description:
     The function directly aligns a list of "intervention" terms from the source list to the appropriate targets
 
 Args:
-    source (list): list to candidate intervention terms to be aligned with the targets
+    source (dictionary): a dictionary of candidate intervention terms to be aligned with the targets
         targets (dict): A dictionary with all the targets for distant-PICOS
         candidateTargets (dict): A dictionary to select appropriate targets for each of the PICOS sources
         PICOS (int): Label for the entity being weakly annotations
@@ -167,7 +167,7 @@ Description:
     The function directly aligns a list of "Outcome: (Primary and Secondary)" terms from the source list to the appropriate targets
 
 Args:
-    source (list): list to candidate outcome terms to be aligned with the targets
+    source (dict): dictionary of candidate outcome terms to be aligned with the targets
         targets (dict): A dictionary with all the targets for distant-PICOS
         candidateTargets (dict): A dictionary to select appropriate targets for each of the PICOS sources
         PICOS (int): Label for the entity being weakly annotations
