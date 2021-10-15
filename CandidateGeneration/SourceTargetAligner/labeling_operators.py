@@ -101,24 +101,26 @@ def longTailInterventionAligner(source, targets, candidateTargets, PICOS):
 
     for i, (eachKey, eachValue) in enumerate(source.items()): # each source_i
 
-        intervention_term = list(eachValue)[0]['text']
+        for eachValue_i in eachValue:
 
-        if intervention_term not in intervention_annotations:
-            intervention_annotations[str(i)] = {'source': intervention_term}
+            intervention_term = eachValue_i['text']
 
-        for key, value in targets.items(): # each target_i
+            if intervention_term not in intervention_annotations:
+                intervention_annotations[str(i)] = {'source': intervention_term}
 
-            res = key.startswith(tuple(candidateTargets))
-            if res == True:
-                target_i = targets[key]
+            for key, value in targets.items(): # each target_i
 
-                annotations = align_highconf_longtarget( target_i, intervention_term.lower() , PICOS)
+                res = key.startswith(tuple(candidateTargets))
+                if res == True:
+                    target_i = targets[key]
 
-                if annotations:
-                    if key not in intervention_annotations[str(i)]:
-                        intervention_annotations[str(i)][key] = [annotations]
-                    else:
-                        intervention_annotations[str(i)][key].append( annotations )
+                    annotations = align_highconf_longtarget( target_i, intervention_term.lower() , PICOS)
+
+                    if annotations:
+                        if key not in intervention_annotations[str(i)]:
+                            intervention_annotations[str(i)][key] = [annotations]
+                        else:
+                            intervention_annotations[str(i)][key].append( annotations )
 
     return intervention_annotations
 
@@ -179,23 +181,25 @@ def longTailOutcomeAligner(source, targets, candidateTargets, PICOS):
 
     for i, (eachKey, eachValue) in enumerate(source.items()): # each source_i
 
-        outcome_term = list(eachValue)[0]['text']
+        for eachValue_i in eachValue:
 
-        if outcome_term not in outcome_annotations:
-            outcome_annotations[str(i)] = {'source': outcome_term}
+            outcome_term = eachValue_i['text']
 
-        for key, value in targets.items(): # each target_i
+            if outcome_term not in outcome_annotations:
+                outcome_annotations[str(i)] = {'source': outcome_term}
 
-            res = key.startswith(tuple(candidateTargets))
-            if res == True:
-                target_i = targets[key]
+            for key, value in targets.items(): # each target_i
 
-                annotations = align_highconf_longtarget( target_i, outcome_term.lower() , PICOS)
+                res = key.startswith(tuple(candidateTargets))
+                if res == True:
+                    target_i = targets[key]
 
-                if annotations:
-                    if key not in outcome_annotations[str(i)]:
-                        outcome_annotations[str(i)][key] = [annotations]
-                    else:
-                        outcome_annotations[str(i)][key].append( annotations )
+                    annotations = align_highconf_longtarget( target_i, outcome_term.lower() , PICOS)
+
+                    if annotations:
+                        if key not in outcome_annotations[str(i)]:
+                            outcome_annotations[str(i)][key] = [annotations]
+                        else:
+                            outcome_annotations[str(i)][key].append( annotations )
 
     return outcome_annotations
