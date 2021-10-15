@@ -170,21 +170,28 @@ def align_regex_longtarget(target, source, PICOS):
             token = list()
             pos = list()
             pos_fine = list()
-            matched = list()
 
             r1 = source.finditer(eachSentence)
 
             for match in r1:
+                
                 token_i, annot_i = extractReGeXannotation(source, eachSentence, match, PICOS)
                 annot.extend( annot_i )
                 token.extend( token_i )
                 pos.extend( eachSentence_pos )
                 pos_fine.extend( eachSentence_posfine )
+
                 # print( len(token), len(annot), len(eachSentence_pos), len(eachSentence_posfine) ) # TODO: We are not extending them because the lengths of tokens and annot do not correspond to the length of pos and pos_fine
 
             if annot:
+                temp = []
+                for t, a, in zip(token, annot):
+                    if a != 0:
+                        temp.append( t )
+                temp = ' '.join(temp)
+
                 token_annot = [ token, annot ]
                 # token_annot = [ token, annot, eachSentence_pos, eachSentence_posfine ]
-                collect_annotations[key] = token_annot
+                collect_annotations[key] = [temp, token_annot]
 
     return collect_annotations

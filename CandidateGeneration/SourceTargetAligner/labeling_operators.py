@@ -66,7 +66,7 @@ def regexAligner(source, targets, candidateTargets, PICOS):
 
     combined_annotations = dict()
 
-    for eachReGeX in source: # each source_i
+    for i, eachReGeX in  enumerate(source): # each source_i
 
         for key, value in targets.items(): # each target_i
 
@@ -78,11 +78,19 @@ def regexAligner(source, targets, candidateTargets, PICOS):
                 annotations = align_regex_longtarget( target_i , eachReGeX , PICOS)
 
                 if annotations:
-                    if key not in combined_annotations:
-                        combined_annotations[key] = [annotations]
+                    matching_source = list(annotations.values())[0][0]
+                    if str(i) not in combined_annotations:
+                        combined_annotations[str(i)] = {'source': matching_source}
+
+                    new_annotations = dict() # Remove the sources from original annotations
+                    for new_key, new_value in annotations.items():
+                        new_annotations[new_key] = new_value[1:]
+
+                    if key not in combined_annotations[str(i)]:
+                        combined_annotations[str(i)][key] = [new_annotations]
                     else:
-                        combined_annotations[key].append( annotations )
-    
+                        combined_annotations[str(i)][key].append( new_annotations )
+
     return combined_annotations
 
 '''
