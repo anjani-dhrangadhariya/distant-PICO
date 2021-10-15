@@ -30,3 +30,15 @@ def generateMapping():
     mapping['es_type'] =  ['InterventionDescription', 'BriefTitle', 'OfficialTitle', 'BriefSummary', 'DetailedDescription', 'DesignInterventionModelDescription']
 
     return mapping
+
+
+def generateLabels():
+
+    PICOS = dict()
+
+    PICOS['P'] = 1
+    PICOS['IC'] = 2
+    PICOS['O'] = 3
+    PICOS['S'] = 4
+    
+    return PICOS
