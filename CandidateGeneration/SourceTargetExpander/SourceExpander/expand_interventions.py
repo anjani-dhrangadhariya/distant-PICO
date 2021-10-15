@@ -53,6 +53,7 @@ def expandIntervention(intervention_source, fetch_pos = True, fetch_abb = True):
             else:
                 values = [value]
 
+            # After retrieving all the abbreviations, add the POS tags
             for i, eachValue in enumerate(values):
                 key1 = key + '_' + str(i)
                 if fetch_pos == True:

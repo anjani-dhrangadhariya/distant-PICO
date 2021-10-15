@@ -29,8 +29,21 @@ def expandOutcomes(outcome_source, fetch_pos = True, fetch_abb = True):
     expanded_outcome = dict()
 
     for key, value in outcome_source.items():
+        if fetch_abb == True:
+            if '(' in value or ')' in value:
+                abbreviations = fetchAcronyms(value)
+                if abbreviations is not None:
+                    values = abbreviations
+                else:
+                    values = [value] # If no abbreviations found
+            else:
+                values = [value] # If no round brackets found
+        else:
+            values = [value] # If abbreviations are not to be retrieved
+
         if fetch_pos == True:
-            expanded_outcome = appendPOSSED(expanded_outcome, [value], key)
+            expanded_outcome = appendPOSSED(expanded_outcome, values, key)
+
         else:
             expanded_outcome[key] = value
 
