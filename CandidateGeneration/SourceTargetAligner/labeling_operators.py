@@ -129,9 +129,11 @@ def longTailInterventionAligner(source, targets, candidateTargets, PICOS):
 
                     if annotations:
                         if key not in intervention_annotations[str(i)]:
-                            intervention_annotations[str(i)][key] = [annotations]
-                        else:
-                            intervention_annotations[str(i)][key].append( annotations )
+                            # intervention_annotations[str(i)][key] = [annotations]
+                            intervention_annotations[str(i)][key] = annotations
+                        # else:
+                        #     # intervention_annotations[str(i)][key].append( annotations )
+                        #     pass
 
     return intervention_annotations
 
