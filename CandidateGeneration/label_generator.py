@@ -82,7 +82,7 @@ results_gen = helpers.scan(
 match_scores = []
 intervention_types = []
 
-res = es.search(index="ctofull2021-index", body={"query": {"match_all": {}}}, size=100)
+res = es.search(index="ctofull2021-index", body={"query": {"match_all": {}}}, size=5)
 print('Total number of records retrieved: ', res['hits']['total']['value'])
 
 
@@ -203,17 +203,18 @@ with open(theFile, 'a+') as wf:
                 if 'es_type' in key:
                     candidate_targets = mapping[key]
                     studytype_annotations = regexAligner( [value], expanded_targets, candidate_targets, PICOS['S'] )   # direct aligner expects values as lists       
-                    if studytype_annotations:
-                        print('Study type annotations')
+                    # if studytype_annotations:
+                        # print('Study type annotations')
                     #     print( studytype_annotations )
-                    s_aggregator = aggregate_labels(studytype_annotations, s_aggregator)
+                    # s_aggregator = aggregate_labels(studytype_annotations, s_aggregator)
 
                 if 'eo_primary' in key:
                     candidate_targets = mapping[key]
-                    # primout_annotations = longTailOutcomeAligner( value, expanded_targets, candidate_targets, PICOS['O'] )
-                    # if primout_annotations:
-                    #     print('Primary outcomes annotations')
-                    #     print( primout_annotations )
+                    primout_annotations = longTailOutcomeAligner( value, expanded_targets, candidate_targets, PICOS['O'] )
+                    if primout_annotations and NCT_id == 'NCT01495260':
+                        print('Primary outcomes annotations')
+                        o_aggregator = aggregate_labels(primout_annotations, o_aggregator)
+                        print( o_aggregator )
 
                 if 'eo_secondary' in key:
                     candidate_targets = mapping[key]
@@ -222,9 +223,16 @@ with open(theFile, 'a+') as wf:
                     #     print('Secondary outcomes annotations')
                     #     print( secondout_annotations )
 
-            print( 'Final study type aggregator: ' , s_aggregator )
+            print( 'Final outcome aggregator: ' , o_aggregator )
 
-        except:
+        except Exception as ex:
+          
+            template = "An exception of type {0} occurred. Arguments:{1!r}"
+            message = template.format(type(ex).__name__, ex.args)
+            print( NCT_id , ' : ', message )
 
-            logNCTID = 'Caused exception at the NCT ID: ' + NCT_id
-            logging.info(logNCTID)
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+            print(exc_type, fname, exc_tb.tb_lineno)
+
+            # logging.info(message)
