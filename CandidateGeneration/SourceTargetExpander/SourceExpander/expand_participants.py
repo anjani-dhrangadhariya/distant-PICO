@@ -83,7 +83,7 @@ def expandAge(age_source):
         # age_range_pattern =  r'(([Aa]ge[ds] )?(\d{1,2}( y?e?a?r?s?[ -]o?l?d?)?( - | to )\d{1,2})( y?e?a?r?s?[ -]o?l?d?)?)'
         age_range_pattern =  r'(([Aa]ge[ds]? )?\b([0-9]{1,2})\b(\s+years?|\s+months?)?(\s+old|-old)?\s?(-|to)\s?\b([0-9]{1,2})\b(\s+years?|\s+months?)+(\s+old|-old)?)'
         compiled_pattern = re.compile(age_range_pattern)
-        expanded_age_source['exactAge'] = compiled_pattern
+        expanded_age_source['exactAge'] = age_range_pattern
 
     if 'MinimumAge' in age_source and 'MaximumAge' not in age_source:
         minage = age_source['MinimumAge']
@@ -91,12 +91,13 @@ def expandAge(age_source):
         # age_range_pattern = r'([Aa]ge[ds] )?(\≥ |\> ||\< )?\d{1,2}( years (old)?( and above)?)'
         age_range_pattern =  r'(([Aa]ge[ds]? ?)\b([0-9]{1,2})\b(\s+years?|\s+months?)?(\s+old|-old)?\s?(and above| and older)?)'
         compiled_pattern = re.compile(age_range_pattern)
-        expanded_age_source['exactAge'] = compiled_pattern
+        expanded_age_source['exactAge'] = age_range_pattern
 
     if 'MaximumAge' not in age_source and 'MaximumAge' in age_source:
         # Usually this case never happens
         maxage_num = age_source['MaximumAge'].split(' ')[0]
         maxage_unit = age_source['MaximumAge'].split(' ')[1]
+        print('This is funny....')
 
     return expanded_age_source
 
