@@ -82,7 +82,7 @@ results_gen = helpers.scan(
 match_scores = []
 intervention_types = []
 
-res = es.search(index="ctofull2021-index", body={"query": {"match_all": {}}}, size=6000)
+res = es.search(index="ctofull2021-index", body={"query": {"match_all": {}}}, size=100)
 print('Total number of records retrieved: ', res['hits']['total']['value'])
 
 
@@ -93,23 +93,22 @@ with open(theFile, 'a+') as wf:
 
     for n, hit in enumerate( res['hits']['hits'] ): # Only a part search results from the CTO
     # for hit in results_gen: # Entire CTO
-        write_hit = collections.defaultdict(dict) # Dictionary to store the annotations for the CTO record being iterated
-
-        fullstudy = hit['_source']['FullStudiesResponse']['FullStudies'][0]['Study']
-        NCT_id = hit['_source']['FullStudiesResponse']['Expression']
-        write_hit['id'] = NCT_id
-
-        # Annotation aggregator for PICOS for the NCT_id
-        p_aggregator = dict()
-        ic_aggregator = dict()
-        o_aggregator = dict()
-        s_aggregator = dict()
-        # p_aggregator['id'] = NCT_id
-        # ic_aggregator['id'] = NCT_id
-        # o_aggregator['id'] = NCT_id
-        # s_aggregator['id'] = NCT_id
 
         try:
+
+            print('###########################################################################')
+            write_hit = collections.defaultdict(dict) # Dictionary to store the annotations for the CTO record being iterated
+
+            fullstudy = hit['_source']['FullStudiesResponse']['FullStudies'][0]['Study']
+            NCT_id = hit['_source']['FullStudiesResponse']['Expression']
+            print(NCT_id)
+            write_hit['id'] = NCT_id
+
+            # Annotation aggregator for PICOS for the NCT_id
+            p_aggregator = dict()
+            ic_aggregator = dict()
+            o_aggregator = dict()
+            s_aggregator = dict()
 
             protocol_section = fullstudy['ProtocolSection']
             derieved_section = fullstudy['DerivedSection']
@@ -131,19 +130,11 @@ with open(theFile, 'a+') as wf:
             # Expand the targets of PICOS annotation
             expanded_targets = expandTargets(protocol_section, targets)
 
-            # XXX: How to adjust for the abbreviation detection? Decide this based on direct matching process
-
             # Get the mappings between sources and their relevant targets
             mapping = generateMapping()
 
             # Get the mappings between PICOS entity and their labels
             PICOS = generateLabels()
-
-            # Add all target keys to the label aggregator
-            # p_aggregator = dict.fromkeys(expanded_targets.keys(),[])
-            # ic_aggregator = dict.fromkeys(expanded_targets.keys(),[])
-            # o_aggregator = dict.fromkeys(expanded_targets.keys(),[])
-            # s_aggregator = dict.fromkeys(expanded_targets.keys(),[])
 
             #################################################################
             # Direct matching begins
@@ -156,51 +147,54 @@ with open(theFile, 'a+') as wf:
                     candidate_targets = mapping[key]
                     int_annotations = longTailInterventionAligner( value, expanded_targets, candidate_targets, PICOS['IC'] )
                     if int_annotations:
-                        ic_aggregator = aggregate_labels(int_annotations, ic_aggregator)
-                        # print('Intervention annotations')
+                        print('Intervention annotations')
                         # print( int_annotations )
+                        ic_aggregator = aggregate_labels(int_annotations, ic_aggregator)
+
 
                 if 'ei_syn' in key:
                     candidate_targets = mapping[key]
                     int_syn_annotations = longTailInterventionAligner( value, expanded_targets, candidate_targets, PICOS['IC'] )
                     if int_syn_annotations:
-                        i_aggregated = aggregate_labels(int_syn_annotations, ic_aggregator)
-                        # print('Intervention synonyms annotations')  
+                        print('Intervention synonyms annotations')
                         # print( int_syn_annotations )
+                        ic_aggregator = aggregate_labels(int_syn_annotations, ic_aggregator)
+
 
                 if 'gender' in key:
                     candidate_targets = mapping[key]
-                    gender_annotations = directAligner( value, expanded_targets, candidate_targets, PICOS['P'] )
-                    if gender_annotations:
-                        p_aggregator = aggregate_labels(gender_annotations, p_aggregator)
+                    # gender_annotations = directAligner( value, expanded_targets, candidate_targets, PICOS['P'] )
+                    # if gender_annotations:
+                    #     p_aggregator = aggregate_labels(gender_annotations, p_aggregator)
                     #     print('Gender annotations')
                     #     print( gender_annotations )
 
                 if 'sample_size' in key:
                     candidate_targets = mapping[key]
-                    sampsize_annotations = directAligner( [value], expanded_targets, candidate_targets, PICOS['P'] )   # direct aligner expects values as lists       
-                    if sampsize_annotations:  
-                        p_aggregator = aggregate_labels(sampsize_annotations, p_aggregator)
+                    # sampsize_annotations = directAligner( [value], expanded_targets, candidate_targets, PICOS['P'] )   # direct aligner expects values as lists       
+                    # if sampsize_annotations:  
+                    #     p_aggregator = aggregate_labels(sampsize_annotations, p_aggregator)
                     #     print('Sample size annotations')
                     #     print( sampsize_annotations )
 
                 if 'age' in key:
                     candidate_targets = mapping[key]
-                    stdage_annotations = directAligner( value['StdAge'], expanded_targets, candidate_targets, PICOS['P'] )
-                    if stdage_annotations:
-                        p_aggregator = aggregate_labels(stdage_annotations, p_aggregator)
+                    # stdage_annotations = directAligner( value['StdAge'], expanded_targets, candidate_targets, PICOS['P'] )
+                    # if stdage_annotations:
+                    #     p_aggregator = aggregate_labels(stdage_annotations, p_aggregator)
                     #     print('Std age annotations')
                     #     print( stdage_annotations )
 
-                    exctage_annotattions = regexAligner( [value['exactAge']], expanded_targets, candidate_targets, PICOS['P'] ) # reGeX aligner expects values as lists   
+                    # exctage_annotattions = regexAligner( [value['exactAge']], expanded_targets, candidate_targets, PICOS['P'] ) # reGeX aligner expects values as lists   
                     # if exctage_annotattions: 
+                    #     p_aggregator = aggregate_labels(exctage_annotattions, p_aggregator)
                     #     print('Exact age annotations')
                     #     print( exctage_annotattions )
                     
 
                 if 'condition' in key:
                     candidate_targets = mapping[key]
-                    condition_annotations = longTailConditionAligner( value, expanded_targets, candidate_targets, PICOS['P'] )
+                    # condition_annotations = longTailConditionAligner( value, expanded_targets, candidate_targets, PICOS['P'] )
                     # if condition_annotations:  
                     #     print('Condition annotations')
                     #     print( condition_annotations )
@@ -208,27 +202,26 @@ with open(theFile, 'a+') as wf:
 
                 if 'es_type' in key:
                     candidate_targets = mapping[key]
-                    studytype_annotations = regexAligner( [value], expanded_targets, candidate_targets, PICOS['S'] )   # direct aligner expects values as lists       
+                    # studytype_annotations = regexAligner( [value], expanded_targets, candidate_targets, PICOS['S'] )   # direct aligner expects values as lists       
                     # if studytype_annotations:
                     #     print('Study type annotations')
                     #     print( studytype_annotations )
 
                 if 'eo_primary' in key:
                     candidate_targets = mapping[key]
-                    primout_annotations = longTailOutcomeAligner( value, expanded_targets, candidate_targets, PICOS['O'] )
+                    # primout_annotations = longTailOutcomeAligner( value, expanded_targets, candidate_targets, PICOS['O'] )
                     # if primout_annotations:
                     #     print('Primary outcomes annotations')
                     #     print( primout_annotations )
 
                 if 'eo_secondary' in key:
                     candidate_targets = mapping[key]
-                    secondout_annotations = longTailOutcomeAligner( value, expanded_targets, candidate_targets, PICOS['O'] )
+                    # secondout_annotations = longTailOutcomeAligner( value, expanded_targets, candidate_targets, PICOS['O'] )
                     # if secondout_annotations:
                     #     print('Secondary outcomes annotations')
                     #     print( secondout_annotations )
 
-            print('###########################################################################')
-
+            print( 'Final Intervention aggregator: ' , ic_aggregator )
 
         except:
 

@@ -38,14 +38,14 @@ def aggregate_labels(to_aggregate, aggregation_collector):
                             intra_aggregator[a_key][b_key] = b_value
 
 
-    # print( 'Intra aggregator: ', intra_aggregator )
+    print( 'Intra aggregator: ', intra_aggregator )
 
     # XXX Aggregate intra-aggregator with the inter-aggragator
     # Add the intra-aggregator content into inter-aggragator
 
     isEmpty = bool(aggregation_collector)
     isIntra_aggregatorEmpty = bool(intra_aggregator)
-    if isEmpty == False: # If aggregation_collector is empty
+    if isEmpty == False: # If aggregation_collector is empty then put everything from intra_aggregator to it....
         aggregation_collector = intra_aggregator
     else:
         # if intra_aggregator is not empty Aggregate intra_aggregator to the aggregation_collector....
