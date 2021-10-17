@@ -89,9 +89,10 @@ def regexAligner(source, targets, candidateTargets, PICOS):
                         new_annotations[new_key] = new_value[1:]
 
                     if key not in combined_annotations[str(i)]:
-                        combined_annotations[str(i)][key] = [new_annotations]
-                    else:
-                        combined_annotations[str(i)][key].append( new_annotations )
+                        # combined_annotations[str(i)][key] = [new_annotations]
+                        combined_annotations[str(i)][key] = new_annotations
+                    # else:
+                    #     combined_annotations[str(i)][key].append( new_annotations )
 
     return combined_annotations
 
