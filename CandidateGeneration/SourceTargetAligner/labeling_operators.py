@@ -41,9 +41,11 @@ def directAligner(source, targets, candidateTargets, PICOS):
                         combined_annotations[str(counter)] = {'source': eachSource}
 
                     if key not in combined_annotations[str(counter)]:
-                        combined_annotations[str(counter)][key] = [annotations]
-                    else:
-                        combined_annotations[str(counter)][key].append( annotations )
+                        # combined_annotations[str(counter)][key] = [annotations]
+                        combined_annotations[str(counter)][key] = annotations
+                    # else:
+                    #     print(annotations)
+                    #     combined_annotations[str(counter)][key].append( annotations )
 
                     counter = counter + 1
 
@@ -132,6 +134,7 @@ def longTailInterventionAligner(source, targets, candidateTargets, PICOS):
                             # intervention_annotations[str(i)][key] = [annotations]
                             intervention_annotations[str(i)][key] = annotations
                         # else:
+                        #     print(annotations)
                         #     # intervention_annotations[str(i)][key].append( annotations )
                         #     pass
 
