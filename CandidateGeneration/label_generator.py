@@ -82,12 +82,11 @@ results_gen = helpers.scan(
 match_scores = []
 intervention_types = []
 
-res = es.search(index="ctofull2021-index", body={"query": {"match_all": {}}}, size=5)
+res = es.search(index="ctofull2021-index", body={"query": {"match_all": {}}}, size=50)
 print('Total number of records retrieved: ', res['hits']['total']['value'])
 
 
 # Iterate through all of the fetched CTO index documents
-
 theFile ='/mnt/nas2/data/systematicReview/clinical_trials_gov/distant_pico_pre/secondary_outcomes.txt'
 with open(theFile, 'a+') as wf:
 
@@ -145,7 +144,7 @@ with open(theFile, 'a+') as wf:
 
                 if 'ei_name' in key: 
                     candidate_targets = mapping[key]
-                    int_annotations = longTailInterventionAligner( value, expanded_targets, candidate_targets, PICOS['IC'] )
+                    # int_annotations = longTailInterventionAligner( value, expanded_targets, candidate_targets, PICOS['IC'] )
                     # if int_annotations:
                         # print('Intervention annotations')
                         # print( int_annotations )
@@ -154,7 +153,7 @@ with open(theFile, 'a+') as wf:
 
                 if 'ei_syn' in key:
                     candidate_targets = mapping[key]
-                    int_syn_annotations = longTailInterventionAligner( value, expanded_targets, candidate_targets, PICOS['IC'] )
+                    # int_syn_annotations = longTailInterventionAligner( value, expanded_targets, candidate_targets, PICOS['IC'] )
                     # if int_syn_annotations:
                         # print('Intervention synonyms annotations')
                         # print( int_syn_annotations )
@@ -200,30 +199,31 @@ with open(theFile, 'a+') as wf:
                     #     print( condition_annotations )
 
 
-                if 'es_type' in key:
+                if 'es_type' in key and 'N.A.' not in value:
                     candidate_targets = mapping[key]
                     studytype_annotations = regexAligner( [value], expanded_targets, candidate_targets, PICOS['S'] )   # direct aligner expects values as lists       
                     # if studytype_annotations:
-                        # print('Study type annotations')
+                    #     print('Study type annotations')
                     #     print( studytype_annotations )
                     # s_aggregator = aggregate_labels(studytype_annotations, s_aggregator)
 
                 if 'eo_primary' in key:
                     candidate_targets = mapping[key]
-                    primout_annotations = longTailOutcomeAligner( value, expanded_targets, candidate_targets, PICOS['O'] )
-                    if primout_annotations and NCT_id == 'NCT01495260':
-                        print('Primary outcomes annotations')
-                        o_aggregator = aggregate_labels(primout_annotations, o_aggregator)
-                        print( o_aggregator )
+                    # primout_annotations = longTailOutcomeAligner( value, expanded_targets, candidate_targets, PICOS['O'] )
+                    # if primout_annotations:
+                    #     print('Primary outcomes annotations')
+                    #     o_aggregator = aggregate_labels(primout_annotations, o_aggregator)
+                    #     print( o_aggregator )
 
                 if 'eo_secondary' in key:
                     candidate_targets = mapping[key]
                     # secondout_annotations = longTailOutcomeAligner( value, expanded_targets, candidate_targets, PICOS['O'] )
                     # if secondout_annotations:
-                    #     print('Secondary outcomes annotations')
-                    #     print( secondout_annotations )
+                        # print('Secondary outcomes annotations')
+                        # o_aggregator = aggregate_labels(secondout_annotations, o_aggregator)
+                        # print( secondout_annotations )
 
-            print( 'Final outcome aggregator: ' , o_aggregator )
+            print( 'Final study type aggregator: ' , o_aggregator )
 
         except Exception as ex:
           
