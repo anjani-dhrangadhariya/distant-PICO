@@ -85,6 +85,8 @@ Returns:
 '''
 def fetchParticipantSampSize(json_document):
 
+    sampleSize = None
+
     if 'DesignModule' in json_document:
             if 'EnrollmentInfo' in json_document['DesignModule']:
                 sampleSize = json_document['DesignModule']['EnrollmentInfo']['EnrollmentCount']
@@ -115,6 +117,7 @@ def fetchParticipantSources(json_document):
     combined_sources['p_condition'] = p_condition
     combined_sources['p_age'] = p_age
     combined_sources['p_gender'] = p_gender
-    combined_sources['p_sample_size'] = p_sampsize
+    if p_sampsize:
+        combined_sources['p_sample_size'] = p_sampsize
 
     return combined_sources
