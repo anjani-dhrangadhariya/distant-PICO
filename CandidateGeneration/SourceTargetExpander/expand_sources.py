@@ -38,7 +38,9 @@ def expandSources(json_object, sources):
     expanded_sources['ep_gender'] = expanded_gender
     expanded_sources['ep_age'] = expanded_age
     expanded_sources['ep_condition'] = expanded_condition
-    expanded_sources['ep_sample_size'] = sources['p_sample_size']
+
+    if 'p_sample_size':
+        expanded_sources['ep_sample_size'] = sources['p_sample_size']
 
     # -------------------------------------------------------------------------------------
     # I/C
