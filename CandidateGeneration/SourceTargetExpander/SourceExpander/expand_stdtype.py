@@ -33,6 +33,8 @@ def expandStudyType(studytype_source):
     if studytype_source == 'N/A':
         return 'N.A.'
     elif studytype_source == 'Randomized':
-        return re.compile(randomized_source_pattern)
+        # return re.compile(randomized_source_pattern)
+        return randomized_source_pattern
     elif studytype_source == 'Non-Randomized':
-        return re.compile(nonrandomized_source_pattern)
+        # return re.compile(nonrandomized_source_pattern)
+        return nonrandomized_source_pattern
