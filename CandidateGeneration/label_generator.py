@@ -146,19 +146,19 @@ with open(theFile, 'a+') as wf:
                 if 'ei_name' in key: 
                     candidate_targets = mapping[key]
                     int_annotations = longTailInterventionAligner( value, expanded_targets, candidate_targets, PICOS['IC'] )
-                    if int_annotations:
-                        print('Intervention annotations')
+                    # if int_annotations:
+                        # print('Intervention annotations')
                         # print( int_annotations )
-                        ic_aggregator = aggregate_labels(int_annotations, ic_aggregator)
+                        # ic_aggregator = aggregate_labels(int_annotations, ic_aggregator)
 
 
                 if 'ei_syn' in key:
                     candidate_targets = mapping[key]
                     int_syn_annotations = longTailInterventionAligner( value, expanded_targets, candidate_targets, PICOS['IC'] )
-                    if int_syn_annotations:
-                        print('Intervention synonyms annotations')
+                    # if int_syn_annotations:
+                        # print('Intervention synonyms annotations')
                         # print( int_syn_annotations )
-                        ic_aggregator = aggregate_labels(int_syn_annotations, ic_aggregator)
+                        # ic_aggregator = aggregate_labels(int_syn_annotations, ic_aggregator)
 
 
                 if 'gender' in key:
@@ -202,10 +202,11 @@ with open(theFile, 'a+') as wf:
 
                 if 'es_type' in key:
                     candidate_targets = mapping[key]
-                    # studytype_annotations = regexAligner( [value], expanded_targets, candidate_targets, PICOS['S'] )   # direct aligner expects values as lists       
-                    # if studytype_annotations:
-                    #     print('Study type annotations')
+                    studytype_annotations = regexAligner( [value], expanded_targets, candidate_targets, PICOS['S'] )   # direct aligner expects values as lists       
+                    if studytype_annotations:
+                        print('Study type annotations')
                     #     print( studytype_annotations )
+                    s_aggregator = aggregate_labels(studytype_annotations, s_aggregator)
 
                 if 'eo_primary' in key:
                     candidate_targets = mapping[key]
@@ -221,7 +222,7 @@ with open(theFile, 'a+') as wf:
                     #     print('Secondary outcomes annotations')
                     #     print( secondout_annotations )
 
-            print( 'Final Intervention aggregator: ' , ic_aggregator )
+            print( 'Final study type aggregator: ' , s_aggregator )
 
         except:
 
