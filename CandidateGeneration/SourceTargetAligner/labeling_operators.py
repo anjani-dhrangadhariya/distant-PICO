@@ -86,7 +86,7 @@ def regexAligner(source, targets, candidateTargets, PICOS):
 
                     new_annotations = dict() # Remove the sources from original annotations
                     for new_key, new_value in annotations.items():
-                        new_annotations[new_key] = new_value[1:]
+                        new_annotations[new_key] = new_value[1:][0]
 
                     if key not in combined_annotations[str(i)]:
                         # combined_annotations[str(i)][key] = [new_annotations]
@@ -173,9 +173,10 @@ def longTailConditionAligner(source, targets, candidateTargets, PICOS):
 
                 if annotations:
                     if key not in condition_annotations[str(i)]:
-                        condition_annotations[str(i)][key] = [annotations]
-                    else:
-                        condition_annotations[str(i)][key].append( annotations )
+                        # condition_annotations[str(i)][key] = [annotations]
+                        condition_annotations[str(i)][key] = annotations
+                    # else:
+                    #     condition_annotations[str(i)][key].append( annotations )
     
     return condition_annotations
 

@@ -38,7 +38,7 @@ def aggregate_labels(to_aggregate, aggregation_collector):
                             intra_aggregator[a_key][b_key] = b_value
 
 
-    print( 'Intra aggregator: ', intra_aggregator )
+    # print( 'Intra aggregator: ', intra_aggregator )
 
     # XXX Aggregate intra-aggregator with the inter-aggragator
     # Add the intra-aggregator content into inter-aggragator

@@ -82,7 +82,7 @@ results_gen = helpers.scan(
 match_scores = []
 intervention_types = []
 
-res = es.search(index="ctofull2021-index", body={"query": {"match_all": {}}}, size=50)
+res = es.search(index="ctofull2021-index", body={"query": {"match_all": {}}}, size=100)
 print('Total number of records retrieved: ', res['hits']['total']['value'])
 
 
@@ -162,33 +162,35 @@ with open(theFile, 'a+') as wf:
 
                 if 'gender' in key:
                     candidate_targets = mapping[key]
-                    # gender_annotations = directAligner( value, expanded_targets, candidate_targets, PICOS['P'] )
-                    # if gender_annotations:
-                    #     p_aggregator = aggregate_labels(gender_annotations, p_aggregator)
-                    #     print('Gender annotations')
-                    #     print( gender_annotations )
+                    gender_annotations = directAligner( value, expanded_targets, candidate_targets, PICOS['P'] )
+                    if gender_annotations:
+                        print('Gender annotations')
+                        # print( gender_annotations )
+                        p_aggregator = aggregate_labels(gender_annotations, p_aggregator)
+
 
                 if 'sample_size' in key:
                     candidate_targets = mapping[key]
-                    # sampsize_annotations = directAligner( [value], expanded_targets, candidate_targets, PICOS['P'] )   # direct aligner expects values as lists       
-                    # if sampsize_annotations:  
-                    #     p_aggregator = aggregate_labels(sampsize_annotations, p_aggregator)
-                    #     print('Sample size annotations')
-                    #     print( sampsize_annotations )
+                    sampsize_annotations = directAligner( [value], expanded_targets, candidate_targets, PICOS['P'] )   # direct aligner expects values as lists       
+                    if sampsize_annotations: 
+                        print('Sample size annotations')
+                        # print( sampsize_annotations )
+                        p_aggregator = aggregate_labels(sampsize_annotations, p_aggregator)
 
                 if 'age' in key:
                     candidate_targets = mapping[key]
-                    # stdage_annotations = directAligner( value['StdAge'], expanded_targets, candidate_targets, PICOS['P'] )
-                    # if stdage_annotations:
-                    #     p_aggregator = aggregate_labels(stdage_annotations, p_aggregator)
-                    #     print('Std age annotations')
-                    #     print( stdage_annotations )
+                    stdage_annotations = directAligner( value['StdAge'], expanded_targets, candidate_targets, PICOS['P'] )
+                    if stdage_annotations:
+                        print('Std age annotations')
+                        # print( stdage_annotations )
+                        p_aggregator = aggregate_labels(stdage_annotations, p_aggregator)
 
-                    # exctage_annotattions = regexAligner( [value['exactAge']], expanded_targets, candidate_targets, PICOS['P'] ) # reGeX aligner expects values as lists   
-                    # if exctage_annotattions: 
-                    #     p_aggregator = aggregate_labels(exctage_annotattions, p_aggregator)
-                    #     print('Exact age annotations')
-                    #     print( exctage_annotattions )
+                    if 'exactAge' in value:
+                        exctage_annotattions = regexAligner( [value['exactAge']], expanded_targets, candidate_targets, PICOS['P'] ) # reGeX aligner expects values as lists   
+                        if exctage_annotattions: 
+                            print('Exact age annotations')
+                            # print( exctage_annotattions )
+                            p_aggregator = aggregate_labels(exctage_annotattions, p_aggregator)
                     
 
                 if 'condition' in key:
@@ -223,7 +225,7 @@ with open(theFile, 'a+') as wf:
                         # o_aggregator = aggregate_labels(secondout_annotations, o_aggregator)
                         # print( secondout_annotations )
 
-            print( 'Final study type aggregator: ' , o_aggregator )
+            print( 'Final Participant aggregator: ' , p_aggregator )
 
         except Exception as ex:
           

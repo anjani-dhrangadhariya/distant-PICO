@@ -39,6 +39,8 @@ Returns:
 '''
 def fetchParticipantGender(json_document):
 
+    gender = None
+
     if 'EligibilityModule' in json_document:
         if 'Gender' in json_document['EligibilityModule']:
             gender = json_document['EligibilityModule']['Gender']
@@ -116,7 +118,8 @@ def fetchParticipantSources(json_document):
 
     combined_sources['p_condition'] = p_condition
     combined_sources['p_age'] = p_age
-    combined_sources['p_gender'] = p_gender
+    if p_gender:
+        combined_sources['p_gender'] = p_gender
     if p_sampsize:
         combined_sources['p_sample_size'] = p_sampsize
 
