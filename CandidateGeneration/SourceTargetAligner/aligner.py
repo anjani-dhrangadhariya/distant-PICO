@@ -171,6 +171,7 @@ def align_regex_longtarget(target, source, PICOS):
             pos = list()
             pos_fine = list()
 
+            source = re.compile(source)
             r1 = source.finditer(eachSentence)
 
             for match in r1:

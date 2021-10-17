@@ -215,8 +215,9 @@ def longTailOutcomeAligner(source, targets, candidateTargets, PICOS):
 
                     if annotations:
                         if key not in outcome_annotations[str(i)]:
-                            outcome_annotations[str(i)][key] = [annotations]
-                        else:
-                            outcome_annotations[str(i)][key].append( annotations )
+                            outcome_annotations[str(i)][key] = annotations
+                            # outcome_annotations[str(i)][key] = [annotations]
+                        # else:
+                        #     outcome_annotations[str(i)][key].append( annotations )
 
     return outcome_annotations
