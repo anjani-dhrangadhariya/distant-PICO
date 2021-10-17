@@ -20,9 +20,12 @@ Returns:
 '''
 def fetchStudyType(json_document):
 
+    studyType = ''
+
     if 'DesignModule' in json_document:
             if 'DesignInfo' in json_document['DesignModule']:
-                studyType = json_document['DesignModule']['DesignInfo']['DesignAllocation']
+                if 'DesignAllocation' in json_document['DesignModule']['DesignInfo']:
+                    studyType = json_document['DesignModule']['DesignInfo']['DesignAllocation']
 
     return studyType 
 
