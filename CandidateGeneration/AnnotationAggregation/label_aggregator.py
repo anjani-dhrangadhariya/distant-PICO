@@ -98,7 +98,7 @@ def inter_aggregate_labels(p, ic, o, s, inter_aggregator):
     #         inter_aggregator[key][a_key]['p'] = a_value[1]
 
     inter_aggregator = inter_aggregate_util(p, inter_aggregator, 'p')
-    inter_aggregator = inter_aggregate_util(ic, inter_aggregator, 'i')
+    inter_aggregator = inter_aggregate_util(ic, inter_aggregator, 'ic')
     inter_aggregator = inter_aggregate_util(o, inter_aggregator, 'o')
     inter_aggregator = inter_aggregate_util(s, inter_aggregator, 's')
 
