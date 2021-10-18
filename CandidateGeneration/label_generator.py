@@ -83,7 +83,7 @@ results_gen = helpers.scan(
 match_scores = []
 intervention_types = []
 
-res = es.search(index="ctofull2021-index", body={"query": {"match_all": {}}}, size=100)
+res = es.search(index="ctofull2021-index", body={"query": {"match_all": {}}}, size=500)
 print('Total number of records retrieved: ', res['hits']['total']['value'])
 
 
@@ -96,14 +96,12 @@ with open(theFile, 'a+') as wf:
 
         try:
 
-            print('###########################################################################')
             write_hit = collections.defaultdict(dict) # Dictionary to store the annotations for the CTO record being iterated
 
             fullstudy = hit['_source']['FullStudiesResponse']['FullStudies'][0]['Study']
             NCT_id = hit['_source']['FullStudiesResponse']['Expression']
-            print(NCT_id)
             write_hit['id'] = NCT_id
-
+            print('################################## ', NCT_id , ' #########################################')
             # Annotation aggregator for PICOS for the NCT_id
             p_aggregator = dict()
             ic_aggregator = dict()
@@ -169,7 +167,6 @@ with open(theFile, 'a+') as wf:
                         # print( gender_annotations )
                         p_aggregator = aggregate_labels(gender_annotations, p_aggregator)
 
-
                 if 'sample_size' in key:
                     candidate_targets = mapping[key]
                     sampsize_annotations = directAligner( [value], expanded_targets, candidate_targets, PICOS['P'] )   # direct aligner expects values as lists       
@@ -199,7 +196,7 @@ with open(theFile, 'a+') as wf:
                     condition_annotations = longTailConditionAligner( value, expanded_targets, candidate_targets, PICOS['P'] )
                     if condition_annotations:  
                         # print('Condition annotations')
-                    #     print( condition_annotations )
+                        # print( condition_annotations )
                         p_aggregator = aggregate_labels(condition_annotations, p_aggregator)
 
 
