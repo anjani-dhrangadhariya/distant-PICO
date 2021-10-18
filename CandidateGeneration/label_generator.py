@@ -83,14 +83,13 @@ results_gen = helpers.scan(
 match_scores = []
 intervention_types = []
 
-res = es.search(index="ctofull2021-index", body={"query": {"match_all": {}}}, size=500)
+res = es.search(index="ctofull2021-index", body={"query": {"match_all": {}}}, size=20)
 print('Total number of records retrieved: ', res['hits']['total']['value'])
 
-
-# Iterate through all of the fetched CTO index documents
 theFile ='/mnt/nas2/data/systematicReview/clinical_trials_gov/distant_pico_pre/secondary_outcomes.txt'
 with open(theFile, 'a+') as wf:
 
+# Iterate through all of the fetched CTO index documents
     for n, hit in enumerate( res['hits']['hits'] ): # Only a part search results from the CTO
     # for hit in results_gen: # Entire CTO
 
@@ -103,6 +102,7 @@ with open(theFile, 'a+') as wf:
             write_hit['id'] = NCT_id
             print('################################## ', NCT_id , ' #########################################')
             # Annotation aggregator for PICOS for the NCT_id
+            global_aggregator = dict()
             p_aggregator = dict()
             ic_aggregator = dict()
             o_aggregator = dict()
@@ -127,6 +127,7 @@ with open(theFile, 'a+') as wf:
 
             # Expand the targets of PICOS annotation
             expanded_targets = expandTargets(protocol_section, targets)
+            global_aggregator = dict.fromkeys(list(expanded_targets.keys()))
 
             # Get the mappings between sources and their relevant targets
             mapping = generateMapping()
@@ -141,54 +142,32 @@ with open(theFile, 'a+') as wf:
             #################################################################           
             for key, value in expanded_sources.items():
 
-                if 'ei_name' in key: 
-                    candidate_targets = mapping[key]
-                    int_annotations = longTailInterventionAligner( value, expanded_targets, candidate_targets, PICOS['IC'] )
-                    if int_annotations:
-                        # print('Intervention annotations')
-                        # print( int_annotations )
-                        ic_aggregator = aggregate_labels(int_annotations, ic_aggregator)
-
-
-                if 'ei_syn' in key:
-                    candidate_targets = mapping[key]
-                    int_syn_annotations = longTailInterventionAligner( value, expanded_targets, candidate_targets, PICOS['IC'] )
-                    if int_syn_annotations:
-                        # print('Intervention synonyms annotations')
-                        # print( int_syn_annotations )
-                        ic_aggregator = aggregate_labels(int_syn_annotations, ic_aggregator)
-
-
                 if 'gender' in key:
                     candidate_targets = mapping[key]
                     gender_annotations = directAligner( value, expanded_targets, candidate_targets, PICOS['P'] )
                     if gender_annotations:
                         # print('Gender annotations')
-                        # print( gender_annotations )
-                        p_aggregator = aggregate_labels(gender_annotations, p_aggregator)
+                        p_aggregator = intra_aggregate_labels(gender_annotations, p_aggregator)
 
                 if 'sample_size' in key:
                     candidate_targets = mapping[key]
                     sampsize_annotations = directAligner( [value], expanded_targets, candidate_targets, PICOS['P'] )   # direct aligner expects values as lists       
                     if sampsize_annotations: 
                         # print('Sample size annotations')
-                        # print( sampsize_annotations )
-                        p_aggregator = aggregate_labels(sampsize_annotations, p_aggregator)
+                        p_aggregator = intra_aggregate_labels(sampsize_annotations, p_aggregator)
 
                 if 'age' in key:
                     candidate_targets = mapping[key]
                     stdage_annotations = directAligner( value['StdAge'], expanded_targets, candidate_targets, PICOS['P'] )
                     if stdage_annotations:
                         # print('Std age annotations')
-                        # print( stdage_annotations )
-                        p_aggregator = aggregate_labels(stdage_annotations, p_aggregator)
+                        p_aggregator = intra_aggregate_labels(stdage_annotations, p_aggregator)
 
                     if 'exactAge' in value:
                         exctage_annotattions = regexAligner( [value['exactAge']], expanded_targets, candidate_targets, PICOS['P'] ) # reGeX aligner expects values as lists   
                         if exctage_annotattions: 
                             # print('Exact age annotations')
-                            # print( exctage_annotattions )
-                            p_aggregator = aggregate_labels(exctage_annotattions, p_aggregator)
+                            p_aggregator = intra_aggregate_labels(exctage_annotattions, p_aggregator)
                     
 
                 if 'condition' in key:
@@ -196,8 +175,38 @@ with open(theFile, 'a+') as wf:
                     condition_annotations = longTailConditionAligner( value, expanded_targets, candidate_targets, PICOS['P'] )
                     if condition_annotations:  
                         # print('Condition annotations')
-                        # print( condition_annotations )
-                        p_aggregator = aggregate_labels(condition_annotations, p_aggregator)
+                        p_aggregator = intra_aggregate_labels(condition_annotations, p_aggregator)
+
+                if 'ei_name' in key: 
+                    candidate_targets = mapping[key]
+                    int_annotations = longTailInterventionAligner( value, expanded_targets, candidate_targets, PICOS['IC'] )
+                    if int_annotations:
+                        # print('Intervention annotations')
+                        ic_aggregator = intra_aggregate_labels(int_annotations, ic_aggregator)
+
+
+                if 'ei_syn' in key:
+                    candidate_targets = mapping[key]
+                    int_syn_annotations = longTailInterventionAligner( value, expanded_targets, candidate_targets, PICOS['IC'] )
+                    if int_syn_annotations:
+                        # print('Intervention synonyms annotations')
+                        ic_aggregator = intra_aggregate_labels(int_syn_annotations, ic_aggregator)
+
+
+                if 'eo_primary' in key:
+                    candidate_targets = mapping[key]
+                    primout_annotations = longTailOutcomeAligner( value, expanded_targets, candidate_targets, PICOS['O'] )
+                    if primout_annotations:
+                        # print('Primary outcomes annotations')
+                        o_aggregator = intra_aggregate_labels(primout_annotations, o_aggregator)
+
+
+                if 'eo_secondary' in key:
+                    candidate_targets = mapping[key]
+                    secondout_annotations = longTailOutcomeAligner( value, expanded_targets, candidate_targets, PICOS['O'] )
+                    if secondout_annotations:
+                        # print('Secondary outcomes annotations')
+                        o_aggregator = intra_aggregate_labels(secondout_annotations, o_aggregator)
 
 
                 if 'es_type' in key and 'N.A.' not in value:
@@ -205,26 +214,11 @@ with open(theFile, 'a+') as wf:
                     studytype_annotations = regexAligner( [value], expanded_targets, candidate_targets, PICOS['S'] )   # direct aligner expects values as lists       
                     if studytype_annotations:
                         # print('Study type annotations')
-                        # print( studytype_annotations )
-                        s_aggregator = aggregate_labels(studytype_annotations, s_aggregator)
+                        s_aggregator = intra_aggregate_labels(studytype_annotations, s_aggregator)
 
-                if 'eo_primary' in key:
-                    candidate_targets = mapping[key]
-                    primout_annotations = longTailOutcomeAligner( value, expanded_targets, candidate_targets, PICOS['O'] )
-                    if primout_annotations:
-                        # print('Primary outcomes annotations')
-                        o_aggregator = aggregate_labels(primout_annotations, o_aggregator)
-                        # print( o_aggregator )
-
-                if 'eo_secondary' in key:
-                    candidate_targets = mapping[key]
-                    secondout_annotations = longTailOutcomeAligner( value, expanded_targets, candidate_targets, PICOS['O'] )
-                    if secondout_annotations:
-                        # print('Secondary outcomes annotations')
-                        o_aggregator = aggregate_labels(secondout_annotations, o_aggregator)
-                        # print( secondout_annotations )
-
-            # print( 'Final Participant aggregator: ' , p_aggregator )
+            # Intra aggregation is complete
+            # Start inter aggregation frmo here
+            inter_aggregate_labels(p_aggregator, ic_aggregator, o_aggregator, s_aggregator)
 
         except Exception as ex:
           
