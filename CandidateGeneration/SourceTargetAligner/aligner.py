@@ -183,7 +183,6 @@ def align_regex_longtarget(target, source, PICOS):
                 token.extend( token_i )
                 pos.extend( eachSentence_pos )
                 pos_fine.extend( eachSentence_posfine )
-
                 # print( len(token), len(annot), len(eachSentence_pos), len(eachSentence_posfine) ) # TODO: We are not extending them because the lengths of tokens and annot do not correspond to the length of pos and pos_fine
 
             if annot:
