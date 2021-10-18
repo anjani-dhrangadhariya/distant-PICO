@@ -33,14 +33,13 @@ def expandSources(json_object, sources):
     # -------------------------------------------------------------------------------------
     if 'p_gender' in sources:
         expanded_gender = expandGender(sources['p_gender'])
+        expanded_sources['ep_gender'] = expanded_gender
     if 'p_age' in sources:
         expanded_age = expandAge(sources['p_age'])
+        expanded_sources['ep_age'] = expanded_age
     if 'p_condition' in sources:
         expanded_condition = expandCondition(sources['p_condition'])
-
-    expanded_sources['ep_gender'] = expanded_gender
-    expanded_sources['ep_age'] = expanded_age
-    expanded_sources['ep_condition'] = expanded_condition
+        expanded_sources['ep_condition'] = expanded_condition
 
     if 'p_sample_size' in sources:
         expanded_sources['ep_sample_size'] = sources['p_sample_size']
