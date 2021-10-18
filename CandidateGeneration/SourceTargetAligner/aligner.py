@@ -143,7 +143,7 @@ def align_highconf_longtarget(target, source, PICOS):
                 # token_annot = [ token, annot, eachSentence_pos, eachSentence_posfine ]
                 collect_annotations[key] = token_annot
 
-    assert len(token) == len(annot)
+            assert len(token) == len(annot)
 
     return collect_annotations
 
