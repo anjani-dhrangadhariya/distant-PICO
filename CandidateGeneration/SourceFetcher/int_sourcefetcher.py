@@ -82,6 +82,7 @@ def fetchIntcompSources(json_document):
     i_name = fetchIntervention(json_document)
     i_syn = fetchInterventionSyn(json_document)
 
+    # combined_sources['i_name'] = {**i_name, **i_syn}
     combined_sources['i_name'] = i_name
     combined_sources['i_synonym'] = i_syn
 
