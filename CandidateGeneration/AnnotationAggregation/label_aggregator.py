@@ -12,7 +12,9 @@ Args:
 Returns:
     dictionary: weakly annotated sources with the givens sources and PICOS labeling scheme
 '''
-def aggregate_labels(to_aggregate, aggregation_collector):
+def intra_aggregate_labels(to_aggregate, aggregation_collector):
+
+    # print( to_aggregate )
 
     intra_aggregator = dict()
 
@@ -40,26 +42,22 @@ def aggregate_labels(to_aggregate, aggregation_collector):
 
     # print( 'Intra aggregator: ', intra_aggregator )
 
-    # XXX Aggregate intra-aggregator with the inter-aggragator
-    # Add the intra-aggregator content into inter-aggragator
-
+    # Add the intra-aggregator content into inter-aggragator (aggregation_collector)
     isEmpty = bool(aggregation_collector)
     isIntra_aggregatorEmpty = bool(intra_aggregator)
-    if isEmpty == False: # If aggregation_collector is empty then put everything from intra_aggregator to it....
+    if isEmpty == False: # If aggregation_collector is empty then put everything from the intra_aggregator to it....
         aggregation_collector = intra_aggregator
     else:
-        # if intra_aggregator is not empty Aggregate intra_aggregator to the aggregation_collector....
+        # if intra_aggregator is not empty, then aggregate intra_aggregator to the aggregation_collector....
         if isIntra_aggregatorEmpty == True:          
 
             for key, value in intra_aggregator.items():
                 if key not in aggregation_collector:
                     aggregation_collector[key] = value
                 else:
-                    # print(key)
                     for a_key, a_value in value.items():
                         
                         if a_key in aggregation_collector[key]:
-                            # print( '-----', a_key )
                             aggregate_this = a_value[1]
                             to_this = aggregation_collector[key][a_key][1]
 
@@ -71,3 +69,37 @@ def aggregate_labels(to_aggregate, aggregation_collector):
 
 
     return aggregation_collector
+
+def inter_aggregate_util(intra_i, inter, entity):
+
+    for key, value in intra_i.items():
+        if key not in inter:
+            inter[key] = {}
+
+    for key, value in intra_i.items():
+        values = inter[key]
+        for a_key, a_value in value.items():
+            if a_key not in values:
+                inter[key][a_key] = { 'tokens': a_value[0] }
+                inter[key][a_key][entity] = a_value[1]
+            else:
+                inter[key][a_key][entity] = a_value[1]
+
+    
+    return inter
+
+
+def inter_aggregate_labels(p, ic, o, s, inter_aggregator):
+
+    # inter_aggregator = p
+    # for key, value in inter_aggregator.items():
+    #     for a_key, a_value in value.items():
+    #         inter_aggregator[key][a_key] = { 'tokens': a_value[0] }
+    #         inter_aggregator[key][a_key]['p'] = a_value[1]
+
+    inter_aggregator = inter_aggregate_util(p, inter_aggregator, 'p')
+    inter_aggregator = inter_aggregate_util(ic, inter_aggregator, 'i')
+    inter_aggregator = inter_aggregate_util(o, inter_aggregator, 'o')
+    inter_aggregator = inter_aggregate_util(s, inter_aggregator, 's')
+
+    return inter_aggregator
