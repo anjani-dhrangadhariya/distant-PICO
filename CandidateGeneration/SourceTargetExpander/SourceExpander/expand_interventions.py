@@ -23,27 +23,27 @@ def expandIntervention(intervention_source, fetch_pos = True, fetch_abb = True):
 
         if 'arm' not in key:
             
-            if '&' in value and 'vs' not in value and ',' not in value  and ':' not in value and '(' not in value: # ampersand              
+            if '&' in value and 'vs' not in value and ',' not in value  and ':' not in value and '(' not in value and '[' not in value: # ampersand              
                 values = value.split('&')
                 values.append( value )
 
-            elif '&' not in value and 'vs' in value and ',' not in value  and ':' not in value and '/' not in value and '(' not in value: # versus
+            elif '&' not in value and 'vs' in value and ',' not in value  and ':' not in value and '/' not in value and '(' not in value and '[' not in value: # versus
                 values = value.split('vs')
                 values.append( value )
 
-            elif '&' not in value and 'vs' not in value and ',' not in value  and ':' in value and '/' not in value and '(' not in value: # semi-colon
+            elif '&' not in value and 'vs' not in value and ',' not in value  and ':' in value and '/' not in value and '(' not in value and '[' not in value: # semi-colon
                 values = value.split(':')
                 values.append( value )
 
-            elif '&' not in value and 'vs' not in value and ',' in value  and ':' not in value and '/' not in value and '(' not in value: # comma
+            elif '&' not in value and 'vs' not in value and ',' in value  and ':' not in value and '/' not in value and '(' not in value and '[' not in value: # comma
                 values = value.split(',')
                 values.append( value )
 
-            elif '&' not in value and 'vs' not in value and ',' not in value  and ':' not in value and '/' in value and '(' not in value: # forward slash
+            elif '&' not in value and 'vs' not in value and ',' not in value  and ':' not in value and '/' in value and '(' not in value and '[' not in value: # forward slash
                 values = value.split('/')
                 values.append( value )
 
-            elif '&' not in value and 'vs' not in value and ',' not in value  and ':' not in value and '/' not in value and '(' in value: # abbreviations
+            elif '&' not in value and 'vs' not in value and ',' not in value  and ':' not in value and '/' not in value and ('(' in value or '[' in value): # abbreviations
                 abbreviations = fetchAcronyms(value)
                 if abbreviations is not None:
                     values = abbreviations

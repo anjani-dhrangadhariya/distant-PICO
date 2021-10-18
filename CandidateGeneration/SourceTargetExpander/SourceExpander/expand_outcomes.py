@@ -30,7 +30,7 @@ def expandOutcomes(outcome_source, fetch_pos = True, fetch_abb = True):
 
     for key, value in outcome_source.items():
         if fetch_abb == True:
-            if '(' in value or ')' in value:
+            if '(' in value or ')' in value or '[' in value  or ']' in value:
                 abbreviations = fetchAcronyms(value)
                 if abbreviations is not None:
                     values = abbreviations
