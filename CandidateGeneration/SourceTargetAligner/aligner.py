@@ -108,13 +108,16 @@ def align_highconf_longtarget(target, source, PICOS):
         # Sentence tokenization
         collect_annotations = dict()
 
-        annot = list()
-        token = list()
-        pos = list()
-        pos_fine = list()
-        
+       
         # Iterate each sentence
         for key, value in target.items():
+
+            # print('------------------', key )
+
+            annot = list()
+            token = list()
+            pos = list()
+            pos_fine = list()
 
             eachSentence = value['text'].lower()
             eachSentence_tokens = value['tokens']
