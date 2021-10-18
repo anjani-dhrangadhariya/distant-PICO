@@ -61,14 +61,15 @@ def expandAge(age_source):
     adult_source = ['Adult', 'Older Adult', 'Young Adult', 'Young']
     older_source = ['Older Adult', 'Aged', 'Elderly', 'Frail', 'Frail Older Adults', 'Frail Elders']
 
-    for eachStdAge in age_source['StdAge']:
-        if 'Child' in eachStdAge:
-            expanded_stdage.extend( baby_source )
-            expanded_stdage.extend( child_source )
-        elif 'Adult' in eachStdAge:
-            expanded_stdage.extend( adult_source )
-        elif 'Older Adult' in eachStdAge:
-            expanded_stdage.extend( older_source )
+    if 'StdAge' in age_source:
+        for eachStdAge in age_source['StdAge']:
+            if 'Child' in eachStdAge:
+                expanded_stdage.extend( baby_source )
+                expanded_stdage.extend( child_source )
+            elif 'Adult' in eachStdAge:
+                expanded_stdage.extend( adult_source )
+            elif 'Older Adult' in eachStdAge:
+                expanded_stdage.extend( older_source )
     
     expanded_age_source['StdAge'] = expanded_stdage
 
