@@ -82,24 +82,29 @@ def inter_aggregate_util(intra_i, inter, entity):
             if a_key not in values:
                 inter[key][a_key] = { 'tokens': a_value[0] }
                 inter[key][a_key][entity] = a_value[1]
+
+                assert len( a_value[0] ) == len( a_value[1] )
             else:
                 inter[key][a_key][entity] = a_value[1]
 
-    
+                assert len( inter[key][a_key]['tokens'] ) == len( a_value[1] )
+
     return inter
 
 
 def inter_aggregate_labels(p, ic, o, s, inter_aggregator):
 
-    # inter_aggregator = p
-    # for key, value in inter_aggregator.items():
-    #     for a_key, a_value in value.items():
-    #         inter_aggregator[key][a_key] = { 'tokens': a_value[0] }
-    #         inter_aggregator[key][a_key]['p'] = a_value[1]
+    inter_aggregator = p
+    for key, value in inter_aggregator.items():
+        for a_key, a_value in value.items():
+            inter_aggregator[key][a_key] = { 'tokens': a_value[0] }
+            inter_aggregator[key][a_key]['p'] = a_value[1]
 
-    inter_aggregator = inter_aggregate_util(p, inter_aggregator, 'p')
     inter_aggregator = inter_aggregate_util(ic, inter_aggregator, 'ic')
     inter_aggregator = inter_aggregate_util(o, inter_aggregator, 'o')
     inter_aggregator = inter_aggregate_util(s, inter_aggregator, 's')
+
+    # if p and ic and o and s:
+    #     print(inter_aggregator)
 
     return inter_aggregator
