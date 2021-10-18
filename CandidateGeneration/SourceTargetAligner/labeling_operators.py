@@ -38,16 +38,14 @@ def directAligner(source, targets, candidateTargets, PICOS):
 
                 if annotations:
                     if eachSource not in combined_annotations:
-                        combined_annotations[str(counter)] = {'source': eachSource}
-
-                    if key not in combined_annotations[str(counter)]:
-                        # combined_annotations[str(counter)][key] = [annotations]
-                        combined_annotations[str(counter)][key] = annotations
+                        combined_annotations[str(i)] = {'source': eachSource}
+                    
+                    if key not in combined_annotations[str(i)]:
+                        # combined_annotations[str(i)][key] = [annotations]
+                        combined_annotations[str(i)][key] = annotations
                     # else:
                     #     print(annotations)
-                    #     combined_annotations[str(counter)][key].append( annotations )
-
-                    counter = counter + 1
+                    #     combined_annotations[str(i)][key].append( annotations )
 
     return combined_annotations
 
