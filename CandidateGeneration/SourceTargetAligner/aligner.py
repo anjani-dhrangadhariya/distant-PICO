@@ -107,6 +107,11 @@ def align_highconf_longtarget(target, source, PICOS):
     if target is not None :
         # Sentence tokenization
         collect_annotations = dict()
+
+        annot = list()
+        token = list()
+        pos = list()
+        pos_fine = list()
         
         # Iterate each sentence
         for key, value in target.items():
@@ -115,11 +120,6 @@ def align_highconf_longtarget(target, source, PICOS):
             eachSentence_tokens = value['tokens']
             eachSentence_pos = value['pos']
             eachSentence_posfine = value['pos_fine']
-
-            annot = list()
-            token = list()
-            pos = list()
-            pos_fine = list()
 
             s = difflib.SequenceMatcher(None, eachSentence, source, autojunk=True)
             matches = fullMatchScore(s, source, target)
@@ -136,7 +136,6 @@ def align_highconf_longtarget(target, source, PICOS):
                         # print( len(token), len(annot), len(eachSentence_pos), len(eachSentence_posfine) ) # TODO: We are not extending them because the lengths of tokens and annot do not correspond to the length of pos and pos_fine
 
             if annot:
-                
                 token_annot = [ token, annot ]
                 # token_annot = [ token, annot, eachSentence_pos, eachSentence_posfine ]
                 collect_annotations[key] = token_annot
