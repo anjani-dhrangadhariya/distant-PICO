@@ -86,8 +86,11 @@ def inter_aggregate_util(intra_i, inter, entity):
                 assert len( a_value[0] ) == len( a_value[1] )
             else:
                 inter[key][a_key][entity] = a_value[1]
-
+                
+                # print(  inter[key][a_key]['tokens'] , ' : ',  a_value[1] )
+                # print(  len( inter[key][a_key]['tokens'] ) , ' : ',  len( a_value[1] ) )
                 assert len( inter[key][a_key]['tokens'] ) == len( a_value[1] )
+
 
     return inter
 
