@@ -44,7 +44,6 @@ def directAligner(source, targets, candidateTargets, PICOS):
                         # combined_annotations[str(i)][key] = [annotations]
                         combined_annotations[str(i)][key] = annotations
                     # else:
-                    #     print(annotations)
                     #     combined_annotations[str(i)][key].append( annotations )
 
     return combined_annotations
@@ -84,7 +83,9 @@ def regexAligner(source, targets, candidateTargets, PICOS):
 
                     new_annotations = dict() # Remove the sources from original annotations
                     for new_key, new_value in annotations.items():
-                        new_annotations[new_key] = new_value[1:][0]
+                        modified_value = new_value[1:][0]
+                        new_annotations[new_key] = modified_value
+                        assert len( modified_value[0] ) == len( modified_value[1] )
 
                     if key not in combined_annotations[str(i)]:
                         # combined_annotations[str(i)][key] = [new_annotations]
@@ -133,7 +134,6 @@ def longTailInterventionAligner(source, targets, candidateTargets, PICOS):
                             # intervention_annotations[str(i)][key] = [annotations]
                             intervention_annotations[str(i)][key] = annotations
                         # else:
-                        #     print(annotations)
                         #     # intervention_annotations[str(i)][key].append( annotations )
                         #     pass
 
@@ -171,10 +171,11 @@ def longTailConditionAligner(source, targets, candidateTargets, PICOS):
 
                 if annotations:
                     if key not in condition_annotations[str(i)]:
+                        # print( len( annotations ) )
                         # condition_annotations[str(i)][key] = [annotations]
                         condition_annotations[str(i)][key] = annotations
                     # else:
-                    #     condition_annotations[str(i)][key].append( annotations )
+                        # condition_annotations[str(i)][key].append( annotations )
     
     return condition_annotations
 
