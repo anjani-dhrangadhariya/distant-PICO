@@ -77,37 +77,86 @@ def inter_aggregate_util(intra_i, inter, entity):
             inter[key] = {}
 
     for key, value in intra_i.items():
-        values = inter[key]
-        for a_key, a_value in value.items():
-            if a_key not in values:
-                inter[key][a_key] = { 'tokens': a_value[0] }
-                inter[key][a_key][entity] = a_value[1]
 
+        values = list( inter[key].keys() ) # values already present in the global aggregator
+        # print( values )
+
+        for a_key, a_value in value.items(): # for each value (a_value) from the new intra_i
+
+            if a_key not in inter[key]: # if the key (sentence) is not in the global aggregator
                 assert len( a_value[0] ) == len( a_value[1] )
-            else:
+                inter[key][a_key] = {}
+                inter[key][a_key]['tokens'] = a_value[0]
                 inter[key][a_key][entity] = a_value[1]
-                
-                # print(  inter[key][a_key]['tokens'] , ' : ',  a_value[1] )
-                # print(  len( inter[key][a_key]['tokens'] ) , ' : ',  len( a_value[1] ) )
-                assert len( inter[key][a_key]['tokens'] ) == len( a_value[1] )
+            else:
+                # print( '-----a_key present', a_key )
+                # print( len(inter[key][a_key]['tokens']) )
+                # print( inter[key][a_key]['tokens'] )
+                # print( len(a_value[1]) )
+                if len(inter[key][a_key]['tokens']) != len(a_value[1]):
+                    print( len(inter[key][a_key]['tokens']) , ' : ' , len(a_value[1]) )
 
+
+    # print( inter )
 
     return inter
 
-
 def inter_aggregate_labels(p, ic, o, s, inter_aggregator):
 
-    inter_aggregator = p
-    for key, value in inter_aggregator.items():
+    temp_p = dict()
+    temp_ic = dict()
+    temp_o = dict
+    temp_s = dict()
+
+    temp_p = p
+    for key, value in temp_p.items():
+        if key not in inter_aggregator:
+            inter_aggregator[key] = dict()
         for a_key, a_value in value.items():
-            inter_aggregator[key][a_key] = { 'tokens': a_value[0] }
-            inter_aggregator[key][a_key]['p'] = a_value[1]
+            temp_p[key][a_key] = { 'tokens': a_value[0] }
+            temp_p[key][a_key]['p'] = a_value[1]
 
-    inter_aggregator = inter_aggregate_util(ic, inter_aggregator, 'ic')
-    inter_aggregator = inter_aggregate_util(o, inter_aggregator, 'o')
-    inter_aggregator = inter_aggregate_util(s, inter_aggregator, 's')
+    temp_ic = ic
+    for key, value in temp_ic.items():
+        if key not in inter_aggregator:
+            inter_aggregator[key] = dict()
+        for a_key, a_value in value.items():
+            temp_ic[key][a_key] = { 'tokens': a_value[0] }
+            temp_ic[key][a_key]['ic'] = a_value[1]
 
-    # if p and ic and o and s:
-    #     print(inter_aggregator)
+    temp_o = o
+    for key, value in temp_o.items():
+        if key not in inter_aggregator:
+            inter_aggregator[key] = dict()
+        for a_key, a_value in value.items():
+            temp_o[key][a_key] = { 'tokens': a_value[0] }
+            temp_o[key][a_key]['o'] = a_value[1]
+
+    temp_s = s
+    for key, value in temp_s.items():
+        if key not in inter_aggregator:
+            inter_aggregator[key] = dict()
+        for a_key, a_value in value.items():
+            temp_s[key][a_key] = { 'tokens': a_value[0] }
+            temp_s[key][a_key]['s'] = a_value[1]
+
+    
+    temp_intermediate = [temp_p, temp_ic, temp_o, temp_s]
+
+    for d in temp_intermediate: # Iterate each dictionary in the list of dictionaries
+
+        for k, v in d.items():
+            for k_i, v_i in v.items():
+
+                if k_i not in inter_aggregator[k]:
+                    inter_aggregator[k][k_i] = v_i
+                else:
+                    inter_aggregator[k][k_i].update(v_i)
+
+        # print(temp_p)
+        # print(temp_ic)
+        # print(temp_o)
+        # print(temp_s)
+        # print(inter_aggregator)
 
     return inter_aggregator
