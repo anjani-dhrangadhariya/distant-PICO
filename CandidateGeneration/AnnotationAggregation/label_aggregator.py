@@ -73,37 +73,6 @@ def intra_aggregate_labels(to_aggregate, aggregation_collector):
 
     return aggregation_collector
 
-def inter_aggregate_util(intra_i, inter, entity):
-
-    for key, value in intra_i.items():
-        if key not in inter:
-            inter[key] = {}
-
-    for key, value in intra_i.items():
-
-        values = list( inter[key].keys() ) # values already present in the global aggregator
-        # print( values )
-
-        for a_key, a_value in value.items(): # for each value (a_value) from the new intra_i
-
-            if a_key not in inter[key]: # if the key (sentence) is not in the global aggregator
-                assert len( a_value[0] ) == len( a_value[1] )
-                inter[key][a_key] = {}
-                inter[key][a_key]['tokens'] = a_value[0]
-                inter[key][a_key][entity] = a_value[1]
-            else:
-                # print( '-----a_key present', a_key )
-                # print( len(inter[key][a_key]['tokens']) )
-                # print( inter[key][a_key]['tokens'] )
-                # print( len(a_value[1]) )
-                if len(inter[key][a_key]['tokens']) != len(a_value[1]):
-                    print( len(inter[key][a_key]['tokens']) , ' : ' , len(a_value[1]) )
-
-
-    # print( inter )
-
-    return inter
-
 def inter_aggregate_labels(p, ic, o, s, inter_aggregator):
 
     temp_p = dict()
@@ -156,6 +125,6 @@ def inter_aggregate_labels(p, ic, o, s, inter_aggregator):
                 else:
                     inter_aggregator[k][k_i].update(v_i)
 
-    # Perform sanity check before 
+    # Perform sanity check before returning the aggregated dictionary 
     if sanity_check_globalagg(temp_p, temp_ic, temp_o, temp_s, inter_aggregator):
         return inter_aggregator
