@@ -70,7 +70,6 @@ def intra_aggregate_labels(to_aggregate, aggregation_collector):
                         else:
                             aggregation_collector[key][a_key] = a_value
 
-
     return aggregation_collector
 
 def inter_aggregate_labels(p, ic, o, s, inter_aggregator):
@@ -126,5 +125,6 @@ def inter_aggregate_labels(p, ic, o, s, inter_aggregator):
                     inter_aggregator[k][k_i].update(v_i)
 
     # Perform sanity check before returning the aggregated dictionary 
-    if sanity_check_globalagg(temp_p, temp_ic, temp_o, temp_s, inter_aggregator):
-        return inter_aggregator
+    sanity_check_globalagg(temp_p, temp_ic, temp_o, temp_s, inter_aggregator)
+    
+    return inter_aggregator
