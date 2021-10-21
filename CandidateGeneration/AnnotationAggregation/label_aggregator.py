@@ -1,4 +1,7 @@
 
+import collections
+from sanity_checks import *
+
 '''
 Description:
     The function directly aligns a list of "Participant: Condition" terms from the source list to the appropriate targets
@@ -153,10 +156,6 @@ def inter_aggregate_labels(p, ic, o, s, inter_aggregator):
                 else:
                     inter_aggregator[k][k_i].update(v_i)
 
-        # print(temp_p)
-        # print(temp_ic)
-        # print(temp_o)
-        # print(temp_s)
-        # print(inter_aggregator)
-
-    return inter_aggregator
+    # Perform sanity check before 
+    if sanity_check_globalagg(temp_p, temp_ic, temp_o, temp_s, inter_aggregator):
+        return inter_aggregator
