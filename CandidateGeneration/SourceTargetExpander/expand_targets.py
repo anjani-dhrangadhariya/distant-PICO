@@ -16,6 +16,7 @@ import re
 import spacy
 from scispacy.abbreviation import AbbreviationDetector
 from spacy.lang.en import English
+from nltk.tokenize import sent_tokenize
 
 nlp = English()
 nlp.add_pipe("sentencizer")
@@ -50,10 +51,12 @@ def expandTargets(json_object, targets):
                 trailingspaces_removed = trailingspaces_removed.split(sep, 1)[0]
 
         # Convert long targets to sentences
-        target_sentences = nlp(trailingspaces_removed)
+        target_sentences = nlp(trailingspaces_removed) # using Spacy
+        # target_sentences = sent_tokenize(trailingspaces_removed) # using NLTK
         sent_parsed = dict()
         
         for ith, eachSent in enumerate(target_sentences.sents):
+        # for ith, eachSent in enumerate( target_sentences ):
 
             # Get POS-tags for the target sub-string
             possed_targets = getPOStags( str(eachSent) )
