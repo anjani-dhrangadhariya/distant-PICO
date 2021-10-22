@@ -1,8 +1,9 @@
 
 import collections
 from sanity_checks import *
+from AnnotationAggregation.label_resolver import *
 
-'''
+''' TODO
 Description:
     The function directly aligns a list of "Participant: Condition" terms from the source list to the appropriate targets
 
@@ -72,6 +73,20 @@ def intra_aggregate_labels(to_aggregate, aggregation_collector):
 
     return aggregation_collector
 
+
+''' TODO
+Description:
+    The function directly aligns a list of "Participant: Condition" terms from the source list to the appropriate targets
+
+Args:
+    source (list): list to candidate participant condition terms to be aligned with the targets
+        targets (dict): A dictionary with all the targets for distant-PICOS
+        candidateTargets (dict): A dictionary to select appropriate targets for each of the PICOS sources
+        PICOS (int): Label for the entity being weakly annotations
+
+Returns:
+    dictionary: weakly annotated sources with the givens sources and PICOS labeling scheme
+'''
 def inter_aggregate_labels(p, ic, o, s, inter_aggregator):
 
     temp_p = dict()
@@ -128,3 +143,25 @@ def inter_aggregate_labels(p, ic, o, s, inter_aggregator):
     sanity_check_globalagg(temp_p, temp_ic, temp_o, temp_s, inter_aggregator)
     
     return inter_aggregator
+
+
+''' TODO
+Description:
+    The function directly aligns a list of "Participant: Condition" terms from the source list to the appropriate targets
+
+Args:
+    source (list): list to candidate participant condition terms to be aligned with the targets
+        targets (dict): A dictionary with all the targets for distant-PICOS
+        candidateTargets (dict): A dictionary to select appropriate targets for each of the PICOS sources
+        PICOS (int): Label for the entity being weakly annotations
+
+Returns:
+    dictionary: weakly annotated sources with the givens sources and PICOS labeling scheme
+'''
+def merge_labels(p, ic, o, s, inter_aggregator):
+
+    # Iterate through the labels here and whenever there is an overlap, resolve using the label resolver.
+    
+
+
+    return None
