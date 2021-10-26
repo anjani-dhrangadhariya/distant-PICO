@@ -8,6 +8,7 @@ stop_words = set(stopwords.words('english'))
 from joblib import dump, load
 from sanity_checks import *
 from AnnotationAggregation.label_resolver import *
+from itertools import groupby
 
 ''' TODO
 Description:
@@ -79,6 +80,22 @@ def intra_aggregate_labels(to_aggregate, aggregation_collector):
 
     return aggregation_collector
 
+def restructureAnnot(annot, annot_type):
+
+    temp_annot = dict()
+
+    temp_annot = annot
+    for key, target in annot.items():
+        for a_key, sentence in target.items():
+            if a_key not in temp_annot:
+                temp_annot[key][a_key] = { 'tokens': sentence[0] }
+                temp_annot[key][a_key][annot_type] = sentence[1]
+                assert len( sentence[0] ) == len( sentence[1] )
+            else:
+                temp_annot[key][a_key][annot_type] = sentence[1]
+                assert len( temp_annot[key][a_key][annot_type]['tokens'] ) == len( sentence[1] ) 
+
+    return temp_annot
 
 ''' TODO
 Description:
@@ -100,50 +117,43 @@ def inter_aggregate_labels(p, ic, o, s, inter_aggregator):
     temp_o = dict
     temp_s = dict()
 
-    temp_p = p
-    for key, value in temp_p.items():
-        if key not in inter_aggregator:
-            inter_aggregator[key] = dict()
-        for a_key, a_value in value.items():
-            temp_p[key][a_key] = { 'tokens': a_value[0] }
-            temp_p[key][a_key]['p'] = a_value[1]
+    # To restructure the individual dictionaries
+    temp_p = restructureAnnot(p, 'p')
+    temp_ic = restructureAnnot(ic, 'ic')
+    temp_o = restructureAnnot(o, 'o')
+    temp_s = restructureAnnot(s, 's')
 
-    temp_ic = ic
-    for key, value in temp_ic.items():
-        if key not in inter_aggregator:
-            inter_aggregator[key] = dict()
-        for a_key, a_value in value.items():
-            temp_ic[key][a_key] = { 'tokens': a_value[0] }
-            temp_ic[key][a_key]['ic'] = a_value[1]
-
-    temp_o = o
-    for key, value in temp_o.items():
-        if key not in inter_aggregator:
-            inter_aggregator[key] = dict()
-        for a_key, a_value in value.items():
-            temp_o[key][a_key] = { 'tokens': a_value[0] }
-            temp_o[key][a_key]['o'] = a_value[1]
-
-    temp_s = s
-    for key, value in temp_s.items():
-        if key not in inter_aggregator:
-            inter_aggregator[key] = dict()
-        for a_key, a_value in value.items():
-            temp_s[key][a_key] = { 'tokens': a_value[0] }
-            temp_s[key][a_key]['s'] = a_value[1]
-
-    
     temp_intermediate = [temp_p, temp_ic, temp_o, temp_s]
 
     for d in temp_intermediate: # Iterate each dictionary in the list of dictionaries
 
-        for k, v in d.items():
-            for k_i, v_i in v.items():
+        for k, target in d.items():
+
+            if k not in inter_aggregator:
+                inter_aggregator[k] = dict()
+
+            for k_i, sentence in target.items():
 
                 if k_i not in inter_aggregator[k]:
-                    inter_aggregator[k][k_i] = v_i
+                    inter_aggregator[k][k_i] = sentence
+
                 else:
-                    inter_aggregator[k][k_i].update(v_i)
+                    resultset_source = [ [key, value] for key, value in sentence.items() if key not in ['tokens']]
+                    resultset_target = [ [key, value] for key, value in inter_aggregator[k][k_i].items() if key not in ['tokens']]
+
+                    source_key = resultset_source[0][0]
+                    if source_key not in inter_aggregator[k][k_i]:
+
+                        inter_aggregator[k][k_i][source_key] = resultset_source[0][1]
+                        # if len( resultset_target[0][1] ) != len( resultset_source[0][1] ):
+                        #     print( inter_aggregator[k][k_i]['tokens'] )
+                        #     print( resultset_target[0][1] )
+                        #     print( sentence['tokens'] )
+                        #     print( resultset_source[0][1] )
+
+                    else:
+
+                        print( source_key )
 
     # Perform sanity check before returning the aggregated dictionary 
     sanity_check_globalagg(temp_p, temp_ic, temp_o, temp_s, inter_aggregator)
@@ -197,6 +207,14 @@ def merge_labels(globally_aggregated):
 
                     resultset = [ value for key, value in sentence.items() if key not in ['tokens']]
 
+                    len_first = len(resultset[0]) if resultset else None
+                    if all(len(i) == len_first for i in resultset) == False:
+                        defects = groupby(sorted(resultset, key=len), key=len)
+                        for eachHit in defects:
+                            print( eachHit )
+
+                    assert all(len(i) == len_first for i in resultset) == True # Check if all the annotation lenths are identical
+
                     phrase = []
                     counter_values = []
                     overlap = []
@@ -225,10 +243,11 @@ def merge_labels(globally_aggregated):
                             if l in over:
                                 annotations[counter] = l
                             else:
-                                print( word, over, counter, l, l_p )
+                                
                                 temp_i = list(over)
                                 chosen_index = [ l_p[ n-1 ] for n in temp_i]
                                 chosen_annot = max( chosen_index )
                                 annotations[counter] = list(l_p).index(chosen_annot) + 1
+                                # print( word, over, counter, l, l_p, chosen_annot )
 
     return globally_merged
