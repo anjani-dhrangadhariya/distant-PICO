@@ -85,7 +85,6 @@ def regexAligner(source, targets, candidateTargets, PICOS):
                     for new_key, new_value in annotations.items():
                         modified_value = new_value[1:][0]
                         new_annotations[new_key] = modified_value
-                        assert len( modified_value[0] ) == len( modified_value[1] )
 
                     if key not in combined_annotations[str(i)]:
                         # combined_annotations[str(i)][key] = [new_annotations]
