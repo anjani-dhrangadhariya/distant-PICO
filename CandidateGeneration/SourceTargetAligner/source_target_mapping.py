@@ -42,3 +42,6 @@ def generateLabels():
     PICOS['S'] = 4
     
     return PICOS
+
+def generateAntiLabels(PICOS):
+    return {v: k for k, v in PICOS.items()}
