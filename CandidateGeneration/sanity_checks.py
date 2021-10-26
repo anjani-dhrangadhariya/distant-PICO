@@ -1,4 +1,5 @@
 import collections
+from itertools import groupby
 
 ################################################################################
 # Helper functions
@@ -45,3 +46,14 @@ def sanity_check_globalagg(temp_p, temp_ic, temp_o, temp_s, globalagg):
 
     third_order_keys = getThirdOrdKeys(temp_p) + getThirdOrdKeys(temp_ic) + getThirdOrdKeys(temp_o) + getThirdOrdKeys(temp_s)
     assert collections.Counter(  set(third_order_keys) ) == collections.Counter( getThirdOrdKeys( globalagg ) )
+
+    if len( getThirdOrdKeys( globalagg ) ) >= 2:
+        for key, target in globalagg.items():
+            for a_key, sentence in target.items():                  
+                resultset = [ value for key, value in sentence.items() if key not in ['tokens']]
+
+                len_first = len(resultset[0]) if resultset else None
+                if all(len(i) == len_first for i in resultset) == False:
+                    defects = groupby(sorted(resultset, key=len), key=len)
+                    for eachHit in defects:
+                        print( eachHit )
