@@ -64,15 +64,19 @@ def extractReGeXannotation(source, target, match, PICOS):
     return token, annot
 
 
-def extractAnnotation(source, target, match, PICOS):
+def extractAnnotation(source, target, match, PICOS, isReGeX):
     
     token = list()
     annot = list()
     
     span_generator = WhitespaceTokenizer().span_tokenize(target)
 
-    annotation_start_position = match[1][0]
-    annotation_stop_position = match[1][0] + match[1][2] # start + stop position
+    if isReGeX == True:
+        annotation_start_position = match.start()
+        annotation_stop_position = match.end()
+    else:
+        annotation_start_position = match[1][0]
+        annotation_stop_position = match[1][0] + match[1][2] # start + stop position
 
     annotation = [0] * len(target)
     for n, i in enumerate(annotation):
@@ -131,7 +135,7 @@ def align_highconf_longtarget(target, source, PICOS):
             if 1.0 in match_scores:
                 for match in matches:
                     if match[0] == 1.0:  
-                        token_i, annot_i = extractAnnotation(source, eachSentence, match, PICOS)
+                        token_i, annot_i = extractAnnotation(source, eachSentence, match, PICOS, isReGeX=False)
                         annot.extend( annot_i )
                         token.extend( token_i )
                         pos.extend( eachSentence_pos )
@@ -178,7 +182,7 @@ def align_regex_longtarget(target, source, PICOS):
 
             for match in r1:
                 
-                token_i, annot_i = extractReGeXannotation(source, eachSentence, match, PICOS)
+                token_i, annot_i = extractAnnotation(source, eachSentence, match, PICOS, isReGeX=True)
                 annot.extend( annot_i )
                 token.extend( token_i )
                 pos.extend( eachSentence_pos )
