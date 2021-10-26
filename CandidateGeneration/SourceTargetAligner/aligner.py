@@ -30,40 +30,6 @@ from SourceTargetAligner.scoring import *
 ####################################################################
 # Function to extract the aligned candidate annotations
 ####################################################################
-def extractReGeXannotation(source, target, match, PICOS):
-
-    token = list()
-    annot = list()
-    
-    span_generator = WhitespaceTokenizer().span_tokenize(target)
-
-    annotation_start_position = match.start()
-    annotation_stop_position = match.end()
-
-    annotation = [0] * len(target)
-    for n, i in enumerate(annotation):
-        if n >= annotation_start_position and n <= annotation_stop_position: # if its anything between the start and the stop position of annotation
-            annotation[n] = PICOS
-
-    for span in span_generator:
-        
-        # span for each token is generated here
-        token_ = target[span[0]:span[1]]
-        
-        annot_ = annotation[span[0]:span[1]]
-        
-        max_element_i = Counter(annot_)
-        max_element = max_element_i.most_common(1)
-
-        token.append(token_)
-        annot.append(max_element[0][0])
-
-    # Check if the number of annotations match number of tokens present in the sentence
-    assert len(token) == len(annot)
-       
-    return token, annot
-
-
 def extractAnnotation(source, target, match, PICOS, isReGeX):
     
     token = list()
