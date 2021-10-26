@@ -28,6 +28,7 @@ from collections import Counter
 from collections import defaultdict
 import collections
 import numpy as np
+import pandas as pd
 
 import matplotlib
 matplotlib.use('agg')
@@ -49,21 +50,35 @@ from SourceTargetAligner.source_target_mapping import *
 from SourceTargetAligner.labeling_operators import *
 
 from AnnotationAggregation.label_aggregator import *
+from AnnotationAggregation.label_resolver import *
 from sanity_checks import *
 
 ################################################################################
 # Set the logger here
 ################################################################################
-LOG_FILE = os.getcwd() + "/logs"
-if not os.path.exists(LOG_FILE):
-    os.makedirs(LOG_FILE)
+# LOG_FILE = os.getcwd() + "/logs"
+# if not os.path.exists(LOG_FILE):
+#     os.makedirs(LOG_FILE)
 
-LOG_FILE = LOG_FILE + "/" + dt.datetime.fromtimestamp(time.time()).strftime('%Y_%m_%d %H_%M_%S') + ".log"
-logFormatter = logging.Formatter("%(levelname)s %(asctime)s %(processName)s %(message)s")
-fileHandler = logging.FileHandler("{0}".format(LOG_FILE))
-rootLogger = logging.getLogger()
-rootLogger.addHandler(fileHandler)
-rootLogger.setLevel(logging.INFO)
+# LOG_FILE = LOG_FILE + "/" + dt.datetime.fromtimestamp(time.time()).strftime('%Y_%m_%d %H_%M_%S') + ".log"
+# logFormatter = logging.Formatter("%(levelname)s %(asctime)s %(processName)s %(message)s")
+# fileHandler = logging.FileHandler("{0}".format(LOG_FILE))
+# rootLogger = logging.getLogger()
+# rootLogger.addHandler(fileHandler)
+# rootLogger.setLevel(logging.INFO)
+
+################################################################################
+def getSources(annotations, lab):
+
+    sources = []
+    for k,v in annotations.items():
+
+        more_than_source = len( v )
+        for k_i, v_i in v.items():
+            if 'source' in k_i and more_than_source > 1:
+                sources.append( v_i )
+
+    return sources, [lab] * len(sources)
 
 ################################################################################
 # Instantiate ElasticSearch
@@ -85,17 +100,17 @@ results_gen = helpers.scan(
 match_scores = []
 intervention_types = []
 
-# res = es.search(index="ctofull2021-index", body={"query": {"match_all": {}}}, size=9)
-# print('Total number of records retrieved: ', res['hits']['total']['value'])
+res = es.search(index="ctofull2021-index", body={"query": {"match_all": {}}}, size=1)
+print('Total number of records retrieved: ', res['hits']['total']['value'])
 
 # theFile ='/mnt/nas2/data/systematicReview/clinical_trials_gov/distant_pico_pre/secondary_outcomes.txt'
 # theFile ='/home/anjani/distant-PICO/CandidateGeneration/ResultInspection/label_overlap_inspection.txt'
-theFile = '/home/anjani/distant-PICO/CandidateGeneration/ResultInspection/pico_multiclass.txt'
+theFile = '/home/anjani/distant-PICO/CandidateGeneration/ResultInspection/resolve_annot_corpus.tsv'
 with open(theFile, 'a+') as wf:
 
-# Iterate through all of the fetched CTO index documents
-    # for n, hit in enumerate( res['hits']['hits'] ): # Only a part search results from the CTO
-    for hit in results_gen: # Entire CTO
+    # Iterate through all of the fetched CTO index documents
+    for n, hit in enumerate( res['hits']['hits'] ): # Only a part search results from the CTO
+    # for hit in results_gen: # Entire CTO
 
         try:
 
@@ -137,117 +152,164 @@ with open(theFile, 'a+') as wf:
             # Get the mappings between sources and their relevant targets
             mapping = generateMapping()
 
-            # Get the mappings between PICOS entity and their labels
+            # Get the mappings between PICOS entity and their labels and vice versa
             PICOS = generateLabels()
+            PICOS_reverse = generateAntiLabels(PICOS)
 
             #################################################################
             # Direct matching begins
             # P = 1, I/C = 2, O = 3, S = 4
             # expanded_sources: All the sources from a NCTID; expanded_targets: All the targets from a NCTID
-            #################################################################           
+            #################################################################  
+
+            sources_list = []
+            source_labs = []
+            annotation_collector = []
+
             for key, value in expanded_sources.items():
 
                 if 'gender' in key:
                     candidate_targets = mapping[key]
                     gender_annotations = directAligner( value, expanded_targets, candidate_targets, PICOS['P'] )
-                    if gender_annotations:
-                        sanity_check(gender_annotations)
-                        # print('Gender annotations')
-                        p_aggregator = intra_aggregate_labels(gender_annotations, p_aggregator)
-                        sanity_check_intraagg(p_aggregator)
+                    if gender_annotations and len( getSecOrdKeys(gender_annotations) ) > 1:
+                        annotation_collector.append( gender_annotations )
+                    #     print( gender_annotations )
+                    #     sanity_check(gender_annotations)
+                    #     intrasourceagg_p = intra_source_aggregator( gender_annotations )
+                    #     p_aggregator = intra_operator_aggregator( intrasourceagg_p, p_aggregator)
+                        # p_aggregator = intra_aggregate_labels(gender_annotations, p_aggregator)
+                        # print( p_aggregator )
+                        # sanity_check_intraagg(p_aggregator)
+
 
                 if 'sample_size' in key:
                     candidate_targets = mapping[key]
                     sampsize_annotations = directAligner( [value], expanded_targets, candidate_targets, PICOS['P'] )   # direct aligner expects values as lists       
-                    if sampsize_annotations: 
-                        sanity_check(sampsize_annotations)
-                        # print('Sample size annotations')
-                        p_aggregator = intra_aggregate_labels(sampsize_annotations, p_aggregator)
-                        sanity_check_intraagg(p_aggregator)
+                    if sampsize_annotations and len( getSecOrdKeys(sampsize_annotations) ) > 1:
+                        annotation_collector.append( sampsize_annotations )
+                    #     print( sampsize_annotations )
+                        # sanity_check(sampsize_annotations)
+                #         intrasourceagg_p = intra_source_aggregator( sampsize_annotations )
+                #         p_aggregator = intra_aggregate_labels(sampsize_annotations, p_aggregator)
+                #         print( p_aggregator )
+                #         sanity_check_intraagg(p_aggregator)
+
 
                 if 'age' in key:
                     candidate_targets = mapping[key]
                     stdage_annotations = directAligner( value['StdAge'], expanded_targets, candidate_targets, PICOS['P'] )
-                    if stdage_annotations:
-                        sanity_check(stdage_annotations)
-                        # print('Std age annotations')
-                        p_aggregator = intra_aggregate_labels(stdage_annotations, p_aggregator)
-                        sanity_check_intraagg(p_aggregator)
+                    if stdage_annotations and len( getSecOrdKeys(stdage_annotations) ) > 1:
+                        annotation_collector.append( stdage_annotations )
+                    #     print( stdage_annotations )
+                #         sanity_check(stdage_annotations)
+                #         intrasourceagg_p = intra_source_aggregator( stdage_annotations )
+                #         p_aggregator = intra_aggregate_labels(stdage_annotations, p_aggregator)
+                #         print( p_aggregator )
+                #         sanity_check_intraagg(p_aggregator)
 
                     if 'exactAge' in value:
                         exctage_annotattions = regexAligner( [value['exactAge']], expanded_targets, candidate_targets, PICOS['P'] ) # reGeX aligner expects values as lists   
-                        if exctage_annotattions:
-                            sanity_check(exctage_annotattions)
-                            # print('Exact age annotations')
-                            p_aggregator = intra_aggregate_labels(exctage_annotattions, p_aggregator)
-                            sanity_check_intraagg(p_aggregator)
+                        if exctage_annotattions and len( getSecOrdKeys(exctage_annotattions) ) > 1:
+                            annotation_collector.append( exctage_annotattions )
+                        #     print( exctage_annotattions )
+                    #         sanity_check(exctage_annotattions)
+                    #         intrasourceagg_p = intra_source_aggregator( exctage_annotattions )
+                #             p_aggregator = intra_aggregate_labels(exctage_annotattions, p_aggregator)
+                #             print( p_aggregator )
+                #             sanity_check_intraagg(p_aggregator)
                     
 
                 if 'condition' in key:
                     candidate_targets = mapping[key]
                     condition_annotations = longTailConditionAligner( value, expanded_targets, candidate_targets, PICOS['P'] )
-                    if condition_annotations:
-                        sanity_check(condition_annotations) 
-                        # print('Condition annotations')
-                        p_aggregator = intra_aggregate_labels(condition_annotations, p_aggregator)
-                        sanity_check_intraagg(p_aggregator)
+                    if condition_annotations and len( getSecOrdKeys(condition_annotations) ) > 1:
+                        annotation_collector.append( condition_annotations )
+                    #     print( condition_annotations )
+                        # sanity_check(condition_annotations) 
+                #         intrasourceagg_p = intra_source_aggregator( condition_annotations )
+                #         p_aggregator = intra_aggregate_labels(condition_annotations, p_aggregator)
+                #         print( p_aggregator )
+                #         sanity_check_intraagg(p_aggregator)
 
                 if 'ei_name' in key: 
                     candidate_targets = mapping[key]
                     int_annotations = longTailInterventionAligner( value, expanded_targets, candidate_targets, PICOS['IC'] )
-                    if int_annotations:
-                        sanity_check(int_annotations) 
-                        # print('Intervention annotations')
-                        ic_aggregator = intra_aggregate_labels(int_annotations, ic_aggregator)
-                        sanity_check_intraagg(ic_aggregator)
+                    if int_annotations and len( getSecOrdKeys(int_annotations) ) > 1:
+                        annotation_collector.append( int_annotations )
+                        # print( int_annotations )
+                #         sanity_check(int_annotations)
+                #         ic_aggregator = intra_source_aggregator( int_annotations )
+                #         ic_aggregator = intra_aggregate_labels(int_annotations, ic_aggregator)
+                #         sanity_check_intraagg(ic_aggregator)
 
 
                 if 'ei_syn' in key:
                     candidate_targets = mapping[key]
                     int_syn_annotations = longTailInterventionAligner( value, expanded_targets, candidate_targets, PICOS['IC'] )
-                    if int_syn_annotations:
-                        sanity_check(int_syn_annotations) 
-                        # print('Intervention synonyms annotations')
-                        ic_aggregator = intra_aggregate_labels(int_syn_annotations, ic_aggregator)
-                        sanity_check_intraagg(ic_aggregator)
-
+                    if int_syn_annotations and len( getSecOrdKeys(int_syn_annotations) ) > 1:
+                        annotation_collector.append( int_syn_annotations )
+                    #     print( int_syn_annotations )
+                #         sanity_check(int_syn_annotations) 
+                #         ic_aggregator = intra_source_aggregator( int_syn_annotations )
+                        # ic_aggregator = intra_aggregate_labels(int_syn_annotations, ic_aggregator)
+                        # sanity_check_intraagg(ic_aggregator)
 
                 if 'eo_primary' in key:
                     candidate_targets = mapping[key]
                     primout_annotations = longTailOutcomeAligner( value, expanded_targets, candidate_targets, PICOS['O'] )
-                    if primout_annotations:
-                        sanity_check(primout_annotations) 
-                        # print('Primary outcomes annotations')
-                        o_aggregator = intra_aggregate_labels(primout_annotations, o_aggregator)
-                        sanity_check_intraagg(o_aggregator)
+                    if primout_annotations and len( getSecOrdKeys(primout_annotations) ) > 1:
+                        annotation_collector.append( primout_annotations )
+                    #     print( primout_annotations )
+                #         sanity_check(primout_annotations) 
+                #         o_aggregator = intra_source_aggregator( primout_annotations )
+                #         o_aggregator = intra_aggregate_labels(primout_annotations, o_aggregator)
+                #         sanity_check_intraagg(o_aggregator)
 
 
                 if 'eo_secondary' in key:
                     candidate_targets = mapping[key]
                     secondout_annotations = longTailOutcomeAligner( value, expanded_targets, candidate_targets, PICOS['O'] )
-                    if secondout_annotations:
-                        sanity_check(secondout_annotations) 
-                        # print('Secondary outcomes annotations')
-                        o_aggregator = intra_aggregate_labels(secondout_annotations, o_aggregator)
-                        sanity_check_intraagg(o_aggregator)
-
+                    if secondout_annotations and len( getSecOrdKeys(secondout_annotations) ) > 1:
+                        annotation_collector.append( secondout_annotations )
+                #         sanity_check(secondout_annotations)
+                #         o_aggregator = intra_source_aggregator( secondout_annotations )
+                #         o_aggregator = intra_aggregate_labels(secondout_annotations, o_aggregator)
+                #         sanity_check_intraagg(o_aggregator)
 
                 if 'es_type' in key and 'N.A.' not in value:
                     candidate_targets = mapping[key]
                     studytype_annotations = regexAligner( [value], expanded_targets, candidate_targets, PICOS['S'] )   # direct aligner expects values as lists       
-                    if studytype_annotations:
-                        sanity_check(studytype_annotations)
-                        # print('Study type annotations')
-                        s_aggregator = intra_aggregate_labels(studytype_annotations, s_aggregator)
-                        sanity_check_intraagg(s_aggregator)
+                    if studytype_annotations and len( getSecOrdKeys(studytype_annotations) ) > 1:
+                        annotation_collector.append( studytype_annotations )
+                #         sanity_check(studytype_annotations)
+                #         s_aggregator = intra_source_aggregator( studytype_annotations )
+                #         s_aggregator = intra_aggregate_labels(studytype_annotations, s_aggregator)
+                #         sanity_check_intraagg(s_aggregator)
 
-            # XXX: Global label aggregator does not function well
-            globally_aggregated = inter_aggregate_labels(p_aggregator, ic_aggregator, o_aggregator, s_aggregator, global_aggregator)
-            globally_aggregated['id'] = NCT_id
-            json.dump(globally_aggregated, wf)
-            wf.write( '\n' )
-            string2log = 'Wrote the globally aggregated annotations for the record : ' + str(NCT_id)
-            logging.info( string2log )
+
+            # Direct global aggregation 
+            global_annot_aggregator(annotation_collector)
+
+            # Aggregate the labels globally
+            # globally_aggregated = inter_aggregate_labels(p_aggregator, ic_aggregator, o_aggregator, s_aggregator, global_aggregator)
+
+            # XXX: Resolve the overlapping labels
+            # globally_merged = merge_labels(globally_aggregated)
+            #globally_merged['id'] = NCT_id
+
+
+            # json.dump(globally_aggregated, wf)
+            # wf.write( '\n' )
+            # string2log = 'Wrote the source and source labels for the ID : ' + str(NCT_id)
+            # logging.info( string2log )
+
+            # source_lab_data = pd.DataFrame(
+            # {'source': sources_list,
+            # 'label': source_labs
+            # })
+
+            # Write to the file
+            # source_lab_data.to_csv(wf, sep='\t', header = False)       
 
         except Exception as ex:
           
@@ -261,8 +323,8 @@ with open(theFile, 'a+') as wf:
 
             print(traceback.format_exc())
 
-            logging.info(NCT_id)
-            logging.info(message)
-            string2log = str(exc_type) + ' : ' + str(fname) + ' : ' + str(exc_tb.tb_lineno)
-            logging.info(string2log)
-            logging.info(traceback.format_exc())
+            # logging.info(NCT_id)
+            # logging.info(message)
+            # string2log = str(exc_type) + ' : ' + str(fname) + ' : ' + str(exc_tb.tb_lineno)
+            # logging.info(string2log)
+            # logging.info(traceback.format_exc())
