@@ -3,6 +3,7 @@
 This module contains functions to align source intervention terms to the target sentences (short targets, long targets - with and without negative candidates). It also has function to extract the annotations once source terms are aligned to the target.
 '''
 
+from itertools import count
 import sys, json, os
 import datetime as dt
 import time
@@ -77,12 +78,11 @@ def align_highconf_longtarget(target, source, PICOS):
     if target is not None :
         # Sentence tokenization
         collect_annotations = dict()
-
-       
+     
         # Iterate each sentence
         for key, value in target.items():
 
-            # print('------------------', key )
+            # print(key)
 
             annot = list()
             token = list()
@@ -99,17 +99,22 @@ def align_highconf_longtarget(target, source, PICOS):
             match_scores = [item[0] for item in matches ]
 
             if 1.0 in match_scores:
-                for match in matches:
-                    if match[0] == 1.0:  
+                for match in matches: # If one sentence has multiple matches....
+                    if match[0] == 1.0:
                         token_i, annot_i = extractAnnotation(source, eachSentence, match, PICOS, isReGeX=False)
-                        annot.extend( annot_i )
-                        token.extend( token_i )
-                        pos.extend( eachSentence_pos )
-                        pos_fine.extend( eachSentence_posfine )
-                        # print( len(token), len(annot), len(eachSentence_pos), len(eachSentence_posfine) ) # TODO: We are not extending them because the lengths of tokens and annot do not correspond to the length of pos and pos_fine
+                        if not annot and not token: # if the lists are empty
+                            annot.extend( annot_i )
+                            token.extend( token_i )
+                            pos.extend( eachSentence_pos )
+                            pos_fine.extend( eachSentence_posfine )
+                        else:
+                            for counter, (o_a, n_a) in enumerate(zip( annot, annot_i )):
+                                selected_annot = max( o_a, n_a )
+                                annot[counter] = selected_annot
 
             if annot:
-                token_annot = [ token, annot ]
+                token_annot = {'tokens':token, str(PICOS): annot }
+                # token_annot = [ token, annot ]
                 # token_annot = [ token, annot, eachSentence_pos, eachSentence_posfine ]
                 collect_annotations[key] = token_annot
 
@@ -149,11 +154,15 @@ def align_regex_longtarget(target, source, PICOS):
             for match in r1:
                 
                 token_i, annot_i = extractAnnotation(source, eachSentence, match, PICOS, isReGeX=True)
-                annot.extend( annot_i )
-                token.extend( token_i )
-                pos.extend( eachSentence_pos )
-                pos_fine.extend( eachSentence_posfine )
-                # print( len(token), len(annot), len(eachSentence_pos), len(eachSentence_posfine) ) # TODO: We are not extending them because the lengths of tokens and annot do not correspond to the length of pos and pos_fine
+                if not annot and not token: # if the lists are empty
+                    annot.extend( annot_i )
+                    token.extend( token_i )
+                    pos.extend( eachSentence_pos )
+                    pos_fine.extend( eachSentence_posfine )
+                else:
+                    for counter, (o_a, n_a) in enumerate(zip( annot, annot_i )):
+                        selected_annot = max( o_a, n_a )
+                        annot[counter] = selected_annot
 
             if annot:
                 temp = []
@@ -162,7 +171,7 @@ def align_regex_longtarget(target, source, PICOS):
                         temp.append( t )
                 temp = ' '.join(temp)
 
-                token_annot = [ token, annot ]
+                token_annot = {'tokens':token, str(PICOS): annot }
                 # token_annot = [ token, annot, eachSentence_pos, eachSentence_posfine ]
                 collect_annotations[key] = [temp, token_annot]
 
