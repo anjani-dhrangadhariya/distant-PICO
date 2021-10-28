@@ -82,8 +82,6 @@ def align_highconf_longtarget(target, source, PICOS):
         # Iterate each sentence
         for key, value in target.items():
 
-            # print(key)
-
             annot = list()
             token = list()
             pos = list()
@@ -114,8 +112,6 @@ def align_highconf_longtarget(target, source, PICOS):
 
             if annot:
                 token_annot = {'tokens':token, str(PICOS): annot }
-                # token_annot = [ token, annot ]
-                # token_annot = [ token, annot, eachSentence_pos, eachSentence_posfine ]
                 collect_annotations[key] = token_annot
 
             assert len(token) == len(annot)
@@ -130,12 +126,9 @@ def align_regex_longtarget(target, source, PICOS):
     target_sentences = list()
 
     if target is not None :
-        # Sentence tokenization
-        # target_sentences = sent_tokenize(target)
         collect_annotations = dict()
        
         # Iterate each sentence
-        # for i, eachSentence in enumerate(target_sentences):
         for key, value in target.items():
 
             eachSentence = value['text'].lower()
@@ -172,7 +165,6 @@ def align_regex_longtarget(target, source, PICOS):
                 temp = ' '.join(temp)
 
                 token_annot = {'tokens':token, str(PICOS): annot }
-                # token_annot = [ token, annot, eachSentence_pos, eachSentence_posfine ]
                 collect_annotations[key] = [temp, token_annot]
 
     return collect_annotations
