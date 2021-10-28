@@ -103,9 +103,6 @@ def merge_labels(globally_aggregated):
                     resultset = [ value for key, value in sentence.items() if key not in ['tokens']]
 
                     len_first = len(resultset[0]) if resultset else None
-                    if all(len(i) == len_first for i in resultset) == False:
-                        defects = groupby(sorted(resultset, key=len), key=len)
-
                     assert all(len(i) == len_first for i in resultset) == True # Check if all the annotation lengths are identical
 
                     phrase = []
