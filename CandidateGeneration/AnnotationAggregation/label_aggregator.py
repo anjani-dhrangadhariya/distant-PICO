@@ -105,10 +105,8 @@ def merge_labels(globally_aggregated):
                     len_first = len(resultset[0]) if resultset else None
                     if all(len(i) == len_first for i in resultset) == False:
                         defects = groupby(sorted(resultset, key=len), key=len)
-                        # for eachHit in defects:
-                        #     print( eachHit )
 
-                    assert all(len(i) == len_first for i in resultset) == True # Check if all the annotation lenths are identical
+                    assert all(len(i) == len_first for i in resultset) == True # Check if all the annotation lengths are identical
 
                     phrase = []
                     counter_values = []
@@ -144,5 +142,7 @@ def merge_labels(globally_aggregated):
                                 chosen_annot = max( chosen_index )
                                 annotations[counter] = list(l_p).index(chosen_annot) + 1
                                 # print( word, over, counter, l, l_p, chosen_annot )
+
+                    globally_merged[key][a_key]['annotation'] = annotations
 
     return globally_merged
