@@ -125,20 +125,19 @@ def merge_labels(globally_aggregated):
                             temp_i.sort()
                             annotations[counter] = temp_i[-1]
 
-                    if phrase:
+                    if phrase: # there could be numpy types here...
                         label_resolved = label_resolver.predict( phrase )
                         label_resolved_proba = label_resolver.predict_proba( phrase )
 
                         for word, over, counter, l, l_p in zip(phrase, overlap, counter_values, label_resolved, label_resolved_proba):
                             if l in over:
-                                annotations[counter] = l
+                                annotations[counter] = l.item()
                             else:
                                 
                                 temp_i = list(over)
                                 chosen_index = [ l_p[ n-1 ] for n in temp_i]
                                 chosen_annot = max( chosen_index )
                                 annotations[counter] = list(l_p).index(chosen_annot) + 1
-                                # print( word, over, counter, l, l_p, chosen_annot )
 
                     globally_merged[key][a_key]['annotation'] = annotations
 
