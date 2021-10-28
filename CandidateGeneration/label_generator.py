@@ -233,27 +233,13 @@ with open(theFile, 'a+') as wf:
 
 
             # Direct global aggregation 
-            print( annotation_collector )
             globally_aggregated = global_annot_aggregator(annotation_collector)
-            print( globally_aggregated )
 
-            # XXX: Resolve the overlapping labels
-            # globally_merged = merge_labels(globally_aggregated)
-            #globally_merged['id'] = NCT_id
-
-
-            # json.dump(globally_aggregated, wf)
-            # wf.write( '\n' )
-            # string2log = 'Wrote the source and source labels for the ID : ' + str(NCT_id)
-            # logging.info( string2log )
-
-            # source_lab_data = pd.DataFrame(
-            # {'source': sources_list,
-            # 'label': source_labs
-            # })
-
-            # Write to the file
-            # source_lab_data.to_csv(wf, sep='\t', header = False)       
+            # Resolve the overlapping labels
+            globally_merged = merge_labels(globally_aggregated)
+            globally_merged['id'] = NCT_id
+            
+              
 
         except Exception as ex:
           
