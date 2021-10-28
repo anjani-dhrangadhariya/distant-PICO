@@ -10,75 +10,93 @@ from sanity_checks import *
 from AnnotationAggregation.label_resolver import *
 from itertools import groupby
 
-''' TODO
-Description:
-    The function directly aligns a list of "Participant: Condition" terms from the source list to the appropriate targets
-
-Args:
-    source (list): list to candidate participant condition terms to be aligned with the targets
-        targets (dict): A dictionary with all the targets for distant-PICOS
-        candidateTargets (dict): A dictionary to select appropriate targets for each of the PICOS sources
-        PICOS (int): Label for the entity being weakly annotations
-
-Returns:
-    dictionary: weakly annotated sources with the givens sources and PICOS labeling scheme
-'''
-def intra_aggregate_labels(to_aggregate, aggregation_collector):
+def global_annot_aggregator(to_aggregate):
 
     # print( to_aggregate )
 
-    intra_aggregator = dict()
+    aggregated = dict()
 
-    # print( 'before aggregation: ',  to_aggregate )
+    for operator in to_aggregate:
+        
+        for source_key, source in operator.items():
+            
+            for target_key, target in source.items():
+                if 'source' not in target_key:
+                    if target_key not in aggregated:
 
-    for key, value in to_aggregate.items():
-        for a_key, a_value in value.items():
-            if a_key != 'source':
-                if a_key not in intra_aggregator:
-                    intra_aggregator[a_key] = a_value
-                else:
-                    # Get the key-value and aggregate at the level of value
-                    for b_key, b_value in a_value.items():
-                        if b_key in intra_aggregator[a_key]: # if the sentence IDs are identical aggregate at the sentence level
+                        aggregated[target_key] = target
 
-                            aggregate_this = b_value[1]
-                            to_this = intra_aggregator[a_key][b_key][1]
+                    else:
+                        # okay!! So if the target is already in the aggregated dictionary, could you check if each of the target sentence is there as well?
 
-                            for count, (i, j)  in enumerate(zip(aggregate_this, to_this)):
-                                if i > j:
-                                    intra_aggregator[a_key][b_key][1][count] = i
-                        else: # if the sentence IDs are different and not yet in the intra-aggregation dictionary
-                            intra_aggregator[a_key][b_key] = b_value
+                        for sentence_key, sentence in target.items():
+
+                            if sentence_key not in aggregated[target_key]:
+                                
+                                aggregated[target_key][sentence_key] = sentence
+                            
+                            elif sentence_key in aggregated[target_key]:
+
+                                for annot_key, annot in sentence.items():
+
+                                    if annot_key not in aggregated[target_key][sentence_key] and 'tokens' not in annot_key:
+
+                                        aggregated[target_key][sentence_key][annot_key] = annot
+
+                                    elif annot_key in aggregated[target_key][sentence_key] and 'tokens' not in annot_key: # if the annotations need to be merged....
+
+                                        # make new annotations by merging
+                                        merged_annot = [0] * len(annot)
+                                        for counter, (o_a, n_a) in enumerate(zip( aggregated[target_key][sentence_key][annot_key], annot  )):
+                                            chosen_annot = max( o_a, n_a )
+                                            merged_annot[counter] = chosen_annot
+
+                                        aggregated[target_key][sentence_key][annot_key] = merged_annot
+
+    return aggregated
 
 
-    # print( 'Intra aggregator: ', intra_aggregator )
+def intra_source_aggregator(to_aggregate):
 
-    # Add the intra-aggregator content into inter-aggragator (aggregation_collector)
-    isEmpty = bool(aggregation_collector)
-    isIntra_aggregatorEmpty = bool(intra_aggregator)
-    if isEmpty == False: # If aggregation_collector is empty then put everything from the intra_aggregator to it....
-        aggregation_collector = intra_aggregator
-    else:
-        # if intra_aggregator is not empty, then aggregate intra_aggregator to the aggregation_collector....
-        if isIntra_aggregatorEmpty == True:          
+    aggregated = dict()
 
-            for key, value in intra_aggregator.items():
-                if key not in aggregation_collector:
-                    aggregation_collector[key] = value
-                else:
-                    for a_key, a_value in value.items():
-                        
-                        if a_key in aggregation_collector[key]:
-                            aggregate_this = a_value[1]
-                            to_this = aggregation_collector[key][a_key][1]
+    for key, sourceNumber in to_aggregate.items():
+        for target_key, target in sourceNumber.items():
+            if 'source' not in target_key and target_key not in aggregated: # The target is not present in the aggregated dictionary
+                aggregated[target_key] = target
+            elif 'source' not in target_key and target_key in aggregated: # The target is present in the aggregated dictionary
 
-                            for count, (i, j)  in enumerate(zip(aggregate_this, to_this)):
-                                if i > j:
-                                    aggregation_collector[key][a_key][1][count] = i
-                        else:
-                            aggregation_collector[key][a_key] = a_value
+                for sentence_key, sentence in target.items():
+
+                    if sentence_key in aggregated[target_key]: # if the sentence IDs are found in the aggregate dictionary
+
+                        token_T, annot_T = aggregated[target_key][sentence_key]
+                        token_S, annot_S = target[sentence_key]
+
+                        assert len( token_S ) == len( token_T ) == len( annot_T ) == len( annot_S ) # Annotations being merged are identical lengths
+
+                        annot_i = [0] * len( token_S )
+                        for counter, (s,t) in enumerate(zip(annot_S, annot_T)):
+                            chosen_value = max(s,t)
+                            annot_i[counter] = chosen_value
+
+                        aggregated[target_key][sentence_key] = [token_T, annot_i]
+
+                    elif sentence_key not in aggregated[target_key]:  # if the sentence IDs are missing from the aggregate dictionary
+                        aggregated[target_key][sentence_key] = sentence
+
+    return aggregated
+
+def intra_operator_aggregator(to_aggregate, aggregation_collector):
+
+    for key, target in to_aggregate.items():
+        if key not in aggregation_collector:
+            aggregation_collector[key] = target
+        else:
+            print( 'target nathi: ',  target )
 
     return aggregation_collector
+
 
 def restructureAnnot(annot, annot_type):
 
@@ -150,10 +168,8 @@ def inter_aggregate_labels(p, ic, o, s, inter_aggregator):
                         #     print( resultset_target[0][1] )
                         #     print( sentence['tokens'] )
                         #     print( resultset_source[0][1] )
-
-                    else:
-
-                        print( source_key )
+                    # else:
+                    #     print( source_key )
 
     # Perform sanity check before returning the aggregated dictionary 
     sanity_check_globalagg(temp_p, temp_ic, temp_o, temp_s, inter_aggregator)
@@ -179,7 +195,7 @@ def merge_labels(globally_aggregated):
     globally_merged = dict()
 
     # Load the resolver model
-    label_resolver = load('/home/anjani/distant-PICO/CandidateGeneration/AnnotationAggregation/resolver_models/resolver.joblib') 
+    label_resolver = load('/home/anjani/distant-PICO/CandidateGeneration/AnnotationAggregation/resolver_models/resolver_large.joblib') 
 
     # Iterate through the labels here
     for key, target in globally_aggregated.items():
@@ -210,8 +226,8 @@ def merge_labels(globally_aggregated):
                     len_first = len(resultset[0]) if resultset else None
                     if all(len(i) == len_first for i in resultset) == False:
                         defects = groupby(sorted(resultset, key=len), key=len)
-                        for eachHit in defects:
-                            print( eachHit )
+                        # for eachHit in defects:
+                        #     print( eachHit )
 
                     assert all(len(i) == len_first for i in resultset) == True # Check if all the annotation lenths are identical
 
