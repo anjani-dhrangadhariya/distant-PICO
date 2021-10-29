@@ -155,12 +155,8 @@ testpath==0.5.0
 thinc==8.0.10
 threadpoolctl==2.2.0
 tokenizers==0.10.3
-torch==1.7.0
-TorchCRF==1.1.0
-torchvision==0.2.2
 tornado==6.1
 tqdm==4.61.2
-transformers==4.8.2
 tree-lstm==0.0.8
 typer==0.3.2
 typing-extensions==3.7.4.3
