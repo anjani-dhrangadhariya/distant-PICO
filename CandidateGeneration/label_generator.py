@@ -57,16 +57,16 @@ from sanity_checks import *
 ################################################################################
 # Set the logger here
 ################################################################################
-LOG_FILE = os.getcwd() + "/logs"
-if not os.path.exists(LOG_FILE):
-    os.makedirs(LOG_FILE)
+# LOG_FILE = os.getcwd() + "/logs"
+# if not os.path.exists(LOG_FILE):
+#     os.makedirs(LOG_FILE)
 
-LOG_FILE = LOG_FILE + "/" + dt.datetime.fromtimestamp(time.time()).strftime('%Y_%m_%d %H_%M_%S') + ".log"
-logFormatter = logging.Formatter("%(levelname)s %(asctime)s %(processName)s %(message)s")
-fileHandler = logging.FileHandler("{0}".format(LOG_FILE))
-rootLogger = logging.getLogger()
-rootLogger.addHandler(fileHandler)
-rootLogger.setLevel(logging.INFO)
+# LOG_FILE = LOG_FILE + "/" + dt.datetime.fromtimestamp(time.time()).strftime('%Y_%m_%d %H_%M_%S') + ".log"
+# logFormatter = logging.Formatter("%(levelname)s %(asctime)s %(processName)s %(message)s")
+# fileHandler = logging.FileHandler("{0}".format(LOG_FILE))
+# rootLogger = logging.getLogger()
+# rootLogger.addHandler(fileHandler)
+# rootLogger.setLevel(logging.INFO)
 
 ################################################################################
 def getSources(annotations, lab):
@@ -101,19 +101,20 @@ results_gen = helpers.scan(
 match_scores = []
 intervention_types = []
 
-# res = es.search(index="ctofull2021-index", body={"query": {"match_all": {}}}, size=4)
-# print('Total number of records retrieved: ', res['hits']['total']['value'])
+res = es.search(index="ctofull2021-index", body={"query": {"match_all": {}}}, size=4)
+print('Total number of records retrieved: ', res['hits']['total']['value'])
 
 # theFile ='/mnt/nas2/data/systematicReview/clinical_trials_gov/distant_pico_pre/secondary_outcomes.txt'
 # theFile ='/home/anjani/distant-PICO/CandidateGeneration/ResultInspection/label_overlap_inspection.txt'
-# theFile = '/home/anjani/distant-PICO/CandidateGeneration/ResultInspection/resolve_annot_corpus.tsv'
+theFile = '/home/anjani/distant-PICO/CandidateGeneration/ResultInspection/resolve_annot_corpus.tsv'
 aggregated_file = '/mnt/nas2/data/systematicReview/clinical_trials_gov/Weak_PICO/PICOS_data_preprocessed/aggregated_1_0.txt'
 merged_file = '/mnt/nas2/data/systematicReview/clinical_trials_gov/Weak_PICO/PICOS_data_preprocessed/merged_1_0.txt'
-with open(aggregated_file, 'a+') as awf , open(merged_file, 'a+') as mwf:
+# with open(aggregated_file, 'a+') as awf , open(merged_file, 'a+') as mwf:
+with open(theFile, 'a+') as wf:
 
     # Iterate through all of the fetched CTO index documents
-    # for n, hit in enumerate( res['hits']['hits'] ): # Only a part search results from the CTO
-    for hit in results_gen: # Entire CTO
+    for n, hit in enumerate( res['hits']['hits'] ): # Only a part search results from the CTO
+    # for hit in results_gen: # Entire CTO
 
         try:
 
@@ -240,19 +241,20 @@ with open(aggregated_file, 'a+') as awf , open(merged_file, 'a+') as mwf:
 
             # Resolve the overlapping labels
             globally_merged = merge_labels(globally_aggregated)
+            print(globally_merged)
 
             # Add CTO identifiers to the annotations
             globally_merged['id'] = NCT_id
             globally_aggregated['id'] = NCT_id
 
             # dump to file
-            json.dump(globally_aggregated, awf)
-            awf.write('\n')
-            json.dump(globally_merged, mwf)
-            mwf.write('\n')
+            # json.dump(globally_aggregated, awf)
+            # awf.write('\n')
+            # json.dump(globally_merged, mwf)
+            # mwf.write('\n')
 
-            log_success = 'Wrote the weak annotations for ' + str(NCT_id)
-            logging.info(log_success)
+            # log_success = 'Wrote the weak annotations for ' + str(NCT_id)
+            # logging.info(log_success)
             
 
         except Exception as ex:
@@ -267,8 +269,8 @@ with open(aggregated_file, 'a+') as awf , open(merged_file, 'a+') as mwf:
 
             print(traceback.format_exc())
 
-            logging.info(NCT_id)
-            logging.info(message)
-            string2log = str(exc_type) + ' : ' + str(fname) + ' : ' + str(exc_tb.tb_lineno)
-            logging.info(string2log)
-            logging.info(traceback.format_exc())
+            # logging.info(NCT_id)
+            # logging.info(message)
+            # string2log = str(exc_type) + ' : ' + str(fname) + ' : ' + str(exc_tb.tb_lineno)
+            # logging.info(string2log)
+            # logging.info(traceback.format_exc())
