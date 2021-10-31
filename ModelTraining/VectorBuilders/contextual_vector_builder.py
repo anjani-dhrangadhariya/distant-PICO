@@ -75,13 +75,36 @@ def tokenize_and_preserve_labels(sentence, text_labels, pos, tokenizer):
 
     return tokenized_sentence, labels, poss
 
+##################################################################################
+# The function truncates input sequences to max lengths
+##################################################################################
+def truncateSentence(sentence, trim_len):
+
+    trimmedSentence = []
+    if  len(sentence) > trim_len:
+        trimmedSentence = sentence[:trim_len]
+    else:
+        trimmedSentence = sentence
+
+    assert len(trimmedSentence) <= trim_len
+    return trimmedSentence
+
 def transform(sentence, text_labels, pos, tokenizer, max_length, pretrained_model):
 
     # Tokenize and preserve labels
     tokenized_sentence, labels, poss = tokenize_and_preserve_labels(sentence, text_labels, pos, tokenizer)
 
-    print( text_labels )
-    print( labels )
+    # Truncate the sequences (sentence and label) to (max_length - 2)
+    if max_length >= 510:
+        truncated_sentence = truncateSentence(tokenized_sentence, (max_length - 2))
+        truncated_labels = truncateSentence(labels, (max_length - 2))
+        truncated_pos = truncateSentence(poss, (max_length - 2))
+        assert len(truncated_sentence) == len(truncated_labels) == len(truncated_pos)
+    else:
+        truncated_sentence = tokenized_sentence
+        truncated_labels = labels
+        truncated_pos = poss
+        assert len(truncated_sentence) == len(truncated_labels) == len(truncated_pos)  
 
     return None
 

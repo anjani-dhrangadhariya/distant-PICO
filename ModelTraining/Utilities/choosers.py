@@ -9,7 +9,6 @@ from transformers import (AutoTokenizer, BertConfig, BertModel, BertTokenizer,
 ##################################################################################
 def choose_tokenizer_type(pretrained_model):
     
-    print('Loading tokenizer...')
     if 'bert' in pretrained_model and 'bio' not in pretrained_model and 'sci' not in pretrained_model:
         tokenizer_ = BertTokenizer.from_pretrained('bert-base-uncased', do_lower_case=True)
 
