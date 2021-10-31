@@ -118,11 +118,8 @@ with open(theFile, 'a+') as wf:
 
         try:
 
-            write_hit = collections.defaultdict(dict) # Dictionary to store the annotations for the CTO record being iterated
-
             fullstudy = hit['_source']['FullStudiesResponse']['FullStudies'][0]['Study']
             NCT_id = hit['_source']['FullStudiesResponse']['Expression']
-            write_hit['id'] = NCT_id
             # print('################################## ', NCT_id , ' #########################################')
             # Annotation aggregator for PICOS for the NCT_id
             global_aggregator = dict()
@@ -150,8 +147,6 @@ with open(theFile, 'a+') as wf:
 
             # Expand the targets of PICOS annotation
             expanded_targets = expandTargets(protocol_section, targets)
-            # global_aggregator = dict.fromkeys( list(expanded_targets.keys()), {} )
-            global_aggregator = dict()
 
             # Get the mappings between sources and their relevant targets
             mapping = generateMapping()
