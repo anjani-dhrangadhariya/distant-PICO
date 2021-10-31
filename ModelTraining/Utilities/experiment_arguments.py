@@ -1,7 +1,8 @@
 import argparse
+from pathlib import Path
+
 # pyTorch essentials
 import torch
-
 
 ##################################################################################
 # set up the GPU
@@ -15,6 +16,7 @@ def getArguments():
 
     # List of arguments to set up experiment
     parser = argparse.ArgumentParser()
+    parser.add_argument('-input_file', type = Path, default = '/mnt/nas2/data/systematicReview/clinical_trials_gov/Weak_PICO/PICOS_data_preprocessed/merged_1_0.txt')
     parser.add_argument('-embed', type = str, default = 'bert') # embed = {scibert, bert, biobert, ...} 
     parser.add_argument('-embed_type', type = str, default = 'contextual') # embed_type = {contextual, semantic} 
     parser.add_argument('-model', type = str, default = 'scibertposattencrf') # model = {scibertposcrf, scibertposattencrf, ...} 
@@ -30,6 +32,7 @@ def getArguments():
     parser.add_argument('-eps', type = float, default= 1e-8)
     parser.add_argument('-loss', type = str, default = 'general')
     parser.add_argument('-bidrec', type = str, default=True)
+    parser.add_argument('-max_len', type = int, default=100)
 
     args = parser.parse_args()
 
