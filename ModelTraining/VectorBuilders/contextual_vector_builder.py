@@ -46,8 +46,42 @@ from transformers import (AdamW, AutoTokenizer, BertConfig, BertModel,
                           get_linear_schedule_with_warmup)
 from VectorBuilders.contextual_vector_builder import *
 
+def tokenize_and_preserve_labels(sentence, text_labels, pos, tokenizer):
+    dummy_label = 100 # Could be any kind of labels that you can mask
+    tokenized_sentence = []
+    labels = []
+    poss = []
+    printIt = []
 
-def transform():
+    for word, label, pos_i in zip(sentence, text_labels, pos):
+
+        # Tokenize the word and count # of subwords the word is broken into
+        tokenized_word = tokenizer.encode(word, add_special_tokens = False)
+        n_subwords = len(tokenized_word)
+
+        # Add the tokenized word to the final tokenized word list
+        tokenized_sentence.extend(tokenized_word)
+
+        # Add the same label to the new list of labels `n_subwords` times
+        if n_subwords == 1:
+            labels.extend([label] * n_subwords)
+            poss.extend( [pos_i] * n_subwords ) 
+        else:
+            labels.extend([label])
+            labels.extend( [dummy_label] * (n_subwords-1) )
+            poss.extend( [pos_i] * n_subwords ) 
+
+    assert len(tokenized_sentence) == len(labels) == len(poss)
+
+    return tokenized_sentence, labels, poss
+
+def transform(sentence, text_labels, pos, tokenizer, max_length, pretrained_model):
+
+    # Tokenize and preserve labels
+    tokenized_sentence, labels, poss = tokenize_and_preserve_labels(sentence, text_labels, pos, tokenizer)
+
+    print( text_labels )
+    print( labels )
 
     return None
 
@@ -62,10 +96,4 @@ def getContextualVectors( annotations_df, vector_type, MAX_LEN, pos_encoder = No
         temp = transform(tokens, labels, pos, tokenizer, MAX_LEN, vector_type)
         tokenized.append( temp )
 
-    tokens, labels, masks, poss = list(zip(*tokenized))
-
-    # Delete the tokenizer and tokenized list to reduce RAM usage
-    del tokenizer, tokenized
-    gc.collect()
-
-    return tokens, labels, masks, poss # Returns input IDs and labels together
+    return None
