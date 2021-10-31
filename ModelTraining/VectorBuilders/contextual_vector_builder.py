@@ -4,6 +4,8 @@
 # staple imports
 import warnings
 
+from Utilities.choosers import choose_tokenizer_type
+
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
 import argparse
@@ -42,4 +44,28 @@ from transformers import (AdamW, AutoTokenizer, BertConfig, BertModel,
                           BertTokenizer, GPT2Config, GPT2Model, GPT2Tokenizer,
                           RobertaConfig, RobertaModel,
                           get_linear_schedule_with_warmup)
+from VectorBuilders.contextual_vector_builder import *
 
+
+def transform():
+
+    return None
+
+
+def getContextualVectors( annotations_df, vector_type, MAX_LEN, pos_encoder = None ):
+
+    tokenizer = choose_tokenizer_type( vector_type )
+
+    # Tokenize and preserve labels
+    tokenized = []
+    for tokens, labels, pos in zip(list(annotations_df['tokens']), list(annotations_df['labels']), list(annotations_df['pos'])) :
+        temp = transform(tokens, labels, pos, tokenizer, MAX_LEN, vector_type)
+        tokenized.append( temp )
+
+    tokens, labels, masks, poss = list(zip(*tokenized))
+
+    # Delete the tokenizer and tokenized list to reduce RAM usage
+    del tokenizer, tokenized
+    gc.collect()
+
+    return tokens, labels, masks, poss # Returns input IDs and labels together
