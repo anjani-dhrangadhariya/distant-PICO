@@ -48,7 +48,6 @@ from transformers import (AdamW, AutoTokenizer, BertConfig, BertModel,
 
 from VectorBuilders.contextual_vector_builder import *
 
-
 def tokenize_and_preserve_labels(sentence, text_labels, pos, tokenizer):
     dummy_label = 100 # Could be any kind of labels that you can mask
     tokenized_sentence = []
@@ -128,6 +127,7 @@ def createAttnMask(input_ids):
 
     return np.asarray(attention_masks, dtype=np.uint8)
 
+
 def transform(sentence, text_labels, pos, tokenizer, max_length, pretrained_model):
 
     # Tokenize and preserve labels
@@ -171,7 +171,6 @@ def transform(sentence, text_labels, pos, tokenizer, max_length, pretrained_mode
     assert len(input_ids.squeeze()) == len(input_labels.squeeze()) == len(attention_masks.squeeze()) == len(input_pos.squeeze()) == max_length
 
     return input_ids.squeeze(), input_labels.squeeze(), attention_masks.squeeze(), input_pos.squeeze()
-
 
 def getContextualVectors( annotations_df, vector_type, MAX_LEN, pos_encoder = None ):
 
