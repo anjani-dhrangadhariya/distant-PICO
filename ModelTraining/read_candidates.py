@@ -1,20 +1,21 @@
-import logging
-import datetime as dt
-import datetime
-import glob
 import argparse
+import datetime
+import datetime as dt
+import gc
+import glob
+import json
+import logging
+import os
 import pdb
 import random
-import sys, json, os
+import sys
 import time
 
-import gc
-
-import pandas as pd
 import numpy as np
-
-from sklearn.model_selection import train_test_split
+import pandas as pd
 from sklearn import preprocessing
+from sklearn.model_selection import train_test_split
+
 
 def readRawCandidates( list_NCT, label_type=None ):
 
@@ -37,9 +38,8 @@ def readRawCandidates( list_NCT, label_type=None ):
                         labels.append( sentence['annotation'] )
                         nct_ids.append( id_ )
 
-            if i == 10:
+            if i == 2:
                 break
-
 
     corpus_df = pd.DataFrame(
         {'ids': nct_ids,
@@ -60,10 +60,12 @@ def readRawCandidates( list_NCT, label_type=None ):
 
 def fetchAndTransformCandidates():
 
-    start_time = time.time()
+    start_candidate_reading = time.time()
 
     list_NCT = '/mnt/nas2/data/systematicReview/clinical_trials_gov/Weak_PICO/PICOS_data_preprocessed/merged_1_0.txt'
 
     raw_candidates = readRawCandidates( list_NCT, label_type=None )
 
-    print("--- Took %s seconds to read the raw weakly annotated candidates ---" % (time.time() - start_time))
+    print("--- Took %s seconds to read the raw weakly annotated candidates ---" % (time.time() - start_candidate_reading))
+
+
