@@ -89,6 +89,21 @@ def truncateSentence(sentence, trim_len):
     assert len(trimmedSentence) <= trim_len
     return trimmedSentence
 
+##################################################################################
+# The function adds special tokens to the truncated sequences
+##################################################################################
+def addSpecialtokens(eachText, start_token, end_token):
+    insert_at_start = 0
+    eachText[insert_at_start:insert_at_start] = [start_token]
+
+    insert_at_end = len(eachText)
+    eachText[insert_at_end:insert_at_end] = [end_token]
+
+    assert eachText[0] == start_token
+    assert eachText[-1] == end_token
+
+    return eachText
+
 def transform(sentence, text_labels, pos, tokenizer, max_length, pretrained_model):
 
     # Tokenize and preserve labels
@@ -104,7 +119,19 @@ def transform(sentence, text_labels, pos, tokenizer, max_length, pretrained_mode
         truncated_sentence = tokenized_sentence
         truncated_labels = labels
         truncated_pos = poss
-        assert len(truncated_sentence) == len(truncated_labels) == len(truncated_pos)  
+        assert len(truncated_sentence) == len(truncated_labels) == len(truncated_pos)
+
+    # Add special tokens CLS and SEP for the BERT tokenizer (identical for SCIBERT)
+    if 'bert' in pretrained_model.lower():
+        speTok_sentence = addSpecialtokens(truncated_sentence, tokenizer.cls_token_id, tokenizer.sep_token_id)
+    elif 'gpt2' in pretrained_model.lower():
+        speTok_sentence = addSpecialtokens(truncated_sentence, tokenizer.bos_token_id, tokenizer.eos_token_id)
+
+
+    
+
+
+    print( speTok_sentence )
 
     return None
 
