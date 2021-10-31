@@ -33,6 +33,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 # keras essentials
 from keras.preprocessing.sequence import pad_sequences
+from memory_profiler import profile
 # numpy essentials
 from numpy import asarray
 from torch import LongTensor
@@ -44,7 +45,9 @@ from transformers import (AdamW, AutoTokenizer, BertConfig, BertModel,
                           BertTokenizer, GPT2Config, GPT2Model, GPT2Tokenizer,
                           RobertaConfig, RobertaModel,
                           get_linear_schedule_with_warmup)
+
 from VectorBuilders.contextual_vector_builder import *
+
 
 def tokenize_and_preserve_labels(sentence, text_labels, pos, tokenizer):
     dummy_label = 100 # Could be any kind of labels that you can mask
