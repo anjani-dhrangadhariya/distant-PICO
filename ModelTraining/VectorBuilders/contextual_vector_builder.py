@@ -104,6 +104,27 @@ def addSpecialtokens(eachText, start_token, end_token):
 
     return eachText
 
+##################################################################################
+# Generates attention masks
+##################################################################################
+def createAttnMask(input_ids):
+    # Add attention masks
+    # Create attention masks
+    attention_masks = []
+
+    # For each sentence...
+    for sent in input_ids:
+        
+        # Create the attention mask.
+        #   - If a token ID is 0, then it's padding, set the mask to 0.
+        #   - If a token ID is > 0, then it's a real token, set the mask to 1.
+        att_mask = [int(token_id > 0) for token_id in sent]
+        
+        # Store the attention mask for this sentence.
+        attention_masks.append(att_mask)
+
+    return np.asarray(attention_masks, dtype=np.uint8)
+
 def transform(sentence, text_labels, pos, tokenizer, max_length, pretrained_model):
 
     # Tokenize and preserve labels
@@ -141,9 +162,12 @@ def transform(sentence, text_labels, pos, tokenizer, max_length, pretrained_mode
 
     assert len( input_ids ) == len( input_labels ) == len( input_pos )
 
-    print( input_ids )
+    # Get the attention masks
+    attention_masks = createAttnMask( input_ids )
 
-    return None
+    assert len(input_ids.squeeze()) == len(input_labels.squeeze()) == len(attention_masks.squeeze()) == len(input_pos.squeeze()) == max_length
+
+    return input_ids.squeeze(), input_labels.squeeze(), attention_masks.squeeze(), input_pos.squeeze()
 
 
 def getContextualVectors( annotations_df, vector_type, MAX_LEN, pos_encoder = None ):
