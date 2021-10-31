@@ -180,4 +180,10 @@ def getContextualVectors( annotations_df, vector_type, MAX_LEN, pos_encoder = No
         temp = transform(tokens, labels, pos, tokenizer, MAX_LEN, vector_type)
         tokenized.append( temp )
 
-    return None
+    tokens, labels, masks, poss = list(zip(*tokenized))
+
+    # Delete the tokenizer and tokenized list to reduce RAM usage
+    del tokenizer, tokenized
+    gc.collect()
+
+    return tokens, labels, masks, poss 
