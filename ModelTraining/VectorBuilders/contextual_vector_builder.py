@@ -127,11 +127,21 @@ def transform(sentence, text_labels, pos, tokenizer, max_length, pretrained_mode
     elif 'gpt2' in pretrained_model.lower():
         speTok_sentence = addSpecialtokens(truncated_sentence, tokenizer.bos_token_id, tokenizer.eos_token_id)
 
+    speTok_labels = addSpecialtokens(truncated_labels, 0, 0)
+    speTok_pos = addSpecialtokens(truncated_pos, 0, 0)
 
-    
+    # PAD the sequences to max length
+    if 'bert' in pretrained_model.lower():
+        input_ids = pad_sequences([ speTok_sentence ] , maxlen=max_length, value=tokenizer.pad_token_id, padding="post")
+    elif 'gpt2' in pretrained_model.lower():
+        input_ids = pad_sequences([ speTok_sentence ] , maxlen=max_length, value=tokenizer.unk_token_id, padding="post")    
 
+    input_labels = pad_sequences([ speTok_labels ] , maxlen=max_length, value=0, padding="post")
+    input_pos = pad_sequences([ speTok_pos ] , maxlen=max_length, value=0, padding="post")
 
-    print( speTok_sentence )
+    assert len( input_ids ) == len( input_labels ) == len( input_pos )
+
+    print( input_ids )
 
     return None
 
