@@ -11,48 +11,44 @@ __maintainer__ = "Anjani Dhrangadhariya"
 __email__ = "anjani.dhrangadhariya@hevs.ch"
 __status__ = "Prototype"
 
-import sys, json, os
-import logging
-import datetime as dt
-import time
-import random
-import traceback
-import itertools
-
-from elasticsearch import Elasticsearch, helpers
-from elasticsearch_dsl import Search,  Q
-
-import difflib, re
-
-from collections import Counter
-from collections import defaultdict
 import collections
-import numpy as np
-import pandas as pd
+import datetime as dt
+import difflib
+import itertools
+import json
+import logging
+import os
+import random
+import re
+import sys
+import time
+import traceback
+from collections import Counter, defaultdict
 
 import matplotlib
+import numpy as np
+import pandas as pd
+from elasticsearch import Elasticsearch, helpers
+from elasticsearch_dsl import Q, Search
+
 matplotlib.use('agg')
 import matplotlib.pyplot as plt
 from pylab import *
 
-# Import DISANT-PICO modules
-from SourceFetcher.parti_sourcefetcher import *
-from SourceFetcher.int_sourcefetcher import *
-from SourceFetcher.outcome_sourcefetcher import *
-
-from SourceFetcher.stdtype_sourcefetcher import *
-
-from TargetFetcher.all_targetsfetcher import *
-
-from SourceTargetExpander.expand_sources import *
-from SourceTargetExpander.expand_targets import *
-
-from SourceTargetAligner.source_target_mapping import *
-from SourceTargetAligner.labeling_operators import *
-
 from AnnotationAggregation.label_aggregator import *
 from AnnotationAggregation.label_resolver import *
 from sanity_checks import *
+from SourceFetcher.int_sourcefetcher import *
+from SourceFetcher.outcome_sourcefetcher import *
+
+# Import DISANT-PICO modules
+from SourceFetcher.parti_sourcefetcher import *
+from SourceFetcher.stdtype_sourcefetcher import *
+from SourceTargetAligner.labeling_operators import *
+from SourceTargetAligner.source_target_mapping import *
+from SourceTargetExpander.expand_sources import *
+from SourceTargetExpander.expand_targets import *
+from TargetFetcher.all_targetsfetcher import *
 
 ################################################################################
 # Set the logger here
