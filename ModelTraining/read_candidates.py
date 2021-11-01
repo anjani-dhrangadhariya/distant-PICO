@@ -39,15 +39,18 @@ def readRawCandidates( list_NCT, label_type=None ):
                 if 'id' not in target_key:
                     for sentence_key, sentence in target.items():
 
-                        tokens.append( sentence['tokens'] )
-                        labels.append( sentence['annotation'] )
-                        nct_ids.append( id_ )
+                        if set(sentence['tokens'])!={0}:
+                            tokens.append( sentence['tokens'] )
+                            labels.append( sentence['annotation'] )
+                            nct_ids.append( id_ )
 
-                        # Generate dummy POS items
-                        pos_i = [0] * len( sentence['tokens'] )
-                        pos.append( pos_i )
+                            # Generate dummy POS items
+                            pos_i = [0] * len( sentence['tokens'] )
+                            pos.append( pos_i )
+                        else:
+                            print('All the labels are nil')
 
-            if i == 2:
+            if i == 100:
                 break
 
     corpus_df = pd.DataFrame(
