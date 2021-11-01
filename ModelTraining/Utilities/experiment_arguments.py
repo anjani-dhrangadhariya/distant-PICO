@@ -26,7 +26,7 @@ def getArguments():
     parser.add_argument('-parallel', type = str, default = 'false') # false = won't use data parallel
     parser.add_argument('-gpu', type = int, default = device)
     parser.add_argument('-freeze_bert', action='store_false') # store_false = won't freeze BERT
-    parser.add_argument('-print_every', type = int, default= 100)
+    parser.add_argument('-print_every', type = int, default= 200)
     parser.add_argument('-max_eps', type = int, default= 10)
     parser.add_argument('-lr', type = float, default= 5e-4)
     parser.add_argument('-eps', type = float, default= 1e-8)
