@@ -55,7 +55,7 @@ from transformers import AdamW, BertConfig
 from transformers import get_linear_schedule_with_warmup
 
 # Import data getters
-from Utilities.HelperFunctions import get_packed_padded_output
+from Utilities.helper_functions import get_packed_padded_output
 
 class BERTCRF(nn.Module):
 
@@ -110,7 +110,7 @@ class BERTCRF(nn.Module):
         emissions_ = self.crf_layer.decode( probablities , mask = None)
         emissions = [item for sublist in emissions_ for item in sublist] # flatten the nest list of emissions
 
-        target_emissions = torch.zeros(probablities.shape[0], probablities.shape[1])
+        target_emissions = torch.zeros(probablities.shape[0], probablities.shape[1], dtype=torch.int64)
         target_emissions = target_emissions.cuda()
         for eachIndex in range( target_emissions.shape[0] ):
             target_emissions[ eachIndex, :torch.tensor( emissions_[eachIndex] ).shape[0] ] = torch.tensor( emissions_[eachIndex] )
