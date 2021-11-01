@@ -66,8 +66,96 @@ def printMetrics(cr):
     
     return cr['macro avg']['f1-score'], cr['1']['f1-score'], cr['2']['f1-score'], cr['3']['f1-score'], cr['4']['f1-score']
 
+
+def evaluate(defModel, optimizer, scheduler, development_dataloader, exp_args, epoch_number = None):
+    mean_acc = 0
+    mean_loss = 0
+    count = 0
+    total_val_loss_coarse = 0
+
+    with torch.no_grad() :
+        # collect all the evaluation predictions and ground truth here
+        all_GT = []
+        all_masks = []
+        all_predictions = []
+        all_tokens = []
+
+        class_rep_temp = []
+
+        for e_input_ids_, e_labels, e_input_mask, e_input_pos in development_dataloader:
+
+            e_input_ids_ = e_input_ids_.to(f'cuda:{defModel.device_ids[0]}')
+            with torch.cuda.device_of(e_input_ids_.data):
+                e_input_ids = e_input_ids_.clone()
+
+            # coarse grained entity labels
+            e_input_mask = e_input_mask.to(f'cuda:{defModel.device_ids[0]}')
+            e_labels = e_labels.to(f'cuda:{defModel.device_ids[0]}')
+            e_input_pos = e_input_pos.to(f'cuda:{defModel.device_ids[0]}')
+
+            e_loss, e_output, e_labels, e_mask = defModel(e_input_ids, attention_mask=e_input_mask, labels=e_labels, input_pos=e_input_pos) 
+
+            # shorten the input_ids to match the e_output shape (This is to retrieve the natural langauge words from the input IDs)
+            e_input_ids = e_input_ids[:, :e_output.shape[1]]
+
+            if len(list( e_output.shape )) > 1:
+                if 'crf' not in exp_args.model:
+                    max_probs = torch.max(e_output, dim=2) # get the highest of two probablities
+                    e_logits = max_probs.indices
+                else:
+                    e_logits = e_output 
+            else: 
+                e_logits = e_output
+
+            mean_loss += abs( torch.mean(e_loss) ) 
+
+            for i in range(0, e_labels.shape[0]):
+
+                # mask the probas
+                masked_preds = torch.masked_select( e_logits[i, ].to(f'cuda:0'), e_mask[i, ] )
+                # mask the labels
+                masked_labs = torch.masked_select( e_labels[i, ].to(f'cuda:0'), e_mask[i, ] )
+                temp_cr = classification_report(y_pred= masked_preds.cpu(), y_true=masked_labs.cpu(), labels=list(range(2)), output_dict=True) 
+                class_rep_temp.append(temp_cr['macro avg']['f1-score'])
+
+                all_masks.extend( e_mask[i, ] )
+                all_GT.extend( e_labels[i, ] )
+                all_predictions.extend( e_logits[i, ] )
+                all_tokens.extend( e_input_ids[i, ] )          
+
+        avg_val_loss = mean_loss / len(development_dataloader)
+
+        # stack the list of tensors into a tensor
+        all_masks_tens = torch.stack(( all_masks ))
+        all_GT_tens =  torch.stack(( all_GT ))
+        all_preds_tens = torch.stack(( all_predictions ))
+        all_token_tens = torch.stack(( all_tokens ))
+
+        # mask the prediction tensor
+        selected_preds_coarse = torch.masked_select( all_preds_tens.to(f'cuda:0'), all_masks_tens )
+        # mask the label tensor
+        selected_labs_coarse = torch.masked_select( all_GT_tens.to(f'cuda:0'), all_masks_tens )
+        # mask the natural language token tensor but with attention mask carefully
+        # getRelInputs( all_token_tens , defModel )
+        selected_tokens_coarse = torch.masked_select( all_token_tens.to(f'cuda:0'), all_masks_tens )   
+
+        # flatten the masked tensors
+        all_pred_flat = np.asarray(selected_preds_coarse.cpu(), dtype=np.float32).flatten()
+        all_GT_flat = np.asarray(selected_labs_coarse.cpu(), dtype=np.float32).flatten()
+        all_tokens_flat = np.asarray(selected_tokens_coarse.cpu(), dtype=np.int64).flatten()
+
+        # Final classification report and confusion matrix for each epoch
+        val_cr = classification_report(y_pred= all_pred_flat, y_true=all_GT_flat, labels=list(range(5)), output_dict=True)
+
+        # confusion_matrix and plot
+        labels = [0, 1, 2, 3, 4]
+        cm = confusion_matrix(all_GT_flat, all_pred_flat, labels, normalize=None)
+
+    return val_cr, all_pred_flat, all_GT_flat, cm, all_tokens_flat, class_rep_temp        
+
+                                
 # Train
-def train(defModel, optimizer, scheduler, train_dataloader, exp_args, eachSeed):
+def train(defModel, optimizer, scheduler, train_dataloader, development_dataloader, exp_args, eachSeed):
 
     with torch.enable_grad():
 
@@ -129,4 +217,6 @@ def train(defModel, optimizer, scheduler, train_dataloader, exp_args, eachSeed):
             del train_epoch_logits_coarse_i, train_epochs_labels_coarse_i
             gc.collect()
 
-            
+            val_cr, all_pred_flat_coarse, all_GT_flat_coarse, cm, all_tokens_flat, class_rep_temp  = evaluate(defModel, optimizer, scheduler, development_dataloader, exp_args, epoch_i)
+
+            print( val_cr )
