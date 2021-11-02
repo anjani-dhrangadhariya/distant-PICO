@@ -9,20 +9,19 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 import argparse
 import datetime
 import datetime as dt
+# Memory leak
+import gc
 import glob
 import json
 import logging
 import os
 import pdb
 import random
-
-# Memory leak
-import gc
-
 # statistics
 import statistics
 import sys
 import time
+import warnings
 from collections import OrderedDict
 
 import matplotlib.pyplot as plt
@@ -30,14 +29,14 @@ import numpy as np
 import pandas as pd
 import seaborn as sn
 
+# sklearn
+import sklearn
+
 # pyTorch essentials
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-
-# sklearn
-import sklearn
 from sklearn import preprocessing
 from sklearn.metrics import (accuracy_score, classification_report,
                              confusion_matrix, f1_score, plot_confusion_matrix,
@@ -59,10 +58,10 @@ from transformers import (AdamW, AutoModel, AutoModelForTokenClassification,
                           GPT2Config, GPT2Model, GPT2Tokenizer, RobertaConfig,
                           RobertaModel, get_linear_schedule_with_warmup)
 
-import warnings
 warnings.filterwarnings('ignore')
 
 from Utilities.mlflow_logging import *
+
 
 def printMetrics(cr):
     
@@ -87,10 +86,11 @@ def evaluate(defModel, optimizer, scheduler, development_dataloader, exp_args, e
         for e_input_ids_, e_labels, e_input_mask, e_input_pos in development_dataloader:
 
             e_input_ids_ = e_input_ids_.to(f'cuda:{defModel.device_ids[0]}')
-            with torch.cuda.device_of(e_input_ids_.data):
+
+            with torch.cuda.device_of(e_input_ids_.data): # why am I cloning this variable?
                 e_input_ids = e_input_ids_.clone()
 
-            # coarse grained entity labels
+            # load the variables on the device
             e_input_mask = e_input_mask.to(f'cuda:{defModel.device_ids[0]}')
             e_labels = e_labels.to(f'cuda:{defModel.device_ids[0]}')
             e_input_pos = e_input_pos.to(f'cuda:{defModel.device_ids[0]}')
@@ -113,11 +113,10 @@ def evaluate(defModel, optimizer, scheduler, development_dataloader, exp_args, e
 
             for i in range(0, e_labels.shape[0]):
 
-                # mask the probas
                 masked_preds = torch.masked_select( e_logits[i, ].to(f'cuda:0'), e_mask[i, ] )
-                # mask the labels
                 masked_labs = torch.masked_select( e_labels[i, ].to(f'cuda:0'), e_mask[i, ] )
-                temp_cr = classification_report(y_pred= masked_preds.cpu(), y_true=masked_labs.cpu(), labels=list(range(2)), output_dict=True) 
+
+                temp_cr = classification_report(y_pred= masked_preds.cpu(), y_true=masked_labs.cpu(), labels=list(range(5)), output_dict=True) 
                 class_rep_temp.append(temp_cr['macro avg']['f1-score'])
 
                 all_masks.extend( e_mask[i, ] )
@@ -210,6 +209,7 @@ def train(defModel, optimizer, scheduler, train_dataloader, development_dataload
                     f1, f1_1 , f1_2, f1_3, f1_4 = printMetrics(cr)
                     logMetrics("f1", f1, epoch_i)
                     logMetrics("f1 P", f1_1, epoch_i); logMetrics("f1 IC", f1_2, epoch_i); logMetrics("f1 O", f1_3, epoch_i); logMetrics("f1 S", f1_4, epoch_i)
+                    logMetrics("training loss", total_train_loss.cpu().item(), epoch_i)
                     print('Training: Epoch {} with macro average F1: {}, F1 score (P): {}, F1 score (IC): {}, F1 score (O): {}, F1 score (S): {}'.format(epoch_i, f1, f1_1 , f1_2, f1_3, f1_4))
 
 
