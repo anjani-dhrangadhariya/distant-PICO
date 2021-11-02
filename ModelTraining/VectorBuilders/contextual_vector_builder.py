@@ -67,7 +67,9 @@ def tokenize_and_preserve_labels(sentence, text_labels, pos, tokenizer):
         # Add the same label to the new list of labels `n_subwords` times
         if n_subwords == 1:
             labels.extend([label] * n_subwords)
-            poss.extend( [pos_i] * n_subwords ) 
+            poss.extend( [pos_i] * n_subwords )
+        elif n_subwords == 0:
+            pass
         else:
             labels.extend([label])
             labels.extend( [dummy_label] * (n_subwords-1) )
@@ -178,7 +180,7 @@ def getContextualVectors( annotations_df, vector_type, MAX_LEN, pos_encoder = No
 
     # Tokenize and preserve labels
     tokenized = []
-    for tokens, labels, pos in zip(list(annotations_df['tokens']), list(annotations_df['labels']), list(annotations_df['pos'])) :
+    for tokens, labels, pos, nctid in zip(list(annotations_df['tokens']), list(annotations_df['labels']), list(annotations_df['pos']), list(annotations_df['ids'])) :
         temp = transform(tokens, labels, pos, tokenizer, MAX_LEN, vector_type)
         tokenized.append( temp )
 
