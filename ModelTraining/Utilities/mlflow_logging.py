@@ -11,3 +11,7 @@ def logParams(args, seed):
     log_param("epochs", args.max_eps)
     log_param("learning rate", args.lr)
     log_param("max seq length", args.max_len) 
+
+
+def logMetrics(name, metric_value, step):
+    log_metric(key=name, value=metric_value, step=step)

@@ -62,6 +62,8 @@ from transformers import (AdamW, AutoModel, AutoModelForTokenClassification,
 import warnings
 warnings.filterwarnings('ignore')
 
+from Utilities.mlflow_logging import *
+
 def printMetrics(cr):
     
     return cr['macro avg']['f1-score'], cr['1']['f1-score'], cr['2']['f1-score'], cr['3']['f1-score'], cr['4']['f1-score']
@@ -193,7 +195,7 @@ def train(defModel, optimizer, scheduler, train_dataloader, development_dataload
                 # Update the learning rate.
                 scheduler.step()
 
-                for i in range(0, b_labels.shape[0]):
+                for i in range(0, b_labels.shape[0]): # masked select excluding the post padding 
 
                     selected_preds_coarse = torch.masked_select( b_output[i, ].to(f'cuda:{defModel.device_ids[0]}'), b_mask[i, ])
                     selected_labs_coarse = torch.masked_select(b_labels[i, ].to(f'cuda:{defModel.device_ids[0]}'), b_mask[i, ])
@@ -206,7 +208,10 @@ def train(defModel, optimizer, scheduler, train_dataloader, development_dataload
 
                     cr = sklearn.metrics.classification_report(y_pred= train_epoch_logits_coarse_i, y_true= train_epochs_labels_coarse_i, labels= list(range(5)), output_dict=True)
                     f1, f1_1 , f1_2, f1_3, f1_4 = printMetrics(cr)
+                    logMetrics("f1", f1, epoch_i)
+                    logMetrics("f1 P", f1_1, epoch_i); logMetrics("f1 IC", f1_2, epoch_i); logMetrics("f1 O", f1_3, epoch_i); logMetrics("f1 S", f1_4, epoch_i)
                     print('Training: Epoch {} with macro average F1: {}, F1 score (P): {}, F1 score (IC): {}, F1 score (O): {}, F1 score (S): {}'.format(epoch_i, f1, f1_1 , f1_2, f1_3, f1_4))
+
 
             # Calculate the average loss over all of the batches.
             avg_train_loss = total_train_loss / len(train_dataloader)
