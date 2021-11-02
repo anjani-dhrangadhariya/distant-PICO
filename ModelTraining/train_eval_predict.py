@@ -206,7 +206,7 @@ def train(defModel, optimizer, scheduler, train_dataloader, development_dataload
 
                     cr = sklearn.metrics.classification_report(y_pred= train_epoch_logits_coarse_i, y_true= train_epochs_labels_coarse_i, labels= list(range(5)), output_dict=True)
                     f1, f1_1 , f1_2, f1_3, f1_4 = printMetrics(cr)
-                    print('Training: Epoch {} with macro average F1: {}, F1 score (P): {}, F1 score (IC): {}, F1 score (O), F1 score (S): {}'.format(epoch_i, f1, f1_1 , f1_2, f1_3, f1_4))
+                    print('Training: Epoch {} with macro average F1: {}, F1 score (P): {}, F1 score (IC): {}, F1 score (O): {}, F1 score (S): {}'.format(epoch_i, f1, f1_1 , f1_2, f1_3, f1_4))
 
             # Calculate the average loss over all of the batches.
             avg_train_loss = total_train_loss / len(train_dataloader)
