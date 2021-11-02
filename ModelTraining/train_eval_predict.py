@@ -67,6 +67,10 @@ def printMetrics(cr):
     
     return cr['macro avg']['f1-score'], cr['1']['f1-score'], cr['2']['f1-score'], cr['3']['f1-score'], cr['4']['f1-score']
 
+def flattenIt(x):
+
+    return np.asarray(x.cpu(), dtype=np.float32).flatten()
+
 
 def evaluate(defModel, optimizer, scheduler, development_dataloader, exp_args, epoch_number = None):
     mean_acc = 0
@@ -137,13 +141,15 @@ def evaluate(defModel, optimizer, scheduler, development_dataloader, exp_args, e
         # mask the label tensor
         selected_labs_coarse = torch.masked_select( all_GT_tens.to(f'cuda:0'), all_masks_tens )
         # mask the natural language token tensor but with attention mask carefully
-        # getRelInputs( all_token_tens , defModel )
         selected_tokens_coarse = torch.masked_select( all_token_tens.to(f'cuda:0'), all_masks_tens )   
 
         # flatten the masked tensors
-        all_pred_flat = np.asarray(selected_preds_coarse.cpu(), dtype=np.float32).flatten()
-        all_GT_flat = np.asarray(selected_labs_coarse.cpu(), dtype=np.float32).flatten()
-        all_tokens_flat = np.asarray(selected_tokens_coarse.cpu(), dtype=np.int64).flatten()
+        all_pred_flat = flattenIt( selected_preds_coarse )
+        # all_pred_flat = np.asarray(selected_preds_coarse.cpu(), dtype=np.float32).flatten()
+        all_GT_flat = flattenIt( selected_labs_coarse )
+        # all_GT_flat = np.asarray(selected_labs_coarse.cpu(), dtype=np.float32).flatten()
+        all_tokens_flat = flattenIt( selected_tokens_coarse )
+        # all_tokens_flat = np.asarray(selected_tokens_coarse.cpu(), dtype=np.int64).flatten()
 
         # Final classification report and confusion matrix for each epoch
         val_cr = classification_report(y_pred= all_pred_flat, y_true=all_GT_flat, labels=list(range(5)), output_dict=True)
@@ -159,6 +165,7 @@ def evaluate(defModel, optimizer, scheduler, development_dataloader, exp_args, e
 def train(defModel, optimizer, scheduler, train_dataloader, development_dataloader, exp_args, eachSeed):
 
     with torch.enable_grad():
+        best_f1 = 0.0
 
         for epoch_i in range(0, exp_args.max_eps):
             # Accumulate loss over an epoch
@@ -223,5 +230,16 @@ def train(defModel, optimizer, scheduler, train_dataloader, development_dataload
             gc.collect()
 
             val_cr, all_pred_flat_coarse, all_GT_flat_coarse, cm, all_tokens_flat, class_rep_temp  = evaluate(defModel, optimizer, scheduler, development_dataloader, exp_args, epoch_i)
+            val_f1, val_f1_1 , val_f1_2, val_f1_3, val_f1_4 = printMetrics(val_cr)
+            logMetrics("val f1", val_f1, epoch_i)
+            logMetrics("val f1 P", val_f1_1, epoch_i); logMetrics("val f1 IC", val_f1_2, epoch_i); logMetrics("val f1 O", val_f1_3, epoch_i); logMetrics("val f1 S", val_f1_4, epoch_i)
+            print('Validation: Epoch {} with macro average F1: {}, F1 score (P): {}, F1 score (IC): {}, F1 score (O): {}, F1 score (S): {}'.format(epoch_i, val_f1, val_f1_2 , val_f1_2, val_f1_3, val_f1_4))
 
-            print( val_cr )
+            if val_f1 > best_f1:
+
+                print("Best validation F1 improved from {} to {} ...".format( best_f1, val_f1 ))
+                model_name_here = '/mnt/nas2/results/Results/systematicReview/distant_pico/models/' + str(eachSeed) + '_' + str(epoch_i) + '_' + str(exp_args.model) + '.pth'
+                print('Saving the best model for epoch {} with mean F1 score of {} '.format(epoch_i, val_f1 )) 
+                torch.save(defModel.state_dict(), model_name_here)
+                #saved_models.append(model_name_here)                     
+                best_meanf1 = val_f1
