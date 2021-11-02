@@ -17,6 +17,7 @@ import logging
 import os
 import pdb
 import random
+import shutil
 # statistics
 import statistics
 import sys
@@ -59,6 +60,8 @@ from transformers import (AdamW, AutoModel, AutoModelForTokenClassification,
                           RobertaModel, get_linear_schedule_with_warmup)
 
 warnings.filterwarnings('ignore')
+
+import mlflow
 
 from Utilities.mlflow_logging import *
 
@@ -237,9 +240,14 @@ def train(defModel, optimizer, scheduler, train_dataloader, development_dataload
 
             if val_f1 > best_f1:
 
+                base_path = "/mnt/nas2/results/Results/systematicReview/distant_pico/models/" + str(exp_args.model)
+                if not os.path.exists( base_path ):
+                    oldmask = os.umask(000)
+                    os.makedirs(base_path)
+                    os.umask(oldmask)
+
                 print("Best validation F1 improved from {} to {} ...".format( best_f1, val_f1 ))
-                model_name_here = '/mnt/nas2/results/Results/systematicReview/distant_pico/models/' + str(eachSeed) + '_' + str(epoch_i) + '_' + str(exp_args.model) + '.pth'
+                model_name_here = base_path + '/' +str(eachSeed) + '_' + str(epoch_i) + '.pth'
                 print('Saving the best model for epoch {} with mean F1 score of {} '.format(epoch_i, val_f1 )) 
                 torch.save(defModel.state_dict(), model_name_here)
-                #saved_models.append(model_name_here)                     
-                best_meanf1 = val_f1
+                best_f1 = val_f1
