@@ -1,7 +1,8 @@
 from mlflow import log_artifacts, log_metric, log_param
 
-def logParams(args):
+def logParams(args, seed):
 
+    log_param("seed", str(seed))
     log_param("input file", args.input_file)
     log_param("embedding", args.embed)
     log_param("model name", args.model)
