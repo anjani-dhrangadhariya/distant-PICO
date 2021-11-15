@@ -92,23 +92,37 @@ def align_highconf_longtarget(target, source, PICOS):
             eachSentence_pos = value['pos']
             eachSentence_posfine = value['pos_fine']
 
-            s = difflib.SequenceMatcher(None, eachSentence, source, autojunk=True)
-            matches = fullMatchScore(s, source, target)
-            match_scores = [item[0] for item in matches ]
+            # s = difflib.SequenceMatcher(None, eachSentence, source, autojunk=True)
+            # matches = fullMatchScore(s, source, target)
+            # match_scores = [item[0] for item in matches ]
 
-            if 1.0 in match_scores:
-                for match in matches: # If one sentence has multiple matches....
-                    if match[0] == 1.0:
-                        token_i, annot_i = extractAnnotation(source, eachSentence, match, PICOS, isReGeX=False)
-                        if not annot and not token: # if the lists are empty
-                            annot.extend( annot_i )
-                            token.extend( token_i )
-                            pos.extend( eachSentence_pos )
-                            pos_fine.extend( eachSentence_posfine )
-                        else:
-                            for counter, (o_a, n_a) in enumerate(zip( annot, annot_i )):
-                                selected_annot = max( o_a, n_a )
-                                annot[counter] = selected_annot
+            # if 1.0 in match_scores:
+            #     for match in matches: # If one sentence has multiple matches....
+            #         if match[0] == 1.0:
+            #             token_i, annot_i = extractAnnotation(source, eachSentence, match, PICOS, isReGeX=False)
+            #             if not annot and not token: # extend if the lists are empty
+            #                 annot.extend( annot_i )
+            #                 token.extend( token_i )
+            #                 pos.extend( eachSentence_pos )
+            #                 pos_fine.extend( eachSentence_posfine )
+            #             else: # else if the lists are not empty, merge the annotations
+            #                 for counter, (o_a, n_a) in enumerate(zip( annot, annot_i )):
+            #                     selected_annot = max( o_a, n_a )
+            #                     annot[counter] = selected_annot
+
+            r1 = re.finditer(source, eachSentence)
+            for match in r1:
+                
+                token_i, annot_i = extractAnnotation(source, eachSentence, match, PICOS, isReGeX=True)
+                if not annot and not token: # if the lists are empty
+                    annot.extend( annot_i )
+                    token.extend( token_i )
+                    pos.extend( eachSentence_pos )
+                    pos_fine.extend( eachSentence_posfine )
+                else:
+                    for counter, (o_a, n_a) in enumerate(zip( annot, annot_i )):
+                        selected_annot = max( o_a, n_a )
+                        annot[counter] = selected_annot
 
             if annot:
                 token_annot = {'tokens':token, str(PICOS): annot }
@@ -116,6 +130,7 @@ def align_highconf_longtarget(target, source, PICOS):
 
             assert len(token) == len(annot)
 
+    print( collect_annotations )
     return collect_annotations
 
 ###############################################################################################
