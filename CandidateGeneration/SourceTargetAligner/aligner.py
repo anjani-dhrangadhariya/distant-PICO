@@ -130,7 +130,6 @@ def align_highconf_longtarget(target, source, PICOS):
 
             assert len(token) == len(annot)
 
-    print( collect_annotations )
     return collect_annotations
 
 ###############################################################################################
