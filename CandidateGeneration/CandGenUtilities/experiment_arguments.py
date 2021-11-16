@@ -21,7 +21,8 @@ def getArguments():
     # List of arguments to set up experiment
     parser = argparse.ArgumentParser()
     parser.add_argument('-path_example', type = Path, default = '/mnt/nas2/results/Results/systematicReview/distant_pico/models/bertcrf/0_3.pth')
-    parser.add_argument('-labeler', type = str, default = 'contextual') # embed_type = {contextual, semantic} 
+    parser.add_argument('-o_labeler1', type = bool, default = True)
+    parser.add_argument('-o_labeler2', type = bool, default = True) # embed_type = {contextual, semantic} 
     parser.add_argument('-int_example', type = int, default= 10)
     parser.add_argument('-float_example', type = float, default= 1e-8)
 
