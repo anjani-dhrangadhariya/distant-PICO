@@ -97,14 +97,14 @@ results_gen = helpers.scan(
 match_scores = []
 intervention_types = []
 
-res = es.search(index="ctofull2021-index", body={"query": {"match_all": {}}}, size=4)
+res = es.search(index="ctofull2021-index", body={"query": {"match_all": {}}}, size=10)
 print('Total number of records retrieved: ', res['hits']['total']['value'])
 
 # theFile ='/mnt/nas2/data/systematicReview/clinical_trials_gov/distant_pico_pre/secondary_outcomes.txt'
 # theFile ='/home/anjani/distant-PICO/CandidateGeneration/ResultInspection/label_overlap_inspection.txt'
 theFile = '/home/anjani/distant-PICO/CandidateGeneration/ResultInspection/resolve_annot_corpus.tsv'
-aggregated_file = '/mnt/nas2/data/systematicReview/clinical_trials_gov/Weak_PICO/PICOS_data_preprocessed/aggregated_1_0.txt'
-merged_file = '/mnt/nas2/data/systematicReview/clinical_trials_gov/Weak_PICO/PICOS_data_preprocessed/merged_1_0.txt'
+aggregated_file = '/mnt/nas2/data/systematicReview/clinical_trials_gov/Weak_PICO/PICOS_data_preprocessed/aggregated_1_1.txt'
+merged_file = '/mnt/nas2/data/systematicReview/clinical_trials_gov/Weak_PICO/PICOS_data_preprocessed/merged_1_1.txt'
 # with open(aggregated_file, 'a+') as awf , open(merged_file, 'a+') as mwf:
 with open(theFile, 'a+') as wf:
 
@@ -207,17 +207,28 @@ with open(theFile, 'a+') as wf:
                     if int_syn_annotations and len( getSecOrdKeys(int_syn_annotations) ) > 1:
                         annotation_collector.append( int_syn_annotations )
 
-                if 'eo_primary' in key:
+                print('------------------------------------------------------------------------------')
+                if 'eo_name' in key:
+
+                    # Labeler 1 - Direct match 
                     candidate_targets = mapping[key]
                     primout_annotations = longTailOutcomeAligner( value, expanded_targets, candidate_targets, PICOS['O'] )
+                    print( primout_annotations )
                     if primout_annotations and len( getSecOrdKeys(primout_annotations) ) > 1:
                         annotation_collector.append( primout_annotations )
 
-                if 'eo_secondary' in key:
-                    candidate_targets = mapping[key]
-                    secondout_annotations = longTailOutcomeAligner( value, expanded_targets, candidate_targets, PICOS['O'] )
-                    if secondout_annotations and len( getSecOrdKeys(secondout_annotations) ) > 1:
-                        annotation_collector.append( secondout_annotations )
+                    # Labeler 2 POS labeler
+                    primout_annotations_L2 = outcomePOSaligner( expanded_targets, candidate_targets, PICOS['O'], ['NOUN', 'PROPN', 'VERB', 'ADJ'] )
+                    print( primout_annotations_L2 )
+                print('------------------------------------------------------------------------------')
+
+                # if 'eo_secondary' in key:
+
+                #     # Labeler 1 - Direct match 
+                #     candidate_targets = mapping[key]
+                #     secondout_annotations = longTailOutcomeAligner( value, expanded_targets, candidate_targets, PICOS['O'] )
+                #     if secondout_annotations and len( getSecOrdKeys(secondout_annotations) ) > 1:
+                #         annotation_collector.append( secondout_annotations )
 
 
                 if 'es_type' in key and 'N.A.' not in value:
@@ -232,7 +243,6 @@ with open(theFile, 'a+') as wf:
 
             # Resolve the overlapping labels
             globally_merged = merge_labels(globally_aggregated)
-            print(globally_merged)
 
             # Add CTO identifiers to the annotations
             globally_merged['id'] = NCT_id
