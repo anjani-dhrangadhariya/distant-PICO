@@ -23,8 +23,8 @@ def generateMapping():
     mapping['ei_syn'] =  ['BriefTitle', 'OfficialTitle', 'BriefSummary', 'DetailedDescription', 'InterventionDescription']
 
 
-    mapping['eo_primary'] =  ['PriOutcomeDesc', 'SecOutcomeDesc', 'BriefSummary', 'DetailedDescription', 'BriefTitle', 'OfficialTitle']
-    mapping['eo_secondary'] =  ['PriOutcomeDesc', 'SecOutcomeDesc', 'BriefSummary', 'DetailedDescription', 'BriefTitle', 'OfficialTitle']
+    mapping['eo_name'] =  ['PriOutcomeDesc', 'SecOutcomeDesc', 'BriefSummary', 'DetailedDescription', 'BriefTitle', 'OfficialTitle']
+    # mapping['eo_secondary'] =  ['PriOutcomeDesc', 'SecOutcomeDesc', 'BriefSummary', 'DetailedDescription', 'BriefTitle', 'OfficialTitle']
 
 
     mapping['es_type'] =  ['InterventionDescription', 'BriefTitle', 'OfficialTitle', 'BriefSummary', 'DetailedDescription', 'DesignInterventionModelDescription']
