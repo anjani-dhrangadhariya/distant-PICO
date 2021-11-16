@@ -218,5 +218,34 @@ def longTailOutcomeAligner(source, targets, candidateTargets, PICOS):
                             # outcome_annotations[str(i)][key] = [annotations]
                         # else:
                         #     outcome_annotations[str(i)][key].append( annotations )
+    
+    return outcome_annotations
+
+
+def outcomePOSaligner(targets, candidateTargets, PICOS, allowed_pos):
+
+    outcome_annotations = dict()
+
+    for key, value in targets.items(): # each target_i
+        res = 'outcome' in key.lower()
+        if res == True:
+
+            target_i = targets[key]
+            
+            for sentence_key, sentence in target_i.items():
+                
+                annotations = [ str(PICOS) if pos in allowed_pos else 0 for pos in sentence['pos']  ] # Allowed POS tags are marked as 1
+                assert len(sentence['pos']) == len(annotations) == len(sentence['tokens'])
+
+                if annotations:
+                    token_annot = {'tokens': sentence['tokens'], str(PICOS): annotations }
+
+                    if key not in outcome_annotations:
+                        outcome_annotations[key] = {}
+
+                    outcome_annotations[key][sentence_key] = token_annot
+        else:
+            # Abstain labeling any other targets
+            continue
 
     return outcome_annotations
