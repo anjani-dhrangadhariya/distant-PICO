@@ -234,7 +234,7 @@ def outcomePOSaligner(targets, candidateTargets, PICOS, allowed_pos):
             
             for sentence_key, sentence in target_i.items():
                 
-                annotations = [ str(PICOS) if pos in allowed_pos else 0 for pos in sentence['pos']  ] # Allowed POS tags are marked as 1
+                annotations = [ str(PICOS) if pos in allowed_pos else 0 for pos in sentence['pos']  ] # Allowed POS tags are marked as 3
                 assert len(sentence['pos']) == len(annotations) == len(sentence['tokens'])
 
                 if annotations:
@@ -246,6 +246,19 @@ def outcomePOSaligner(targets, candidateTargets, PICOS, allowed_pos):
                     outcome_annotations[key][sentence_key] = token_annot
         else:
             # Abstain labeling any other targets
-            continue
+            target_i = targets[key]
+
+            for sentence_key, sentence in target_i.items():
+                
+                annotations = [-1] * len(sentence['tokens']) # Abstain from labeling other targets
+                assert len(sentence['pos']) == len(annotations) == len(sentence['tokens'])
+
+                if annotations:
+                    token_annot = {'tokens': sentence['tokens'], str(PICOS): annotations }
+
+                    if key not in outcome_annotations:
+                        outcome_annotations[key] = {}
+
+                    outcome_annotations[key][sentence_key] = token_annot
 
     return outcome_annotations
