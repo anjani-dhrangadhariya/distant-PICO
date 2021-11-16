@@ -49,6 +49,8 @@ from SourceTargetAligner.source_target_mapping import *
 from SourceTargetExpander.expand_sources import *
 from SourceTargetExpander.expand_targets import *
 from TargetFetcher.all_targetsfetcher import *
+from CandGenUtilities.experiment_arguments import *
+from CandGenUtilities.labeler_utilities import *
 
 ################################################################################
 # Set the logger here
@@ -65,17 +67,9 @@ from TargetFetcher.all_targetsfetcher import *
 # rootLogger.setLevel(logging.INFO)
 
 ################################################################################
-def getSources(annotations, lab):
-
-    sources = []
-    for k,v in annotations.items():
-
-        more_than_source = len( v )
-        for k_i, v_i in v.items():
-            if 'source' in k_i and more_than_source > 1:
-                sources.append( v_i )
-
-    return sources, [lab] * len(sources)
+# Initialize 
+################################################################################
+args = getArguments()
 
 ################################################################################
 # Instantiate ElasticSearch
@@ -116,7 +110,6 @@ with open(theFile, 'a+') as wf:
 
             fullstudy = hit['_source']['FullStudiesResponse']['FullStudies'][0]['Study']
             NCT_id = hit['_source']['FullStudiesResponse']['Expression']
-            # print('################################## ', NCT_id , ' #########################################')
             # Annotation aggregator for PICOS for the NCT_id
             global_aggregator = dict()
             p_aggregator = dict()
@@ -159,6 +152,7 @@ with open(theFile, 'a+') as wf:
 
             sources_list = []
             source_labs = []
+            o_annotation_collector = []
             annotation_collector = []
 
             for key, value in expanded_sources.items():
@@ -168,7 +162,6 @@ with open(theFile, 'a+') as wf:
                     gender_annotations = directAligner( value, expanded_targets, candidate_targets, PICOS['P'] )
                     if gender_annotations and len( getSecOrdKeys(gender_annotations) ) > 1:
                         annotation_collector.append( gender_annotations )
-                    #     print( gender_annotations )
 
 
                 if 'sample_size' in key:
@@ -182,7 +175,6 @@ with open(theFile, 'a+') as wf:
                     stdage_annotations = directAligner( value['StdAge'], expanded_targets, candidate_targets, PICOS['P'] )
                     if stdage_annotations and len( getSecOrdKeys(stdage_annotations) ) > 1:
                         annotation_collector.append( stdage_annotations )
-                    #     print( stdage_annotations )
 
                     if 'exactAge' in value:
                         exctage_annotattions = regexAligner( [value['exactAge']], expanded_targets, candidate_targets, PICOS['P'] ) # reGeX aligner expects values as lists   
@@ -210,32 +202,35 @@ with open(theFile, 'a+') as wf:
                 print('------------------------------------------------------------------------------')
                 if 'eo_name' in key:
 
-                    # Labeler 1 - Direct match 
-                    candidate_targets = mapping[key]
-                    primout_annotations = longTailOutcomeAligner( value, expanded_targets, candidate_targets, PICOS['O'] )
-                    print( primout_annotations )
-                    if primout_annotations and len( getSecOrdKeys(primout_annotations) ) > 1:
-                        annotation_collector.append( primout_annotations )
+                    print( expanded_targets )
+                    
+                    if args.o_labeler1 == True:
+                        # Labeler 1 - Direct match
+                        candidate_targets = mapping[key]
+                        out_annotations_L1 = longTailOutcomeAligner( value, expanded_targets, candidate_targets, PICOS['O'] )
+                        if out_annotations_L1 and len( getSecOrdKeys(out_annotations_L1) ) > 1:
+                            # TODO: Merge at the level of direct labeling source
+                            print( out_annotations_L1 )
+                            o_annotation_collector.append( out_annotations_L1 )
 
-                    # Labeler 2 POS labeler
-                    primout_annotations_L2 = outcomePOSaligner( expanded_targets, candidate_targets, PICOS['O'], ['NOUN', 'PROPN', 'VERB', 'ADJ'] )
-                    print( primout_annotations_L2 )
+                    if args.o_labeler2 == True:
+                        # Labeler 2 POS labeler
+                        out_annotations_L2 = outcomePOSaligner( expanded_targets, candidate_targets, PICOS['O'], allowedPOS() )
+                        if out_annotations_L2:
+                            print( out_annotations_L2 )
+                            o_annotation_collector.append( out_annotations_L2 )
+
                 print('------------------------------------------------------------------------------')
-
-                # if 'eo_secondary' in key:
-
-                #     # Labeler 1 - Direct match 
-                #     candidate_targets = mapping[key]
-                #     secondout_annotations = longTailOutcomeAligner( value, expanded_targets, candidate_targets, PICOS['O'] )
-                #     if secondout_annotations and len( getSecOrdKeys(secondout_annotations) ) > 1:
-                #         annotation_collector.append( secondout_annotations )
-
 
                 if 'es_type' in key and 'N.A.' not in value:
                     candidate_targets = mapping[key]
                     studytype_annotations = regexAligner( [value], expanded_targets, candidate_targets, PICOS['S'] )   # direct aligner expects values as lists       
                     if studytype_annotations and len( getSecOrdKeys(studytype_annotations) ) > 1:
                         annotation_collector.append( studytype_annotations )
+
+            # All the annotations for individual entities are collected here
+            if o_annotation_collector:
+                print('LabelModel here')
 
 
             # Direct global aggregation 
