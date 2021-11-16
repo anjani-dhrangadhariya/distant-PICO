@@ -58,13 +58,13 @@ def expandSources(json_object, sources):
     # -------------------------------------------------------------------------------------
     # O
     # -------------------------------------------------------------------------------------
-    if 'o_primary' in sources:
-        expanded_prim_outcomes = expandOutcomes(sources['o_primary'])
-        expanded_sources['eo_primary'] = expanded_prim_outcomes
+    if 'o_name' in sources:
+        expanded_prim_outcomes = expandOutcomes(sources['o_name'])
+        expanded_sources['eo_name'] = expanded_prim_outcomes
 
-    if 'o_secondary'in sources:
-        expanded_second_outcomes = expandOutcomes(sources['o_secondary'])
-        expanded_sources['eo_secondary'] = expanded_second_outcomes
+    # if 'o_secondary'in sources:
+    #     expanded_second_outcomes = expandOutcomes(sources['o_secondary'])
+    #     expanded_sources['eo_secondary'] = expanded_second_outcomes
 
     # -------------------------------------------------------------------------------------
     # S
