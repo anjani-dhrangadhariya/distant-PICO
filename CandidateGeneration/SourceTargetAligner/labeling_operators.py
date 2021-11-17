@@ -210,14 +210,22 @@ def longTailOutcomeAligner(source, targets, candidateTargets, PICOS):
                 if res == True:
                     target_i = targets[key]
 
-                    annotations = align_highconf_longtarget( target_i, outcome_term.lower() , PICOS)
+                    annotations = align_highconf_longtarget( target_i, outcome_term.lower() , PICOS) # Identifies direct match using ReGeX
 
                     if annotations:
+
+                        # print( annotations )
                         if key not in outcome_annotations[str(i)]:
                             outcome_annotations[str(i)][key] = annotations
                             # outcome_annotations[str(i)][key] = [annotations]
                         # else:
                         #     outcome_annotations[str(i)][key].append( annotations )
+
+                    # elif not annotations:
+                        
+                    #     # if no annotation was found for a particular target sentence
+                        
+                    #     print( key, ' : ', annotations )
     
     return outcome_annotations
 
@@ -228,6 +236,8 @@ def outcomePOSaligner(targets, candidateTargets, PICOS, allowed_pos):
 
     for key, value in targets.items(): # each target_i
         res = 'outcome' in key.lower()
+        res2 = key.startswith(tuple(candidateTargets))
+
         if res == True:
 
             target_i = targets[key]
@@ -244,21 +254,21 @@ def outcomePOSaligner(targets, candidateTargets, PICOS, allowed_pos):
                         outcome_annotations[key] = {}
 
                     outcome_annotations[key][sentence_key] = token_annot
-        # else:
-        #     # Abstain labeling any other targets
-        #     target_i = targets[key]
+        if res == False and res2 == True:
+            # Abstain labeling any other targets
+            target_i = targets[key]
 
-        #     for sentence_key, sentence in target_i.items():
+            for sentence_key, sentence in target_i.items():
                 
-        #         annotations = [-1] * len(sentence['tokens']) # Abstain from labeling other targets
-        #         assert len(sentence['pos']) == len(annotations) == len(sentence['tokens'])
+                annotations = [-1] * len(sentence['tokens']) # Abstain from labeling other targets
+                assert len(sentence['pos']) == len(annotations) == len(sentence['tokens'])
 
-        #         if annotations:
-        #             token_annot = {'tokens': sentence['tokens'], str(PICOS): annotations }
+                if annotations:
+                    token_annot = {'tokens': sentence['tokens'], str(PICOS): annotations }
 
-        #             if key not in outcome_annotations:
-        #                 outcome_annotations[key] = {}
+                    if key not in outcome_annotations:
+                        outcome_annotations[key] = {}
 
-        #             outcome_annotations[key][sentence_key] = token_annot
+                    outcome_annotations[key][sentence_key] = token_annot
 
     return outcome_annotations
