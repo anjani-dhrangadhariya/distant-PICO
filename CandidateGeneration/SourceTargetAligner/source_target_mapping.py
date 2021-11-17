@@ -40,6 +40,8 @@ def generateLabels():
     PICOS['IC'] = 2
     PICOS['O'] = 3
     PICOS['S'] = 4
+    PICOS['ABSTAIN'] = -1
+    PICOS['Ospan'] = 0
     
     return PICOS
 
