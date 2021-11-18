@@ -127,6 +127,10 @@ def align_highconf_longtarget(target, source, PICOS):
             if annot:
                 token_annot = {'tokens':token, str(PICOS): annot }
                 collect_annotations[key] = token_annot
+            else:
+                abstain_annot = [-1] * len(value['tokens']) # Create "ABSTAIN" labels for these sentences
+                token_annot = {'tokens': value['tokens'], str(PICOS): abstain_annot }
+                collect_annotations[key] = token_annot
 
             assert len(token) == len(annot)
 

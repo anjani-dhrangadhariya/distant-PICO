@@ -30,7 +30,9 @@ def expandStudyType(studytype_source):
     # nonrandomized_source = ['Non-Random', 'Nonrandom', 'Non Random', 'Non-Randomized', 'Non-Randomised', 'Nonrandomized', 'Nonrandomised', 'Non Randomized', 'Non Randomised']
     nonrandomized_source_pattern = '(([rR]andom(i[sz]ed|ly|i[sz]ation)?)+(,? controlled)?( trials?)?)' # only group 1 will be considered
 
-    if studytype_source == 'N/A':
+    print( studytype_source )
+
+    if 'Randomized' not in studytype_source:
         return 'N.A.'
     elif studytype_source == 'Randomized':
         # return re.compile(randomized_source_pattern)

@@ -29,31 +29,30 @@ def expandSources(json_object, sources):
     expanded_sources = dict()
 
     # -------------------------------------------------------------------------------------
-    # P
+    # Participant subclasses 
     # -------------------------------------------------------------------------------------
+    if 'p_sample_size' in sources:
+        expanded_sampsize = expandSampleSize([sources['p_sample_size']])  # Expanded sample size is a ReGeX
+        expanded_sources['ep_sample_size'] = expanded_sampsize
+
     if 'p_gender' in sources:
-        expanded_gender = expandGender(sources['p_gender'])
+        expanded_gender = expandGender(sources['p_gender'])   # Expanded gender is a dictionary
         expanded_sources['ep_gender'] = expanded_gender
+
     if 'p_age' in sources:
         expanded_age = expandAge(sources['p_age'])
         expanded_sources['ep_age'] = expanded_age
+
     if 'p_condition' in sources:
-        expanded_condition = expandCondition(sources['p_condition'])
+        expanded_condition = expandCondition(sources['p_condition'], fetch_pos=False, fetch_abb=True)
         expanded_sources['ep_condition'] = expanded_condition
 
-    if 'p_sample_size' in sources:
-        expanded_sources['ep_sample_size'] = sources['p_sample_size']
 
     # -------------------------------------------------------------------------------------
     # I/C
     # -------------------------------------------------------------------------------------
     expanded_intervention = expandIntervention(sources['i_name'], fetch_pos=True, fetch_abb=True)
     expanded_sources['ei_name'] = expanded_intervention
-
-    if bool(sources['i_synonym']) == True:
-        expanded_int_syn = expandIntervention(sources['i_synonym'], fetch_pos=True, fetch_abb=True)
-        expanded_sources['ei_syn'] = expanded_int_syn
-
 
     # -------------------------------------------------------------------------------------
     # O

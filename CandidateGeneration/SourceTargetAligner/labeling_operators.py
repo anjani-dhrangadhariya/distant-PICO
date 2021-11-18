@@ -207,6 +207,7 @@ def longTailOutcomeAligner(source, targets, candidateTargets, PICOS):
             for key, value in targets.items(): # each target_i
 
                 res = key.startswith(tuple(candidateTargets))
+
                 if res == True:
                     target_i = targets[key]
 
@@ -214,19 +215,29 @@ def longTailOutcomeAligner(source, targets, candidateTargets, PICOS):
 
                     if annotations:
 
-                        # print( annotations )
                         if key not in outcome_annotations[str(i)]:
                             outcome_annotations[str(i)][key] = annotations
                             # outcome_annotations[str(i)][key] = [annotations]
                         # else:
                         #     outcome_annotations[str(i)][key].append( annotations )
 
-                    # elif not annotations:
+                    elif not annotations:
                         
-                    #     # if no annotation was found for a particular target sentence
-                        
-                    #     print( key, ' : ', annotations )
-    
+                        # if no annotation was found for a particular target sentence
+                        for sentence_key, sentence in target_i.items(): # iterate through each sentence in that target
+                            
+                            annotations = [-1] * len(sentence['tokens']) # Create "ABSTAIN" labels for these sentences
+                            assert len(sentence['pos']) == len(annotations) == len(sentence['tokens'])
+
+                            if annotations:
+                                token_annot = {'tokens': sentence['tokens'], str(PICOS): annotations }
+
+                                if key not in outcome_annotations:
+                                    outcome_annotations[key] = {} # target key
+
+                                outcome_annotations[key][sentence_key] = token_annot # Add the abstain labels to the outcome annotations
+
+
     return outcome_annotations
 
 
@@ -254,7 +265,9 @@ def outcomePOSaligner(targets, candidateTargets, PICOS, allowed_pos):
                         outcome_annotations[key] = {}
 
                     outcome_annotations[key][sentence_key] = token_annot
+
         if res == False and res2 == True:
+
             # Abstain labeling any other targets
             target_i = targets[key]
 

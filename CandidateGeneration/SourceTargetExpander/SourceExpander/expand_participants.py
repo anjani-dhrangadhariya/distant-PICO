@@ -74,14 +74,13 @@ def expandAge(age_source):
     expanded_age_source['StdAge'] = expanded_stdage
 
     # Expand exact age pattern
-    if 'MinimumAge' in age_source and  'MaximumAge' in age_source:
+    if 'MinimumAge' in age_source and 'MaximumAge' in age_source:
         minage_num = age_source['MinimumAge'].split(' ')[0]
         minage_unit = age_source['MinimumAge'].split(' ')[1]
 
         maxage_num = age_source['MaximumAge'].split(' ')[0]
         maxage_unit = age_source['MaximumAge'].split(' ')[1]
 
-        # age_range_pattern =  r'(([Aa]ge[ds] )?(\d{1,2}( y?e?a?r?s?[ -]o?l?d?)?( - | to )\d{1,2})( y?e?a?r?s?[ -]o?l?d?)?)'
         age_range_pattern =  r'(([Aa]ge[ds]? )?\b([0-9]{1,2})\b(\s+years?|\s+months?)?(\s+old|-old)?\s?(-|to)\s?\b([0-9]{1,2})\b(\s+years?|\s+months?)+(\s+old|-old)?)'
         compiled_pattern = re.compile(age_range_pattern)
         expanded_age_source['exactAge'] = age_range_pattern
@@ -89,7 +88,6 @@ def expandAge(age_source):
     if 'MinimumAge' in age_source and 'MaximumAge' not in age_source:
         minage = age_source['MinimumAge']
 
-        # age_range_pattern = r'([Aa]ge[ds] )?(\≥ |\> ||\< )?\d{1,2}( years (old)?( and above)?)'
         age_range_pattern =  r'(([Aa]ge[ds]? ?)\b([0-9]{1,2})\b(\s+years?|\s+months?)?(\s+old|-old)?\s?(and above| and older)?)'
         compiled_pattern = re.compile(age_range_pattern)
         expanded_age_source['exactAge'] = age_range_pattern
@@ -98,7 +96,7 @@ def expandAge(age_source):
         # Usually this case never happens
         maxage_num = age_source['MaximumAge'].split(' ')[0]
         maxage_unit = age_source['MaximumAge'].split(' ')[1]
-        print('This is funny....')
+        print('It is funny that only maximum age is mentioned in the clinical trials....')
 
     return expanded_age_source
 
@@ -114,7 +112,7 @@ Args:
 Returns:
     dictionary: returns a dictionary of expanded condition terms along with their abbreviations
 '''
-def expandCondition(condition_source):
+def expandCondition(condition_source, fetch_pos = False, fetch_abb = True):
 
     expanded_condition_source = []
 
@@ -128,3 +126,15 @@ def expandCondition(condition_source):
             expanded_condition_source.append( cond_i )
 
     return expanded_condition_source
+
+def expandSampleSize(sampsize_source):
+
+    expanded_sampsize_source = []
+
+    for sampsize in sampsize_source:
+
+        samp_size_pattern =  r'([0-9]+ ?(patients?|subjects?|participants?|people?|individuals?|persons?|healthy individuals?)+)'
+        compiled_pattern = re.compile(samp_size_pattern)
+        expanded_sampsize_source.append(samp_size_pattern)
+
+    return expanded_sampsize_source

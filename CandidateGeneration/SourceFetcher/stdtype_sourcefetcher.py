@@ -29,7 +29,6 @@ def fetchStudyType(json_document):
 
     return studyType 
 
-
 def fetchStdTypeSources(json_document):
 
     combined_sources=dict()
