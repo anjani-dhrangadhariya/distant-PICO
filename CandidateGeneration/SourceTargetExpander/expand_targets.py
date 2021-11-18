@@ -55,7 +55,6 @@ def expandTargets(json_object, targets):
 
         sent_parsed = dict()
         for ith, eachSent in enumerate(target_sentences.sents):
-        # for ith, eachSent in enumerate( target_sentences ):
 
             possed_targets = getPOStags( str(eachSent) ) # Get POS-tags for the target sub-string
             nested_key = 'sentence_' + str(ith)
