@@ -25,20 +25,3 @@ def generateMapping():
     mapping['es_type'] =  ['EligibilityCriteria', 'BriefTitle', 'OfficialTitle', 'BriefSummary', 'DetailedDescription', 'InterventionDescription', 'PriOutcomeDesc', 'SecOutcomeDesc', 'DesignInterventionModelDescription']
 
     return mapping
-
-
-def generateLabels():
-
-    PICOS = dict()
-
-    PICOS['P'] = 1
-    PICOS['IC'] = 2
-    PICOS['O'] = 3
-    PICOS['S'] = 4
-    PICOS['ABSTAIN'] = -1
-    PICOS['Ospan'] = 0
-    
-    return PICOS
-
-def generateAntiLabels(PICOS):
-    return {v: k for k, v in PICOS.items()}
