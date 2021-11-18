@@ -46,7 +46,6 @@ def expandIntervention(intervention_source, fetch_pos = True, fetch_abb = True):
             elif '&' not in value and 'vs' not in value and ',' not in value  and ':' not in value and '/' not in value and ('(' in value or '[' in value): # abbreviations
                 abbreviations = fetchAcronyms(value)
                 if abbreviations is not None:
-                    print( abbreviations )
                     values = abbreviations
                 else:
                     values = [value]

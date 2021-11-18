@@ -27,15 +27,18 @@ def expandGender(gender_source):
     male_source = ['Male', 'Males', ' Men ', ' Man ', 'Boy', 'Boys']
     female_source = ['Female', 'Females', 'Women', 'Woman', 'Girl', 'Girls']
 
-    expanded_gender_source = []
+    expanded_gender_source = {}
 
     if gender_source == 'All':
-        expanded_gender_source.extend(female_source)
-        expanded_gender_source.extend(male_source)
+        gender_dict = []
+        gender_dict.extend(female_source)
+        gender_dict.extend(male_source)
+        expanded_gender_source['dictionary'] = gender_dict
+
     elif gender_source == 'Female':
-        expanded_gender_source.extend(female_source)
+        expanded_gender_source['dictionary'] = female_source
     elif gender_source == 'Male':
-        expanded_gender_source.extend(male_source)
+        expanded_gender_source['dictionary'] = male_source
 
     return expanded_gender_source
 
@@ -71,7 +74,7 @@ def expandAge(age_source):
             elif 'Older Adult' in eachStdAge:
                 expanded_stdage.extend( older_source )
     
-    expanded_age_source['StdAge'] = expanded_stdage
+    expanded_age_source['dictionary'] = expanded_stdage
 
     # Expand exact age pattern
     if 'MinimumAge' in age_source and 'MaximumAge' in age_source:
@@ -83,14 +86,14 @@ def expandAge(age_source):
 
         age_range_pattern =  r'(([Aa]ge[ds]? )?\b([0-9]{1,2})\b(\s+years?|\s+months?)?(\s+old|-old)?\s?(-|to)\s?\b([0-9]{1,2})\b(\s+years?|\s+months?)+(\s+old|-old)?)'
         compiled_pattern = re.compile(age_range_pattern)
-        expanded_age_source['exactAge'] = age_range_pattern
+        expanded_age_source['regex'] = age_range_pattern
 
     if 'MinimumAge' in age_source and 'MaximumAge' not in age_source:
         minage = age_source['MinimumAge']
 
         age_range_pattern =  r'(([Aa]ge[ds]? ?)\b([0-9]{1,2})\b(\s+years?|\s+months?)?(\s+old|-old)?\s?(and above| and older)?)'
         compiled_pattern = re.compile(age_range_pattern)
-        expanded_age_source['exactAge'] = age_range_pattern
+        expanded_age_source['regex'] = age_range_pattern
 
     if 'MaximumAge' not in age_source and 'MaximumAge' in age_source:
         # Usually this case never happens
@@ -114,27 +117,30 @@ Returns:
 '''
 def expandCondition(condition_source, fetch_pos = False, fetch_abb = True):
 
-    expanded_condition_source = []
+    expanded_condition_source = {}
 
     for cond_i in condition_source:
         expanded_acronyms = fetchAcronyms( cond_i )
 
         if expanded_acronyms is not None:
-            expanded_condition_source.extend( expanded_acronyms )
+            expanded_condition_source['dictionary'] = expanded_acronyms
+            expanded_condition_source['dictionary'].append(cond_i) # also extend with the original value
 
         else:
-            expanded_condition_source.append( cond_i )
+            expanded_condition_source['dictionary'] = cond_i
 
     return expanded_condition_source
 
 def expandSampleSize(sampsize_source):
 
-    expanded_sampsize_source = []
+    expanded_sampsize_source = {}
+
 
     for sampsize in sampsize_source:
 
         samp_size_pattern =  r'([0-9]+ ?(patients?|subjects?|participants?|people?|individuals?|persons?|healthy individuals?)+)'
         compiled_pattern = re.compile(samp_size_pattern)
-        expanded_sampsize_source.append(samp_size_pattern)
+        expanded_sampsize_source['regex'] = samp_size_pattern
+        expanded_sampsize_source['dictionary'] = sampsize
 
     return expanded_sampsize_source

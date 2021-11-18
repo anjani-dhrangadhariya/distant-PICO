@@ -47,26 +47,22 @@ def expandSources(json_object, sources):
         expanded_condition = expandCondition(sources['p_condition'], fetch_pos=False, fetch_abb=True)
         expanded_sources['ep_condition'] = expanded_condition
 
-
     # -------------------------------------------------------------------------------------
-    # I/C
+    # I/C Interventions Comparators 
     # -------------------------------------------------------------------------------------
     expanded_intervention = expandIntervention(sources['i_name'], fetch_pos=True, fetch_abb=True)
     expanded_sources['ei_name'] = expanded_intervention
 
     # -------------------------------------------------------------------------------------
-    # O
+    # Outcomes
     # -------------------------------------------------------------------------------------
     if 'o_name' in sources:
         expanded_prim_outcomes = expandOutcomes(sources['o_name'])
         expanded_sources['eo_name'] = expanded_prim_outcomes
-
-    # if 'o_secondary'in sources:
-    #     expanded_second_outcomes = expandOutcomes(sources['o_secondary'])
-    #     expanded_sources['eo_secondary'] = expanded_second_outcomes
+        print( expanded_prim_outcomes )
 
     # -------------------------------------------------------------------------------------
-    # S
+    # Study type
     # -------------------------------------------------------------------------------------
     if 's_type' in sources:
         expanded_studytype = expandStudyType(sources['s_type'])

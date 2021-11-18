@@ -49,6 +49,8 @@ def fetchAcronyms(value):
 
         abbreviations.append( str(abrv) )
         abbreviations.append( str(abrv._.long_form) )
+        # original = str(abrv._.long_form) + ' (' + str(abrv) + ')'
+        # abbreviations.append( original  )
 
     if abbreviations:
         return abbreviations

@@ -20,7 +20,7 @@ Returns:
 '''
 def expandStudyType(studytype_source):
 
-    expanded_studytype_source = []
+    expanded_studytype_source = {}
 
     ''' Expanded according the MeSH entry term (MeSH ID: D011897) from U.S. National Library of Medicine (NLM)'''
     # randomized_source = ['Random', 'Randomized', 'Randomised', 'Randomization', 'Randomisation', 'Randomly']
@@ -30,13 +30,15 @@ def expandStudyType(studytype_source):
     # nonrandomized_source = ['Non-Random', 'Nonrandom', 'Non Random', 'Non-Randomized', 'Non-Randomised', 'Nonrandomized', 'Nonrandomised', 'Non Randomized', 'Non Randomised']
     nonrandomized_source_pattern = '(([rR]andom(i[sz]ed|ly|i[sz]ation)?)+(,? controlled)?( trials?)?)' # only group 1 will be considered
 
-    print( studytype_source )
-
     if 'Randomized' not in studytype_source:
         return 'N.A.'
     elif studytype_source == 'Randomized':
+        expanded_studytype_source['regex'] = randomized_source_pattern
+        expanded_studytype_source['dictionary'] = ['RCT']
         # return re.compile(randomized_source_pattern)
-        return randomized_source_pattern
+        return expanded_studytype_source
     elif studytype_source == 'Non-Randomized':
         # return re.compile(nonrandomized_source_pattern)
-        return nonrandomized_source_pattern
+        expanded_studytype_source['regex'] = nonrandomized_source_pattern
+        expanded_studytype_source['dictionary'] = ['non RCTs', 'non RCT']
+        return expanded_studytype_source
