@@ -58,7 +58,7 @@ def fetchInterventionSyn(protocol_section):
                     if 'InterventionOtherNameList' in eachIntervention:
                         synonym_list = eachIntervention['InterventionOtherNameList']['InterventionOtherName']
                         for j, eachSynonym in enumerate(synonym_list):
-                            key = 'int_syn_' + str(i) + '_' + str(j)
+                            key = 'name_syn_' + str(i) + '_' + str(j)
                             interventionInfo[key] = eachSynonym
 
     return interventionInfo
