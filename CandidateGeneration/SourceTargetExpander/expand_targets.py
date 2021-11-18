@@ -42,24 +42,22 @@ def expandTargets(json_object, targets):
 
     for key, value in targets.items():
 
-        newline_removed = value.replace("\n", " ").replace("\r", " ")
-        trailingspaces_removed = removeSpaceTrailsString(newline_removed)
+        newline_removed = value.replace("\n", " ").replace("\r", " ") # replace new line and carriage return
+        trailingspaces_removed = removeSpaceTrailsString(newline_removed) # remove trailing spaces
 
         sep = 'Exclusion Criteria'
         if key == 'EligibilityCriteria':
             if sep in trailingspaces_removed:
-                trailingspaces_removed = trailingspaces_removed.split(sep, 1)[0]
+                trailingspaces_removed = trailingspaces_removed.split(sep, 1)[0] # Slice away 'Exclusion Criteria' from the 'EligibilityCriteria' target
 
         # Convert long targets to sentences
-        target_sentences = nlp(trailingspaces_removed) # using Spacy
-        # target_sentences = sent_tokenize(trailingspaces_removed) # using NLTK
+        target_sentences = nlp(trailingspaces_removed) # Tokenize longer text into sentences
+
         sent_parsed = dict()
-        
         for ith, eachSent in enumerate(target_sentences.sents):
         # for ith, eachSent in enumerate( target_sentences ):
 
-            # Get POS-tags for the target sub-string
-            possed_targets = getPOStags( str(eachSent) )
+            possed_targets = getPOStags( str(eachSent) ) # Get POS-tags for the target sub-string
             nested_key = 'sentence_' + str(ith)
             sent_parsed[nested_key] = possed_targets
 
