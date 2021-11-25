@@ -28,46 +28,18 @@ def expandSources_i(json_object, sources):
 
     organized_sources = dict()
 
+    if 'MaximumAge' in sources['p_age']:
+        # del my_dict['key']
+        del sources['p_age']['MaximumAge']
 
-    # -------------------------------------------------------------------------------------
-    # Participant subclasses 
-    # -------------------------------------------------------------------------------------
-    if 'p_sample_size' in sources:
-        organized_sources['p_sample_size'] = sources['p_sample_size']
+    if 'MimimumAge' in sources['p_age']:
+        # del my_dict['key']
+        del sources['p_age']['MimimumAge']
 
-    if 'p_gender' in sources and 'All' not in sources['p_gender']:
-        organized_sources['p_gender'] = [sources['p_gender']]
+    if 'StdAge' in sources['p_age']:
+        sources['p_age'] = sources['p_age']['StdAge']
 
-    elif 'p_gender' in sources and 'All' in sources['p_gender']:
-        organized_sources['p_gender'] = ['Male', 'Female']
-
-    if 'p_age' in sources and 'StdAge' in sources['p_age']:
-        organized_sources['p_age'] = sources['p_age']['StdAge']
-
-    if 'p_condition' in sources:
-        organized_sources['p_condition'] = sources['p_condition']
-
-    # -------------------------------------------------------------------------------------
-    # I/C Interventions Comparators 
-    # -------------------------------------------------------------------------------------
-    if 'i_name' in sources:
-        int_list = [ v for k,v in sources['i_name'].items() if k.startswith('name_') ]
-        organized_sources['i_name'] = int_list
-
-    # -------------------------------------------------------------------------------------
-    # Outcomes
-    # -------------------------------------------------------------------------------------
-    if 'o_name' in sources:
-        out_list = [ v for k,v in sources['o_name'].items() ]
-        organized_sources['o_name'] = out_list
-    
-    # -------------------------------------------------------------------------------------
-    # Study type
-    # -------------------------------------------------------------------------------------
-    if 's_type' in sources and 'N/A' not in sources['s_type']:
-        organized_sources['s_type'] = sources['s_type']
-
-    return organized_sources
+    return sources
 
 def expandSources_ii(json_object, sources):
 
