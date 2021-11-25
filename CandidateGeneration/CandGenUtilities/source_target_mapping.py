@@ -17,11 +17,8 @@ def generateMapping():
     mapping['ep_age'] =  ['EligibilityCriteria', 'BriefTitle', 'OfficialTitle', 'BriefSummary', 'DetailedDescription', 'InterventionDescription', 'PriOutcomeDesc', 'SecOutcomeDesc']
     mapping['ep_gender'] =  ['EligibilityCriteria', 'BriefTitle', 'OfficialTitle', 'BriefSummary', 'DetailedDescription', 'InterventionDescription', 'PriOutcomeDesc', 'SecOutcomeDesc']
     mapping['ep_sample_size'] =  ['EligibilityCriteria', 'BriefTitle', 'OfficialTitle', 'BriefSummary', 'DetailedDescription', 'InterventionDescription', 'PriOutcomeDesc', 'SecOutcomeDesc']
-
     mapping['ei_name'] =  ['EligibilityCriteria', 'BriefTitle', 'OfficialTitle', 'BriefSummary', 'DetailedDescription', 'InterventionDescription', 'PriOutcomeDesc', 'SecOutcomeDesc']
-
     mapping['eo_name'] =  ['EligibilityCriteria', 'BriefTitle', 'OfficialTitle', 'BriefSummary', 'DetailedDescription', 'InterventionDescription', 'PriOutcomeDesc', 'SecOutcomeDesc']
-
     mapping['es_type'] =  ['EligibilityCriteria', 'BriefTitle', 'OfficialTitle', 'BriefSummary', 'DetailedDescription', 'InterventionDescription', 'PriOutcomeDesc', 'SecOutcomeDesc', 'DesignInterventionModelDescription']
 
     return mapping

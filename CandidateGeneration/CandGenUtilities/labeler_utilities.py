@@ -16,3 +16,18 @@ def generateLabels():
 
 def generateAntiLabels(PICOS):
     return {v: k for k, v in PICOS.items()}
+
+
+def abstainOption():
+
+    abstain = dict()
+
+    abstain['p_condition'] = True
+    abstain['p_age'] = False
+    abstain['p_gender'] = False
+    abstain['p_sample_size'] = False
+    abstain['i_name'] = True
+    abstain['o_name'] = True
+    abstain['s_type'] = False
+
+    return abstain
