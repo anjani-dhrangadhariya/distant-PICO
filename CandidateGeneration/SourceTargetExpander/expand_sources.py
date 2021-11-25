@@ -29,7 +29,6 @@ def expandSources_i(json_object, sources):
     organized_sources = dict()
 
     if 'MaximumAge' in sources['p_age']:
-        # del my_dict['key']
         del sources['p_age']['MaximumAge']
 
     if 'MimimumAge' in sources['p_age']:
