@@ -13,6 +13,7 @@ from elasticsearch import Elasticsearch, helpers
 from elasticsearch_dsl import Search,  Q
 
 import difflib, re
+import spacy
 import nltk
 from nltk.tokenize import WhitespaceTokenizer, sent_tokenize, word_tokenize
 
@@ -27,6 +28,9 @@ import matplotlib.pyplot as plt
 from pylab import *
 
 from SourceTargetAligner.scoring import *
+from CandGenUtilities.labeler_utilities import *
+
+nlp = spacy.load("en_core_sci_sm")
 
 ####################################################################
 # Function to extract the aligned candidate annotations
@@ -42,8 +46,8 @@ def extractAnnotation(source, target, match, PICOS, isReGeX):
         annotation_start_position = match.start()
         annotation_stop_position = match.end()
     else:
-        annotation_start_position = match[1][0]
-        annotation_stop_position = match[1][0] + match[1][2] # start + stop position
+        annotation_start_position = match[0]
+        annotation_stop_position = match[1]
 
     annotation = [0] * len(target)
     for n, i in enumerate(annotation):
@@ -51,7 +55,6 @@ def extractAnnotation(source, target, match, PICOS, isReGeX):
             annotation[n] = PICOS
 
     for span in span_generator:
-        
         # span for each token is generated here
         token_ = target[span[0]:span[1]]
         
@@ -63,10 +66,81 @@ def extractAnnotation(source, target, match, PICOS, isReGeX):
         token.append(token_)
         annot.append(max_element[0][0])
 
-    # Check if the number of annotations match number of tokens present in the sentence
     assert len(token) == len(annot)
        
     return token, annot
+
+###############################################################################################
+# Label function for direct alignment
+###############################################################################################
+def direct_abstain(target_sentence, source, pos, PICOS):
+
+    temp_annot = []
+
+    source = source.split(' ')
+    for s_i, p_i in zip(source, pos):
+
+        if re.search( s_i, target_sentence ) and p_i in ['NOUN', 'PROPN', 'ADJ'] and s_i not in punct():
+
+            matches = re.finditer(s_i, target_sentence)
+
+            for m in matches:
+                token_i, annot_i = extractAnnotation(s_i, target_sentence, m, PICOS, isReGeX=True)
+                if len(temp_annot) == 0:
+                    temp_annot = annot_i
+                else:
+                    for counter, (o_a, n_a) in enumerate(zip( temp_annot, annot_i )):
+                        selected_annot = min( int(o_a), int(n_a) )
+                        temp_annot[counter] = selected_annot
+
+    return temp_annot
+
+def direct_alignment(target, source, PICOS, to_abstain):
+
+    if target is not None :
+     
+        # Initialize annotations
+        token = target['tokens']
+        annot = [0] * len( target['tokens'] )
+
+        source_text = source['text'].replace('(', '\(').replace(')', '\)').lower()
+        source_pos = source['pos']
+
+        target_sentence = target['text'].lower()
+        target_sentence_tokens = target['tokens']
+        target_sentence_pos = target['pos']
+        target_sentence_posfine = target['pos_fine']
+
+        if re.search( source_text, target_sentence ): # The source is in the target
+
+            matches = re.finditer(source_text, target_sentence)
+
+            for m in matches:
+                token_i, annot_i = extractAnnotation(source_text, target_sentence, m, PICOS, isReGeX=True)
+
+                for counter, (o_a, n_a) in enumerate(zip( annot, annot_i )):
+                    selected_annot = max( int(o_a), int(n_a) )
+                    annot[counter] = selected_annot
+
+            if to_abstain == True and len(source_text.split(' ')) > 1:
+                annot_j = direct_abstain(target_sentence, source_text, source_pos, PICOS = -1)
+                
+                for counter, (o_a, n_a) in enumerate(zip( annot, annot_j )):
+                    if n_a == -1 and o_a == 0:
+                        annot[counter] = n_a
+
+        else: # The source is not in the target
+            
+            if to_abstain == True and len(source_text.split(' ')) > 1:
+                annot_j = direct_abstain(target_sentence, source_text, source_pos, PICOS = -1)
+
+                for counter, (o_a, n_a) in enumerate(zip( annot, annot_j )):
+                    if n_a == -1 and o_a == 0:
+                        annot[counter] = n_a
+
+    assert len(token) == len(annot)
+    return token, annot
+
 
 ###############################################################################################
 # Function to align source terms with high confidence long targets
