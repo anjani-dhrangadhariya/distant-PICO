@@ -138,6 +138,7 @@ def direct_alignment(target, source, PICOS, to_abstain):
                     if n_a == -1 and o_a == 0:
                         annot[counter] = n_a
 
+
     assert len(token) == len(annot)
     return token, annot
 
