@@ -31,3 +31,7 @@ def abstainOption():
     abstain['s_type'] = False
 
     return abstain
+
+
+def punct():
+    return ['-', '/', '\\']
