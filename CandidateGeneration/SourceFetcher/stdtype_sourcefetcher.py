@@ -6,6 +6,7 @@ def StdtypeSourceFetcherDoc(a):
 
 print( StdtypeSourceFetcherDoc.__doc__ )
 
+from SourceTargetExpander.SourceExpander.expansion_utils import *
 
 '''
 Description:
@@ -20,12 +21,16 @@ Returns:
 '''
 def fetchStudyType(json_document):
 
-    studyType = 'N/A'
+    studyType = dict()
 
     if 'DesignModule' in json_document:
             if 'DesignInfo' in json_document['DesignModule']:
                 if 'DesignAllocation' in json_document['DesignModule']['DesignInfo']:
-                    studyType = json_document['DesignModule']['DesignInfo']['DesignAllocation']
+                    study_Type = json_document['DesignModule']['DesignInfo']['DesignAllocation']
+
+                    for i, st in enumerate([study_Type]):
+                        possed_source = getPOStags( str(st) )
+                        studyType['name_'+str(i)] = possed_source
 
     return studyType 
 
@@ -34,6 +39,7 @@ def fetchStdTypeSources(json_document):
     combined_sources=dict()
 
     studyType = fetchStudyType(json_document)
-    combined_sources['s_type'] = studyType
+    if studyType:
+        combined_sources['s_type'] = studyType
 
     return combined_sources

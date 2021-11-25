@@ -6,6 +6,7 @@ def PartiSourceFetcherDoc(a):
 
 print( PartiSourceFetcherDoc.__doc__ )
 
+from SourceTargetExpander.SourceExpander.expansion_utils import *
 
 '''
 Description:
@@ -19,13 +20,17 @@ Returns:
 '''
 def fetchParticipantCondition(json_document):
 
-    conditionList = []
+    conditionInfo = {}
 
     if 'ConditionsModule' in json_document:
         if 'ConditionList' in json_document['ConditionsModule']:
             conditionList = json_document['ConditionsModule']['ConditionList']['Condition']
 
-    return conditionList
+            for i, eachCondition in enumerate(conditionList):
+                    possed_source = getPOStags( str(eachCondition) )
+                    conditionInfo['name_' +str(i)] = possed_source
+
+    return conditionInfo
 
 '''
 Description:
@@ -39,13 +44,20 @@ Returns:
 '''
 def fetchParticipantGender(json_document):
 
-    gender = None
+    genderInfo = {}
 
     if 'EligibilityModule' in json_document:
         if 'Gender' in json_document['EligibilityModule']:
             gender = json_document['EligibilityModule']['Gender']
 
-    return gender
+            if gender == 'All':
+                gender = ['Male', 'Female']
+
+            for i, gen in enumerate(list(gender)):
+                possed_source = getPOStags( str(gen) )
+                genderInfo['name_'+str(i)] = possed_source
+
+    return genderInfo
 
 '''
 Description:
@@ -63,8 +75,16 @@ def fetchParticipantAge(json_document):
     stdAge = dict()
 
     if 'EligibilityModule' in json_document:
-        if 'StdAgeList' in json_document['EligibilityModule']:
-            stdAge = json_document['EligibilityModule']['StdAgeList']
+        if 'StdAgeList' in json_document['EligibilityModule'] and 'StdAge' in json_document['EligibilityModule']['StdAgeList']:
+            standard_age = json_document['EligibilityModule']['StdAgeList']['StdAge'] # stdAge['StdAge'] 
+            if standard_age:
+                stdAge['StdAge'] = {}
+
+            for i, a in enumerate(standard_age):
+                possed_source = getPOStags( str(a) )
+                stdAge['StdAge']['name_'+str(i)] = possed_source
+
+
         if 'MinimumAge' in json_document['EligibilityModule']:
             minAge = json_document['EligibilityModule']['MinimumAge']
             stdAge['MinimumAge'] = minAge
@@ -87,11 +107,15 @@ Returns:
 '''
 def fetchParticipantSampSize(json_document):
 
-    sampleSize = None
+    sampleSize = dict()
 
     if 'DesignModule' in json_document:
             if 'EnrollmentInfo' in json_document['DesignModule']:
-                sampleSize = json_document['DesignModule']['EnrollmentInfo']['EnrollmentCount']
+                sampSize = json_document['DesignModule']['EnrollmentInfo']['EnrollmentCount']
+                
+                for i, ss in enumerate([sampSize]):
+                    possed_source = getPOStags( str(ss) )
+                    sampleSize['name_'+str(i)] = possed_source
 
     return sampleSize 
 

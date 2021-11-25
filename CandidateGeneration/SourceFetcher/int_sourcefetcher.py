@@ -6,6 +6,8 @@ def IntSourceFetcherDoc(a):
 
 print( IntSourceFetcherDoc.__doc__ )
 
+from SourceTargetExpander.SourceExpander.expansion_utils import *
+
 '''
 Description:
     Extracts the dictionary of intervention information of the clinical trial from the NCT record
@@ -28,10 +30,11 @@ def fetchIntervention(protocol_section):
 
                 for i, eachIntervention in enumerate(intervention):
                     if 'InterventionName' in eachIntervention:
-                        interventionInfo['name_' +str(i)] = eachIntervention['InterventionName']
+                        possed_source = getPOStags( str(eachIntervention['InterventionName']) )
+                        interventionInfo['name_' +str(i)] = possed_source
 
-                    if 'InterventionArmGroupLabelList' in eachIntervention:
-                        interventionInfo['arm_name_' + str(i)] = eachIntervention['InterventionArmGroupLabelList']
+                    # if 'InterventionArmGroupLabelList' in eachIntervention:
+                    #     interventionInfo['arm_name_' + str(i)] = eachIntervention['InterventionArmGroupLabelList']
 
     return interventionInfo
 
@@ -59,7 +62,8 @@ def fetchInterventionSyn(protocol_section):
                         synonym_list = eachIntervention['InterventionOtherNameList']['InterventionOtherName']
                         for j, eachSynonym in enumerate(synonym_list):
                             key = 'name_syn_' + str(i) + '_' + str(j)
-                            interventionInfo[key] = eachSynonym
+                            possed_source = getPOStags( str(eachSynonym) )
+                            interventionInfo[key] = possed_source
 
     return interventionInfo
 
@@ -82,10 +86,8 @@ def fetchIntcompSources(json_document):
     i_name = fetchIntervention(json_document)
     i_syn = fetchInterventionSyn(json_document)
 
-    # combined_sources['i_name'] = {**i_name, **i_syn}
-    # combined_sources['i_name'] = i_name
-    # combined_sources['i_synonym'] = i_syn
 
-    combined_sources['i_name'] = {**i_name, **i_syn}
+    if {**i_name, **i_syn}:
+        combined_sources['i_name'] = {**i_name, **i_syn}
 
     return combined_sources

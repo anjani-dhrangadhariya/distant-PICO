@@ -6,6 +6,8 @@ def OutSourceFetcherDoc(a):
 
 print( OutSourceFetcherDoc.__doc__ )
 
+from SourceTargetExpander.SourceExpander.expansion_utils import *
+
 '''
 Description:
     Extracts the list of strings containing primary outcomes information in the clinical trial from the NCT record
@@ -27,7 +29,8 @@ def fetchPrimaryOutcome(json_document):
                 for i, eachOutcome in enumerate(primOutcome):
                     if 'PrimaryOutcomeMeasure' in eachOutcome:
                         primOutcome = eachOutcome['PrimaryOutcomeMeasure']
-                        outcomes_list['PrimaryOutcome_' + str(i)] = primOutcome
+                        possed_source = getPOStags( str(primOutcome) )
+                        outcomes_list['PrimaryOutcome_' + str(i)] = possed_source
 
     return outcomes_list
 
@@ -52,7 +55,8 @@ def fetchSecondaryOutcome(json_document):
                 for i, eachOutcome in enumerate(secondOutcome) :
                     if 'SecondaryOutcomeMeasure' in eachOutcome:
                         secondOutcome = eachOutcome['SecondaryOutcomeMeasure']
-                        outcomes_list['SecondaryOutcome_'+str(i)] = secondOutcome
+                        possed_source = getPOStags( str(secondOutcome) )
+                        outcomes_list['SecondaryOutcome_'+str(i)] = possed_source
 
     return outcomes_list 
 
