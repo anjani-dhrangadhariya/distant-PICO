@@ -65,10 +65,15 @@ import mlflow
 
 from Utilities.mlflow_logging import *
 
+def printMetrics(cr, args):
 
-def printMetrics(cr):
-    
-    return cr['macro avg']['f1-score'], cr['1']['f1-score'], cr['2']['f1-score'], cr['3']['f1-score'], cr['4']['f1-score']
+    if args.num_labels == 5:   
+        return cr['macro avg']['f1-score'], cr['1']['f1-score'], cr['2']['f1-score'], cr['3']['f1-score'], cr['4']['f1-score']
+    elif args.num_labels == 4:   
+        return cr['macro avg']['f1-score'], cr['1']['f1-score'], cr['2']['f1-score'], cr['3']['f1-score']
+    elif args.num_labels == 2:
+        return cr['macro avg']['f1-score'], cr['1']['f1-score']
+
 
 def flattenIt(x):
 
@@ -123,7 +128,7 @@ def evaluate(defModel, optimizer, scheduler, development_dataloader, exp_args, e
                 masked_preds = torch.masked_select( e_logits[i, ].to(f'cuda:0'), e_mask[i, ] )
                 masked_labs = torch.masked_select( e_labels[i, ].to(f'cuda:0'), e_mask[i, ] )
 
-                temp_cr = classification_report(y_pred= masked_preds.cpu(), y_true=masked_labs.cpu(), labels=list(range(5)), output_dict=True) 
+                temp_cr = classification_report(y_pred= masked_preds.cpu(), y_true=masked_labs.cpu(), labels=list(range(exp_args.num_labels)), output_dict=True) 
                 class_rep_temp.append(temp_cr['macro avg']['f1-score'])
 
                 all_masks.extend( e_mask[i, ] )
@@ -155,7 +160,7 @@ def evaluate(defModel, optimizer, scheduler, development_dataloader, exp_args, e
         # all_tokens_flat = np.asarray(selected_tokens_coarse.cpu(), dtype=np.int64).flatten()
 
         # Final classification report and confusion matrix for each epoch
-        val_cr = classification_report(y_pred= all_pred_flat, y_true=all_GT_flat, labels=list(range(5)), output_dict=True)
+        val_cr = classification_report(y_pred= all_pred_flat, y_true=all_GT_flat, labels=list(range(exp_args.num_labels)), output_dict=True)
 
         # confusion_matrix and plot
         labels = [0, 1, 2, 3, 4]
@@ -165,7 +170,9 @@ def evaluate(defModel, optimizer, scheduler, development_dataloader, exp_args, e
 
                                 
 # Train
-def train(defModel, optimizer, scheduler, train_dataloader, development_dataloader, exp_args, eachSeed):
+def train(defModel, optimizer, scheduler, train_dataloader, development_dataloader, exp_args, run, eachSeed):
+
+    saved_models = []
 
     with torch.enable_grad():
         best_f1 = 0.0
@@ -174,9 +181,9 @@ def train(defModel, optimizer, scheduler, train_dataloader, development_dataload
             # Accumulate loss over an epoch
             total_train_loss = 0
 
-            # (coarse-grained) accumulate predictions and labels over the epoch
-            train_epoch_logits_coarse_i = []
-            train_epochs_labels_coarse_i = []
+            # accumulate predictions and labels over the epoch
+            train_epoch_logits_coarse_i = np.empty(1, dtype=np.int64)
+            train_epochs_labels_coarse_i = np.empty(1, dtype=np.int64)
 
             # Training for all the batches in this epoch
             for step, batch in enumerate(train_dataloader):
@@ -209,38 +216,54 @@ def train(defModel, optimizer, scheduler, train_dataloader, development_dataload
                     selected_preds_coarse = torch.masked_select( b_output[i, ].to(f'cuda:{defModel.device_ids[0]}'), b_mask[i, ])
                     selected_labs_coarse = torch.masked_select(b_labels[i, ].to(f'cuda:{defModel.device_ids[0]}'), b_mask[i, ])
 
-                    train_epoch_logits_coarse_i.extend( selected_preds_coarse.to("cpu").numpy() )
-                    train_epochs_labels_coarse_i.extend( selected_labs_coarse.to("cpu").numpy() )
-
+                    train_epoch_logits_coarse_i = np.append(train_epoch_logits_coarse_i, selected_preds_coarse.to("cpu").numpy(), 0)
+                    train_epochs_labels_coarse_i = np.append(train_epochs_labels_coarse_i, selected_labs_coarse.to("cpu").numpy(), 0)
 
                 if step % exp_args.print_every == 0:
+                    cr = sklearn.metrics.classification_report(y_pred= train_epoch_logits_coarse_i, y_true= train_epochs_labels_coarse_i, labels= list(range(exp_args.num_labels)), output_dict=True)
+                    if exp_args.num_labels == 5:  
+                        f1, f1_1 , f1_2, f1_3, f1_4 = printMetrics(cr, exp_args)
+                        print('Training: Epoch {} with macro average F1: {}, F1 score (P): {}, F1 score (IC): {}, F1 score (O): {}, F1 score (S): {}'.format(epoch_i, f1, f1_1 , f1_2, f1_3, f1_4))
+                    elif exp_args.num_labels == 4:  
+                        f1, f1_1 , f1_2, f1_3 = printMetrics(cr, exp_args)
+                        print('Training: Epoch {} with macro average F1: {}, F1 score (P): {}, F1 score (IC): {}, F1 score (O): {}'.format(epoch_i, f1, f1_1 , f1_2, f1_3))
+                    elif exp_args.num_labels == 2:
+                        f1, f1_1 = printMetrics(cr, exp_args)
+                        print('Training: Epoch {} with macro average F1: {}, F1 score (entity): {}'.format(epoch_i, f1, f1_1))
 
-                    cr = sklearn.metrics.classification_report(y_pred= train_epoch_logits_coarse_i, y_true= train_epochs_labels_coarse_i, labels= list(range(5)), output_dict=True)
-                    f1, f1_1 , f1_2, f1_3, f1_4 = printMetrics(cr)
-                    logMetrics("f1", f1, epoch_i)
-                    logMetrics("f1 P", f1_1, epoch_i); logMetrics("f1 IC", f1_2, epoch_i); logMetrics("f1 O", f1_3, epoch_i); logMetrics("f1 S", f1_4, epoch_i)
-                    logMetrics("training loss", total_train_loss.cpu().item(), epoch_i)
-                    print('Training: Epoch {} with macro average F1: {}, F1 score (P): {}, F1 score (IC): {}, F1 score (O): {}, F1 score (S): {}'.format(epoch_i, f1, f1_1 , f1_2, f1_3, f1_4))
 
-
-            # Calculate the average loss over all of the batches.
+            ## Calculate the average loss over all of the batches.
             avg_train_loss = total_train_loss / len(train_dataloader)
 
-            train_cr = classification_report(y_pred= train_epoch_logits_coarse_i, y_true=train_epochs_labels_coarse_i, labels= list(range(5)), output_dict=True)             
+            train_cr = classification_report(y_pred= train_epoch_logits_coarse_i, y_true=train_epochs_labels_coarse_i, labels= list(range(exp_args.num_labels)), output_dict=True)             
 
             # Delete the collected logits and labels
             del train_epoch_logits_coarse_i, train_epochs_labels_coarse_i
             gc.collect()
 
             val_cr, all_pred_flat_coarse, all_GT_flat_coarse, cm, all_tokens_flat, class_rep_temp  = evaluate(defModel, optimizer, scheduler, development_dataloader, exp_args, epoch_i)
-            val_f1, val_f1_1 , val_f1_2, val_f1_3, val_f1_4 = printMetrics(val_cr)
-            logMetrics("val f1", val_f1, epoch_i)
-            logMetrics("val f1 P", val_f1_1, epoch_i); logMetrics("val f1 IC", val_f1_2, epoch_i); logMetrics("val f1 O", val_f1_3, epoch_i); logMetrics("val f1 S", val_f1_4, epoch_i)
-            print('Validation: Epoch {} with macro average F1: {}, F1 score (P): {}, F1 score (IC): {}, F1 score (O): {}, F1 score (S): {}'.format(epoch_i, val_f1, val_f1_2 , val_f1_2, val_f1_3, val_f1_4))
+            if exp_args.num_labels == 5:  
+                val_f1, val_f1_1 , val_f1_2, val_f1_3, val_f1_4 = printMetrics(val_cr, exp_args)
+                logMetrics("val f1", val_f1, epoch_i)
+                logMetrics("val f1 P", val_f1_1, epoch_i); logMetrics("val f1 IC", val_f1_2, epoch_i); logMetrics("val f1 O", val_f1_3, epoch_i); logMetrics("val f1 S", val_f1_4, epoch_i)
+                print('Validation: Epoch {} with macro average F1: {}, F1 score (P): {}, F1 score (IC): {}, F1 score (O): {}, F1 score (S): {}'.format(epoch_i, val_f1, val_f1_2 , val_f1_2, val_f1_3, val_f1_4))
 
+            elif exp_args.num_labels == 4:  
+                val_f1, val_f1_1 , val_f1_2, val_f1_3 = printMetrics(val_cr, exp_args)
+                logMetrics("val f1", val_f1, epoch_i)
+                logMetrics("val f1 P", val_f1_1, epoch_i); logMetrics("val f1 IC", val_f1_2, epoch_i); logMetrics("val f1 O", val_f1_3, epoch_i)
+                print('Validation: Epoch {} with macro average F1: {}, F1 score (P): {}, F1 score (IC): {}, F1 score (O): {}'.format(epoch_i, val_f1, val_f1_2 , val_f1_2, val_f1_3))
+            elif exp_args.num_labels == 2:
+                val_f1, val_f1_1 = printMetrics(val_cr, exp_args)
+                logMetrics("val f1", val_f1, epoch_i)
+                string2print = "val f1" + str(exp_args.entity)
+                logMetrics(string2print, val_f1_1, epoch_i)
+                print('Validation: Epoch {} with macro average F1: {}, F1 score (entity): {}'.format(epoch_i, val_f1, val_f1_1))
+
+            # Process of saving the model
             if val_f1 > best_f1:
 
-                base_path = "/mnt/nas2/results/Results/systematicReview/distant_pico/models/" + str(exp_args.model)
+                base_path = "/mnt/nas2/results/Results/systematicReview/distant_pico/FS/" + str(exp_args.entity) + "/" + str(exp_args.model)
                 if not os.path.exists( base_path ):
                     oldmask = os.umask(000)
                     os.makedirs(base_path)
@@ -251,3 +274,6 @@ def train(defModel, optimizer, scheduler, train_dataloader, development_dataload
                 print('Saving the best model for epoch {} with mean F1 score of {} '.format(epoch_i, val_f1 )) 
                 torch.save(defModel.state_dict(), model_name_here)
                 best_f1 = val_f1
+                saved_models.append(model_name_here)
+
+    return saved_models

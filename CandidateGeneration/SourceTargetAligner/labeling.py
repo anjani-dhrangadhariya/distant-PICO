@@ -15,8 +15,8 @@ def scheme_i( sources, expanded_targets, PICOS , toAbstain):
 
             for target_key, target_value in expanded_targets.items(): # now each value could be aligned on each target
 
-        # #         if target_key not in annotations:
-        # #             annotations[target_key] = {}
+                if target_key not in annotations:
+                    annotations[target_key] = {}
 
                     for sentence_key, sentence_value in target_value.items():
 

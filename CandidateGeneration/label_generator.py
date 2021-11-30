@@ -35,22 +35,25 @@ matplotlib.use('agg')
 import matplotlib.pyplot as plt
 from pylab import *
 
+from snorkel.labeling.model import LabelModel
+
+# Import DISANT-PICO modules
 from AnnotationAggregation.label_aggregator import *
 from AnnotationAggregation.label_resolver import *
+from AnnotationAggregation.sourcelevel_merging import *
+from CandGenUtilities.experiment_arguments import *
+from CandGenUtilities.labeler_utilities import *
+from CandGenUtilities.source_target_mapping import *
 from sanity_checks import *
 from SourceFetcher.int_sourcefetcher import *
 from SourceFetcher.outcome_sourcefetcher import *
-
-# Import DISANT-PICO modules
 from SourceFetcher.parti_sourcefetcher import *
 from SourceFetcher.stdtype_sourcefetcher import *
 from SourceTargetAligner.labeling_operators import *
-from SourceTargetAligner.source_target_mapping import *
 from SourceTargetExpander.expand_sources import *
 from SourceTargetExpander.expand_targets import *
 from TargetFetcher.all_targetsfetcher import *
-from CandGenUtilities.experiment_arguments import *
-from CandGenUtilities.labeler_utilities import *
+from SourceTargetAligner.labeling import *
 
 ################################################################################
 # Set the logger here
@@ -69,7 +72,19 @@ from CandGenUtilities.labeler_utilities import *
 ################################################################################
 # Initialize 
 ################################################################################
+# Get the experiment arguments
 args = getArguments()
+
+# Initialize LabelModel with correct cardinality
+label_model = LabelModel(cardinality=4, verbose=True)
+
+# Get the mappings between sources and their relevant targets
+mapping = generateMapping()
+
+# Get the mappings between PICOS entity and their labels and vice versa
+PICOS = generateLabels()
+PICOS_reverse = generateAntiLabels(PICOS)
+abstain_options = abstainOption()
 
 ################################################################################
 # Instantiate ElasticSearch
@@ -91,7 +106,7 @@ results_gen = helpers.scan(
 match_scores = []
 intervention_types = []
 
-res = es.search(index="ctofull2021-index", body={"query": {"match_all": {}}}, size=10)
+res = es.search(index="ctofull2021-index", body={"query": {"match_all": {}}}, size=5)
 print('Total number of records retrieved: ', res['hits']['total']['value'])
 
 # theFile ='/mnt/nas2/data/systematicReview/clinical_trials_gov/distant_pico_pre/secondary_outcomes.txt'
@@ -102,9 +117,16 @@ merged_file = '/mnt/nas2/data/systematicReview/clinical_trials_gov/Weak_PICO/PIC
 # with open(aggregated_file, 'a+') as awf , open(merged_file, 'a+') as mwf:
 with open(theFile, 'a+') as wf:
 
+    all_tokens = []
+    all_l1l2 = []
+
     # Iterate through all of the fetched CTO index documents
     for n, hit in enumerate( res['hits']['hits'] ): # Only a part search results from the CTO
     # for hit in results_gen: # Entire CTO
+
+        hit_tokens = []
+        hit_l1l2_labels = []
+        sentence_mapper = []
 
         try:
 
@@ -128,33 +150,33 @@ with open(theFile, 'a+') as wf:
 
             sources = {**participants, **intervention_comparator, **outcomes, **study_type}
 
+            # Scenario I.Weak labeling: Distant Supervision
+            expanded_sources_i = expandSources_i(protocol_section, sources)
+
+            # Scenario II. Weak labeling: Distant Supervision + Task-specific rules
+            # expanded_sources_ii = expandSources_ii(protocol_section, sources) 
+
             # Retrieve the targets of PICOS annotation
             targets = fetchTargets(protocol_section)
-
-            # Expand the sources of PICOS annotation
-            expanded_sources = expandSources(protocol_section, sources)
 
             # Expand the targets of PICOS annotation
             expanded_targets = expandTargets(protocol_section, targets)
 
-            # Get the mappings between sources and their relevant targets
-            mapping = generateMapping()
-
-            # Get the mappings between PICOS entity and their labels and vice versa
-            PICOS = generateLabels()
-            PICOS_reverse = generateAntiLabels(PICOS)
-
             #################################################################
             # Direct matching begins
-            # P = 1, I/C = 2, O = 3, S = 4
-            # expanded_sources: All the sources from a NCTID; expanded_targets: All the targets from a NCTID
+            # P = 1, I/C = 2, O = 3, S = 4, ABSTAIN = -1, Ospan = 0
+            # expanded_sources: All the sources from entire CTO NCTIDs; expanded_targets: All the targets from entire CTO NCTIDs
             #################################################################  
-
-            sources_list = []
-            source_labs = []
             o_annotation_collector = []
             annotation_collector = []
 
+            # Scenario I.Weak labeling: Distant Supervision
+            scenario_1_annotations = scheme_i( expanded_sources_i, expanded_targets, PICOS, abstain_options )
+
+            # Scenario II. Weak labeling: Distant Supervision + Task-specific rules
+            # scenario_2_annotations = scheme_ii( sources, expanded_targets, PICOS )
+
+            '''
             for key, value in expanded_sources.items():
 
                 if 'gender' in key:
@@ -199,28 +221,22 @@ with open(theFile, 'a+') as wf:
                     if int_syn_annotations and len( getSecOrdKeys(int_syn_annotations) ) > 1:
                         annotation_collector.append( int_syn_annotations )
 
-                print('------------------------------------------------------------------------------')
                 if 'eo_name' in key:
-
-                    print( expanded_targets )
-                    
+                  
                     if args.o_labeler1 == True:
                         # Labeler 1 - Direct match
                         candidate_targets = mapping[key]
                         out_annotations_L1 = longTailOutcomeAligner( value, expanded_targets, candidate_targets, PICOS['O'] )
                         if out_annotations_L1 and len( getSecOrdKeys(out_annotations_L1) ) > 1:
-                            # TODO: Merge at the level of direct labeling source
-                            print( out_annotations_L1 )
+                            out_annotations_L1 = merge_sources( out_annotations_L1 )
                             o_annotation_collector.append( out_annotations_L1 )
 
                     if args.o_labeler2 == True:
                         # Labeler 2 POS labeler
                         out_annotations_L2 = outcomePOSaligner( expanded_targets, candidate_targets, PICOS['O'], allowedPOS() )
                         if out_annotations_L2:
-                            print( out_annotations_L2 )
                             o_annotation_collector.append( out_annotations_L2 )
 
-                print('------------------------------------------------------------------------------')
 
                 if 'es_type' in key and 'N.A.' not in value:
                     candidate_targets = mapping[key]
@@ -230,18 +246,33 @@ with open(theFile, 'a+') as wf:
 
             # All the annotations for individual entities are collected here
             if o_annotation_collector:
-                print('LabelModel here')
+                # print( o_annotation_collector )
+                for lf1, lf2 in zip( o_annotation_collector[0], o_annotation_collector[1] ):
+                    # print( lf1, ' : ', lf2 )
+                    l1 = o_annotation_collector[0][lf1]
+                    l2 = o_annotation_collector[1][lf2]
+
+                    for sentence_l1, sentence_l2 in zip( l1, l2 ):
+                        common_tokens = l1[sentence_l1]['tokens']
+                        l1_labels = l1[sentence_l1][str(3)]
+                        l2_labels = l2[sentence_l2][str(3)]
+
+                        if set(l1_labels) != -1 and set(l2_labels) != -1:
+                            hit_tokens.extend( common_tokens )
+                            for wl1, wl2 in zip( l1_labels, l2_labels ):
+                                hit_l1l2_labels.append( [ int(wl1), int(wl2), int(3) ] )
+            '''
 
 
             # Direct global aggregation 
-            globally_aggregated = global_annot_aggregator(annotation_collector)
+            # globally_aggregated = global_annot_aggregator(annotation_collector)
 
-            # Resolve the overlapping labels
-            globally_merged = merge_labels(globally_aggregated)
+            # # Resolve the overlapping labels
+            # globally_merged = merge_labels(globally_aggregated)
 
-            # Add CTO identifiers to the annotations
-            globally_merged['id'] = NCT_id
-            globally_aggregated['id'] = NCT_id
+            # # Add CTO identifiers to the annotations
+            # globally_merged['id'] = NCT_id
+            # globally_aggregated['id'] = NCT_id
 
             # dump to file
             # json.dump(globally_aggregated, awf)
@@ -250,8 +281,7 @@ with open(theFile, 'a+') as wf:
             # mwf.write('\n')
 
             # log_success = 'Wrote the weak annotations for ' + str(NCT_id)
-            # logging.info(log_success)
-            
+            # logging.info(log_success)  
 
         except Exception as ex:
           
@@ -270,3 +300,17 @@ with open(theFile, 'a+') as wf:
             # string2log = str(exc_type) + ' : ' + str(fname) + ' : ' + str(exc_tb.tb_lineno)
             # logging.info(string2log)
             # logging.info(traceback.format_exc())
+    '''
+        ########
+        all_tokens.append( hit_tokens )
+        all_l1l2.extend( hit_l1l2_labels )
+
+
+    # print( all_l1l2 )
+    ###### Label Model function here
+    L = np.array(all_l1l2)
+    label_model.fit(L, seed=100, n_epochs=100)
+    Y_hat = label_model.predict_proba(L)
+
+    print( Y_hat )
+    '''

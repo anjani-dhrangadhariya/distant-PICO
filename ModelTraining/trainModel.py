@@ -36,6 +36,18 @@ from train_eval_predict import *
 def convertDf2Tensor(df):
     return torch.from_numpy( np.array( list( df ), dtype=np.int64 )).clone().detach()
 
+def loadModel(model, exp_args):
+
+    if exp_args.parallel == 'true':
+
+        if torch.cuda.device_count() > 1:
+            model = nn.DataParallel(model, device_ids = [0, 1])
+            print("Using", str(model.device_ids), " GPUs!")
+            return model
+
+    elif exp_args.parallel == 'false':
+        model = nn.DataParallel(model, device_ids = [0])
+        return model
 
 if __name__ == "__main__":
 
@@ -43,7 +55,7 @@ if __name__ == "__main__":
     # for eachSeed in [ 0, 1, 42 ]:
     for eachSeed in [ 0 ]:
 
-        with mlflow.start_run():
+        with mlflow.start_run() as run:
 
             def seed_everything( seed ):
                 random.seed(seed)
@@ -58,10 +70,14 @@ if __name__ == "__main__":
             print('The random seed is set to: ', eachSeed)
 
             # This is executed after the seed is set because it is imperative to have reproducible data run after shuffle
-            annotations, exp_args, current_tokenizer = fetchAndTransformCandidates()
+            annotations, ebm_nlp_df,  ebm_gold_df, hilfiker_df, exp_args, current_tokenizer, current_modelembed = fetchAndTransformCandidates()
 
             if exp_args.train_data == 'distant-cto': 
                 fulldf = annotations
+            if exp_args.train_data == 'ebm-pico': 
+                fulldf = ebm_nlp_df
+            if exp_args.train_data == 'combined': 
+                fulldf = annotations.append(ebm_nlp_df, ignore_index=True)
 
             # shuffle the dataset and divide into training and validation sets
             fulldf = fulldf.sample(frac=1).reset_index(drop=True)
@@ -71,7 +87,7 @@ if __name__ == "__main__":
 
 
             # Log the parameters
-            logParams(exp_args)
+            logParams(exp_args, eachSeed)
 
             # Convert all inputs, labels, and attentions into torch tensors, the required datatype: torch.int64
             train_input_ids = convertDf2Tensor(annotations['embeddings'])
@@ -100,32 +116,28 @@ if __name__ == "__main__":
             # Create the DataLoader for our test set. (This will be used as validation set!)
             dev_data = TensorDataset(dev_input_ids, dev_input_labels, dev_attn_masks, dev_pos_tags)
             dev_sampler = RandomSampler(dev_data)
-            dev_dataloader = DataLoader(dev_data, sampler=None, batch_size=6, shuffle=False)
+            dev_dataloader = DataLoader(dev_data, sampler=None, batch_size=10, shuffle=False)
 
             ##################################################################################
             #Instantiating the BERT model
             ##################################################################################
             print("Building model...")
             createOSL = time.time()
-            model = choose_model(exp_args.embed, current_tokenizer, exp_args.model, exp_args)
+            model = choose_model(exp_args.embed, current_tokenizer, current_modelembed, exp_args.model, exp_args)
 
             ##################################################################################
             # Tell pytorch to run data on this model on the GPU and parallelize it
             ##################################################################################
 
-            if exp_args.parallel == 'true':
-                if torch.cuda.device_count() > 1:
-                    model = nn.DataParallel(model, device_ids = [0, 1])
-                    print("Using", len(model.device_ids), " GPUs!")
-                    print("Using", str(model.device_ids), " GPUs!")
-
-            elif exp_args.parallel == 'false':
-                model = nn.DataParallel(model, device_ids = [0])
-            
-            print('Number of devices used: ', len(model.device_ids) )
+            if exp_args.train_from_scratch == True:
+                model = loadModel(model, exp_args)
+            else:
+                checkpoint = torch.load(exp_args.plugin_model, map_location='cuda:0')
+                model.load_state_dict( checkpoint )
+                model = loadModel(model, exp_args)
+            print('The devices used: ', str(model.device_ids) )
 
             ##################################################################################
-
             # Note: AdamW is a class from the huggingface library (as opposed to pytorch) 
             optimizer = AdamW(model.parameters(),
                             lr = exp_args.lr, # args.learning_rate - default is 5e-5 (for BERT-base)
@@ -138,7 +150,7 @@ if __name__ == "__main__":
 
             # Create the learning rate scheduler.
             scheduler = get_linear_schedule_with_warmup(optimizer, 
-                                                        num_warmup_steps=0,
+                                                        num_warmup_steps=total_steps*exp_args.lr_warmup,
                                                         num_training_steps = total_steps)
 
             # print("Created the optimizer, scheduler and loss function objects in {} seconds".format(time.time() - st))
@@ -148,5 +160,8 @@ if __name__ == "__main__":
             print('Begin training...')
             print('##################################################################################')
             train_start = time.time()
-            train(model, optimizer, scheduler, train_dataloader, dev_dataloader, exp_args, eachSeed)
+            saved_models = train(model, optimizer, scheduler, train_dataloader, dev_dataloader, exp_args, run, eachSeed)
             print("--- Took %s seconds to train and evaluate the model ---" % (time.time() - train_start))
+
+            # Use the saved models to evaluate on the test set
+            # print( saved_models )
