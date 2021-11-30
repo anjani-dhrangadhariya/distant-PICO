@@ -174,14 +174,12 @@ def transform(sentence, text_labels, pos, tokenizer, max_length, pretrained_mode
 
     return input_ids.squeeze(), input_labels.squeeze(), attention_masks.squeeze(), input_pos.squeeze()
 
-def getContextualVectors( annotations_df, vector_type, MAX_LEN, pos_encoder = None ):
-
-    tokenizer = choose_tokenizer_type( vector_type )
+def getContextualVectors( annotations_df, tokenizer, pretrained_model, MAX_LEN, pos_encoder = None ):
 
     # Tokenize and preserve labels
     tokenized = []
     for tokens, labels, pos, nctid in zip(list(annotations_df['tokens']), list(annotations_df['labels']), list(annotations_df['pos']), list(annotations_df['ids'])) :
-        temp = transform(tokens, labels, pos, tokenizer, MAX_LEN, vector_type)
+        temp = transform(tokens, labels, pos, tokenizer, MAX_LEN, pretrained_model)
         tokenized.append( temp )
 
     tokens, labels, masks, poss = list(zip(*tokenized))
