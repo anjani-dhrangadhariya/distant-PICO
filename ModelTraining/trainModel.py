@@ -70,14 +70,14 @@ if __name__ == "__main__":
             print('The random seed is set to: ', eachSeed)
 
             # This is executed after the seed is set because it is imperative to have reproducible data run after shuffle
-            annotations, ebm_nlp_df,  ebm_gold_df, hilfiker_df, exp_args, current_tokenizer, current_modelembed = fetchAndTransformCandidates()
+            weak_candidates, ebm_nlp_df,  ebm_gold_df, hilfiker_df, exp_args, current_tokenizer, current_modelembed = fetchAndTransformCandidates()
 
             if exp_args.train_data == 'distant-cto': 
-                fulldf = annotations
+                fulldf = weak_candidates
             if exp_args.train_data == 'ebm-pico': 
                 fulldf = ebm_nlp_df
             if exp_args.train_data == 'combined': 
-                fulldf = annotations.append(ebm_nlp_df, ignore_index=True)
+                fulldf = weak_candidates.append(ebm_nlp_df, ignore_index=True)
 
             # shuffle the dataset and divide into training and validation sets
             fulldf = fulldf.sample(frac=1).reset_index(drop=True)
@@ -105,6 +105,18 @@ if __name__ == "__main__":
             # test_pos_tags = torch.nn.functional.one_hot( torch.from_numpy( np.array( list(annotations_testdf_['inputpos'])
             assert dev_input_ids.dtype == dev_input_labels.dtype == dev_attn_masks.dtype == dev_pos_tags.dtype
 
+            # Test set 1 (EBM-NLP test gold data test set)
+            test1_input_ids = convertDf2Tensor( ebm_gold_df['embeddings'])
+            test1_input_labels = convertDf2Tensor( ebm_gold_df['label_pads'])
+            test1_attn_masks = convertDf2Tensor( ebm_gold_df['attn_masks'])
+            test1_pos_tags = convertDf2Tensor( ebm_gold_df['attn_masks'])
+
+            # Test set 2 (Hilfiker test set)
+            test2_input_ids = convertDf2Tensor( hilfiker_df['embeddings'])
+            test2_input_labels = convertDf2Tensor( hilfiker_df['label_pads'])
+            test2_attn_masks = convertDf2Tensor( hilfiker_df['attn_masks'])
+            test2_pos_tags = convertDf2Tensor( hilfiker_df['attn_masks'])
+
             # ----------------------------------------------------------------------------------------
             # Create dataloaders from the tensors
             # ----------------------------------------------------------------------------------------
@@ -117,6 +129,22 @@ if __name__ == "__main__":
             dev_data = TensorDataset(dev_input_ids, dev_input_labels, dev_attn_masks, dev_pos_tags)
             dev_sampler = RandomSampler(dev_data)
             dev_dataloader = DataLoader(dev_data, sampler=None, batch_size=10, shuffle=False)
+
+            # Create the DataLoader for our test set 1.
+            test1_data = TensorDataset(test1_input_ids, test1_input_labels, test1_attn_masks, test1_pos_tags)
+            test1_sampler = RandomSampler(test1_data)
+            test1_dataloader = DataLoader(test1_data, sampler=None, batch_size=6, shuffle=False)
+
+            del test1_input_ids, test1_input_labels, test1_attn_masks, test1_pos_tags, test1_sampler
+            gc.collect()
+
+            # Create the DataLoader for our test set 2.
+            test2_data = TensorDataset(test2_input_ids, test2_input_labels, test2_attn_masks, test2_pos_tags)
+            test2_sampler = RandomSampler(test2_data)
+            test2_dataloader = DataLoader(test2_data, sampler=None, batch_size=6, shuffle=False)
+
+            del test2_input_ids, test2_input_labels, test2_attn_masks, test2_pos_tags, test2_sampler
+            gc.collect()
 
             ##################################################################################
             #Instantiating the BERT model
@@ -160,8 +188,26 @@ if __name__ == "__main__":
             print('Begin training...')
             print('##################################################################################')
             train_start = time.time()
-            saved_models = train(model, optimizer, scheduler, train_dataloader, dev_dataloader, exp_args, run, eachSeed)
+            # saved_models = train(model, optimizer, scheduler, train_dataloader, dev_dataloader, exp_args, run, eachSeed)
             print("--- Took %s seconds to train and evaluate the model ---" % (time.time() - train_start))
 
             # Use the saved models to evaluate on the test set
             # print( saved_models )
+
+            print('##################################################################################')
+            print('Begin test...')
+            print('##################################################################################')
+            # checkpoint = torch.load(saved_models[-1], map_location='cuda:0')
+            checkpoint = torch.load('/mnt/nas2/results/Results/systematicReview/distant_pico/FS/participant/transformercrf/0_7.pth', map_location='cuda:0')
+            model.load_state_dict( checkpoint )
+            model = torch.nn.DataParallel(model, device_ids=[0])
+
+            print('Applying the best model on test set (EBM-NLP)...')
+            test1_cr, all_pred_flat, all_GT_flat, cm1, test1_words, class_rep_temp = evaluate(model, optimizer, scheduler, test1_dataloader, exp_args)
+            print(test1_cr)
+            print(cm1)
+
+            print('Applying the best model on test set (Hilfiker et al.)...')
+            test2_cr, all_pred_flat, all_GT_flat, cm2, test2_words, class_rep_temp = evaluate(model, optimizer, scheduler, test2_dataloader, exp_args)
+            print(test2_cr)
+            print(cm2)
