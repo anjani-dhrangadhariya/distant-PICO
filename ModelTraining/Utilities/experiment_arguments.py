@@ -16,11 +16,11 @@ def getArguments():
 
     # List of arguments to set up experiment
     parser = argparse.ArgumentParser()
-    parser.add_argument('-entity', type = str, default = 'outcome') # train_data = {distant-cto, combined, ebm-pico} 
+    parser.add_argument('-entity', type = str, default = 'participant') # train_data = {distant-cto, combined, ebm-pico} 
     parser.add_argument('-rawcand_file', type = Path, default = '/mnt/nas2/data/systematicReview/clinical_trials_gov/Weak_PICO/PICOS_data_preprocessed/merged_1_0.txt')
-    parser.add_argument('-ebm_nlp', type = Path, default = '/mnt/nas2/data/systematicReview/clinical_trials_gov/Weak_PICO/groundtruth/ebm_nlp/o/sentences.txt')
-    parser.add_argument('-ebm_gold', type = Path, default = '/mnt/nas2/data/systematicReview/clinical_trials_gov/Weak_PICO/groundtruth/ebm_gold/o/sentences.txt')
-    parser.add_argument('-hilfiker', type = Path, default = '/mnt/nas2/data/systematicReview/clinical_trials_gov/Weak_PICO/groundtruth/hilfiker/o/sentences.txt')
+    parser.add_argument('-ebm_nlp', type = Path, default = '/mnt/nas2/data/systematicReview/clinical_trials_gov/Weak_PICO/groundtruth/ebm_nlp/p/sentences.txt')
+    parser.add_argument('-ebm_gold', type = Path, default = '/mnt/nas2/data/systematicReview/clinical_trials_gov/Weak_PICO/groundtruth/ebm_gold/p/sentences.txt')
+    parser.add_argument('-hilfiker', type = Path, default = '/mnt/nas2/data/systematicReview/clinical_trials_gov/Weak_PICO/groundtruth/hilfiker/p/sentences.txt')
 
     parser.add_argument('-label_type', type = str, default = 'seq_lab') # label_type = {seq_lab, BIO, BIOES, ...} 
     parser.add_argument('-text_level', type = str, default = 'sentence') # text_level = {sentence, document} 
