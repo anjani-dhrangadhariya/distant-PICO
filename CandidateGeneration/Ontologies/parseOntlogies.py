@@ -77,4 +77,4 @@ indir = '/mnt/nas2/data/systematicReview/UMLS/english_subset/2021AB/META'
 outdir = '/mnt/nas2/data/systematicReview/UMLS/english_subset/umls_preprocessed'
 f_tui2pio = '/mnt/nas2/data/systematicReview/UMLS/english_subset/umls_preprocessed/tui_pio.tsv'
 
-# cui2tuiMapper(indir, outdir, f_tui2pio)
+cui2tuiMapper(indir, outdir, f_tui2pio)
