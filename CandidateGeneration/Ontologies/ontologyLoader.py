@@ -40,9 +40,6 @@ def loadUMLS():
                 else:
                     umls_o[ontology].append(term)
 
-            if counter == 20000:
-                break
-
     print(len(umls_p))
     print(len(umls_i))
     print(len(umls_o))
@@ -51,6 +48,19 @@ def loadUMLS():
 
 
 def loadDO():
+
+    inputFile = '/mnt/nas2/data/systematicReview/Ontologies/participant/DOID.csv'
+    doid = []
+
+    with open(inputFile) as fd:
+        rd = csv.reader(fd, delimiter=",")
+        next(rd, None)
+        for counter, row in enumerate(rd):
+            doid.append( row[1] )
+            if row[2]:
+                synonyms = row[2]
+                synonyms = synonyms.split('|')
+                doid.extend( synonyms )
 
     return None
 
@@ -97,20 +107,32 @@ def loadCTDchem():
     ctd_chem = []
 
     with open(inputFile) as fd:
-        rd = csv.reader(fd, delimiter=",")
+        rd = csv.reader(fd, delimiter="\t")
         next(rd, None)
         for counter, row in enumerate(rd):
             ctd_chem.append( row[0] )
-            if row[7]:
+            if len(row[7]) > 2:
                 synonyms = row[7]
                 synonyms = synonyms.split('|')
                 ctd_chem.extend( synonyms )
-                if counter == 10:
-                    break
 
     return None
 
 def loadChEBI():
+
+    inputFile = '/mnt/nas2/data/systematicReview/Ontologies/intervention/CHEBI.csv'
+
+    chebi = []
+
+    with open(inputFile) as fd:
+        rd = csv.reader(fd, delimiter=",")
+        next(rd, None)
+        for counter, row in enumerate(rd):
+            chebi.append( row[1] )
+            if row[2]:
+                synonyms = row[2]
+                synonyms = synonyms.split('|')
+                chebi.extend( synonyms )
 
     return None
 
@@ -120,11 +142,13 @@ def loadOntology():
     loadUMLS()
     loadRaceEthnicity()
     loadCTDdisease()
+    loadDO()
+    loadGenders()
+
     loadCTDchem()
+    loadChEBI()
 
     return None
 
 
 loadOntology()
-
-
