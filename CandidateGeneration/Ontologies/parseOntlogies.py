@@ -61,7 +61,7 @@ def cui2tuiMapper(indir, outdir, tui2pio):
     # MRCONSO.RRF
     with open(f'{indir}/MRCONSO.RRF', 'r') as fp, open(
             f'{outdir}/concepts.tsv', 'w') as op:
-        op.write('SAB\tTUI\tCUI\tTERM\n')
+        op.write('SAB\tTUI\tCUI\tTERM\tSemanticGroup\tPICO\n')
         for line in fp:
             row = line.strip().split('|')
             cui, sab, term = row[0], row[11], row[14]
@@ -77,4 +77,4 @@ indir = '/mnt/nas2/data/systematicReview/UMLS/english_subset/2021AB/META'
 outdir = '/mnt/nas2/data/systematicReview/UMLS/english_subset/umls_preprocessed'
 f_tui2pio = '/mnt/nas2/data/systematicReview/UMLS/english_subset/umls_preprocessed/tui_pio.tsv'
 
-cui2tuiMapper(indir, outdir, f_tui2pio)
+#cui2tuiMapper(indir, outdir, f_tui2pio)
