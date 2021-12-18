@@ -96,13 +96,13 @@ def readManuallyAnnoted( input_file_path, label_type=None ):
         'pos': pos
         })
 
-    df = corpus_df.sample(frac=1).reset_index(drop=True) # Shuffles the dataframe after creation
+    # df = corpus_df.sample(frac=1).reset_index(drop=True) # Shuffles the dataframe after creation
     
-    # can delete this one (corpusDf)
-    del corpus_df
-    gc.collect() # mark if for garbage collection
+    # # can delete this one (corpusDf)
+    # del corpus_df
+    # gc.collect() # mark if for garbage collection
 
-    return df
+    return corpus_df
 
 
 def fetchAndTransformCandidates():
@@ -137,6 +137,7 @@ def fetchAndTransformCandidates():
     ebm_gold_df = ebm_gold.assign(embeddings = pd.Series(ebm_gold_embeddings).values, label_pads = pd.Series(ebm_gold_labels).values, attn_masks = pd.Series(ebm_gold_masks).values, inputpos = pd.Series(ebm_gold_pos).values)
     hilfiker_df = hilfiker.assign(embeddings = pd.Series(hilfiker_embeddings).values, label_pads = pd.Series(hilfiker_labels).values, attn_masks = pd.Series(hilfiker_masks).values, inputpos = pd.Series(hilfiker_pos).values)
 
-    del input_embeddings, input_labels, input_masks, input_pos     # Delete the large variables
-
+    del input_embeddings, input_labels, input_masks, input_pos, ebm_nlp_embeddings, ebm_nlp_labels, ebm_nlp_masks, ebm_nlp_pos, ebm_gold_embeddings, ebm_gold_labels, ebm_gold_masks, ebm_gold_pos, hilfiker_embeddings, hilfiker_labels, hilfiker_masks, hilfiker_pos, raw_candidates, ebm_nlp, ebm_gold, hilfiker  # Delete the large variables
+    gc.collect()
+    
     return candidates_df, ebm_nlp_df, ebm_gold_df, hilfiker_df, args, tokenizer, model
