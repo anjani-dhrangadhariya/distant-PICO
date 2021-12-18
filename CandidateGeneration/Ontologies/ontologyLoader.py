@@ -197,6 +197,19 @@ def loadRaceEthnicity():
 
     return race_eth
 
+'''
+Description:
+    This function loads the manually compiled dictionary of gender identities and sexual orientations
+    sources: [https://www.hrc.org/resources/sexual-orientation-and-gender-identity-terminology-and-definitions, 
+              https://www.itspronouncedmetrosexual.com/2013/01/a-comprehensive-list-of-lgbtq-term-definitions/,
+              https://www.healthline.com/health/different-genders#takeaway]
+
+Args:
+    None 
+
+Returns:
+    Gender and sexual orientation terms (list): A list containing all the terms corresponding to gender identities and sexual orientations
+'''
 def loadGenders():
 
     inputFile = '/mnt/nas2/data/systematicReview/Ontologies/participant/gender_sexuality.txt'
