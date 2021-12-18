@@ -7,6 +7,8 @@ en = spacy.load('en_core_web_sm')
 stopwords = en.Defaults.stop_words
 import string
 
+def allowedTermLength(term):
+    return True if len(term.split()) > 1 else False
 
 def preprocessOntology(term):
 
@@ -50,36 +52,39 @@ def loadUMLS():
             term = row[3]
             processed_term = preprocessOntology(term)
 
-            if 'P' in row[-1] and '-' not in row[-1] and len(term) > 1:
+            if 'P' in row[-1] and '-' not in row[-1] and allowedTermLength(term) == True:
                 if ontology not in umls_p:
                     umls_p[ ontology ] = {processed_term}
                 else:
                     umls_p[ontology].add(term)
 
-            if 'I' in row[-1] and '-' not in row[-1] and len(term) > 1:
+            if 'I' in row[-1] and '-' not in row[-1] and allowedTermLength(term) == True:
                 if ontology not in umls_i:
                     preprocessOntology(term)
                     umls_i[ ontology ] = {term}
                 else:
                     umls_i[ontology].add(term)
 
-            if 'O' in row[-1] and '-' not in row[-1] and len(term) > 1:
+            if 'O' in row[-1] and '-' not in row[-1] and allowedTermLength(term) == True:
                 if ontology not in umls_o:
                     preprocessOntology(term)
                     umls_o[ ontology ] = {term}
                 else:
                     umls_o[ontology].add(term)
 
-            if counter == 400:
-                break
+            # if counter == 400:
+            #     break
 
+    # Remove ontologies with less than 500 terms
+    umls_p = {k: v for k, v in umls_p.items() if len(v) > 500}
+    umls_i = {k: v for k, v in umls_i.items() if len(v) > 500}
+    umls_o = {k: v for k, v in umls_o.items() if len(v) > 500}
 
-    # print(countTerm(umls_p))
-    # print(countTerm(umls_i))
-    # print(countTerm(umls_o))
+    print( countTerm(umls_p) )
+    print( countTerm(umls_i) )
+    print( countTerm(umls_o) )
 
-
-    return None
+    return umls_p, umls_i, umls_o
 
 
 def loadDO():
@@ -174,7 +179,7 @@ def loadChEBI():
 
 def loadOntology():
 
-    loadUMLS()
+    umls_p, umls_i, umls_o = loadUMLS()
     # loadRaceEthnicity()
     # loadCTDdisease()
     # loadDO()
