@@ -14,14 +14,6 @@ en = spacy.load('en_core_web_sm')
 stopwords = en.Defaults.stop_words
 import string
 
-def allowedTermLength(term):
-    return True if len(term.split()) > 1 else False
-
-def removePunct(term):
-    return term.translate(str.maketrans('', '', string.punctuation))
-
-def removeNum(term):
-    return ''.join([i for i in term if not i.isdigit()])
 
 '''
 Description:
@@ -46,6 +38,15 @@ def preprocessOntology(term):
     punctRemove = numRemove.translate(str.maketrans('', '', string.punctuation))
 
     return punctRemove
+
+def allowedTermLength(term):
+    return True if len(term.split()) > 1 else False
+
+def removePunct(term):
+    return term.translate(str.maketrans('', '', string.punctuation))
+
+def removeNum(term):
+    return ''.join([i for i in term if not i.isdigit()])
 
 def countTerm(umls):
 
