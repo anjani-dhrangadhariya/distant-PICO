@@ -199,7 +199,15 @@ def loadRaceEthnicity():
 
 def loadGenders():
 
-    return None
+    inputFile = '/mnt/nas2/data/systematicReview/Ontologies/participant/gender_sexuality.txt'
+
+    genders = []
+
+    with open(inputFile, 'r') as fd:
+        for line in fd:
+            genders.append( line.strip() )
+
+    return genders
 
 '''
 Description:
@@ -264,12 +272,9 @@ def loadOntology():
     race_eth = loadRaceEthnicity()
     ctd_disease = loadCTDdisease()
     doid = loadDO()
-    # loadGenders()
+    genders = loadGenders()
 
     ctd_chem = loadCTDchem()
     chebi = loadChEBI()
 
     return None
-
-
-# loadOntology()
