@@ -1,7 +1,14 @@
-import pandas as pd
+def OntologyLoaderDoc(a):
+    '''The module loads all the ontologies and dictionaries that will be used for weak labeling in distant-PICO'''
+    return a**a
+
+print( OntologyLoaderDoc.__doc__ )
+
 import csv
 
+import pandas as pd
 import spacy
+
 #loading the english language small model of spacy
 en = spacy.load('en_core_web_sm')
 stopwords = en.Defaults.stop_words
@@ -10,6 +17,22 @@ import string
 def allowedTermLength(term):
     return True if len(term.split()) > 1 else False
 
+def removePunct(term):
+    return term.translate(str.maketrans('', '', string.punctuation))
+
+def removeNum(term):
+    return ''.join([i for i in term if not i.isdigit()])
+
+'''
+Description:
+    This function could be used for preprocessing ontology terms. Preprocessing includes 1) Remove stopwords 2) Remove numbers 3) Remove punctuations
+
+Args:
+    term (str): String variable containing the ontology term
+
+Returns:
+    preprocessed term (str): String variable containing the preprocessed ontology term
+'''
 def preprocessOntology(term):
 
     # remove stopwords
@@ -30,10 +53,18 @@ def countTerm(umls):
     for k,v in umls.items():
         if len(v) > 500:
             flagger = flagger + 1
-    
     return flagger
 
+'''
+Description:
+    This function loads the terms from the UMLS ontologies and groups them by Ontology and PICOS
 
+Args:
+    None 
+
+Returns:
+    UMLS ontologies (dict, dict, dict): three dictionaries (each corresponding to P, I/C and O) containing ontology terms grouped by Ontology 
+'''
 def loadUMLS():
 
     inputFile = '/mnt/nas2/data/systematicReview/UMLS/english_subset/umls_preprocessed/concepts.tsv'
@@ -42,8 +73,6 @@ def loadUMLS():
     umls_i = dict()
     umls_o = dict()
 
-    # Calculate term coverage on the training targets
-    # Term coverage = summation over entire terminology for term frequency in document (each document is each NCTID but we should consider the entire corpus here)
     with open(inputFile) as fd:
         rd = csv.reader(fd, delimiter="\t", quotechar='"')
         next(rd, None)
@@ -86,7 +115,16 @@ def loadUMLS():
 
     return umls_p, umls_i, umls_o
 
+'''
+Description:
+    This function loads Disease Ontolgoy DO terms and their synonyms
 
+Args:
+    None 
+
+Returns:
+    DO terms (list): A list containing all the terms and their synonyms from the Disease Ontology (DO)
+'''
 def loadDO():
 
     inputFile = '/mnt/nas2/data/systematicReview/Ontologies/participant/DOID.csv'
@@ -102,8 +140,18 @@ def loadDO():
                 synonyms = synonyms.split('|')
                 doid.extend( synonyms )
 
-    return None
+    return doid
 
+'''
+Description:
+    This function loads Comparative Toxicogenomics Database (CTD) disease terms and their synonyms
+
+Args:
+    None 
+
+Returns:
+    CTD terms (list): A list containing all the terms corresponding to Disease set and their synonyms from the Comparative Toxicogenomics Database (CTD)
+'''
 def loadCTDdisease():
 
     inputFile = '/mnt/nas2/data/systematicReview/Ontologies/participant/CTD_diseases.csv'
@@ -119,8 +167,19 @@ def loadCTDdisease():
                 synonyms = synonyms.split('|')
                 ctd_disease.extend( synonyms )
 
-    return None
+    return ctd_disease
 
+'''
+Description:
+    This function loads a dictionary of CDC (Centers for Disease Control and Prevention) Race and Ethnicity set compiled from
+    https://www.cdc.gov/nchs/data/dvs/race_ethnicity_codeset.pdf
+
+Args:
+    None 
+
+Returns:
+    CDC dictionary (list): A list containing all the terms from CDC (Centers for Disease Control and Prevention) Race and Ethnicity set 
+'''
 def loadRaceEthnicity():
 
     inputFile = '/mnt/nas2/data/systematicReview/Ontologies/participant/cdc_race_ethnicity_codeset_v1.csv'
@@ -141,6 +200,16 @@ def loadGenders():
 
     return None
 
+'''
+Description:
+    This function loads Comparative Toxicogenomics Database (CTD) chemical terms and their synonyms
+
+Args:
+    None 
+
+Returns:
+    CTD terms (list): A list containing all the terms corresponding to Chemical set and their synonyms from the Comparative Toxicogenomics Database (CTD)
+'''
 def loadCTDchem():
 
     inputFile = '/mnt/nas2/data/systematicReview/Ontologies/intervention/CTD_chemicals.tsv'
@@ -156,8 +225,19 @@ def loadCTDchem():
                 synonyms = synonyms.split('|')
                 ctd_chem.extend( synonyms )
 
-    return None
+    return ctd_chem
 
+
+'''
+Description:
+    This function loads Chemical Entities of Biological Interest (ChEBI) terms and their synonyms
+
+Args:
+    None 
+
+Returns:
+    ChEBI terms (list): A list containing all the terms corresponding and their synonyms from the Chemical Entities of Biological Interest (ChEBI)
+'''
 def loadChEBI():
 
     inputFile = '/mnt/nas2/data/systematicReview/Ontologies/intervention/CHEBI.csv'
@@ -174,21 +254,21 @@ def loadChEBI():
                 synonyms = synonyms.split('|')
                 chebi.extend( synonyms )
 
-    return None
+    return chebi
 
 
 def loadOntology():
 
     umls_p, umls_i, umls_o = loadUMLS()
-    # loadRaceEthnicity()
-    # loadCTDdisease()
-    # loadDO()
+    race_eth = loadRaceEthnicity()
+    ctd_disease = loadCTDdisease()
+    doid = loadDO()
     # loadGenders()
 
-    # loadCTDchem()
-    # loadChEBI()
+    ctd_chem = loadCTDchem()
+    chebi = loadChEBI()
 
     return None
 
 
-loadOntology()
+# loadOntology()
