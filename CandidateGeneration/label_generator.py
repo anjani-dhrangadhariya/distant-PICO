@@ -6,11 +6,6 @@ def SourceTargetsDoc(a):
 
 print( SourceTargetsDoc.__doc__ )
 
-__author__ = "Anjani Dhrangadhariya"
-__maintainer__ = "Anjani Dhrangadhariya"
-__email__ = "anjani.dhrangadhariya@hevs.ch"
-__status__ = "Prototype"
-
 import collections
 import datetime as dt
 import difflib
@@ -142,13 +137,19 @@ with open(theFile, 'a+') as wf:
             protocol_section = fullstudy['ProtocolSection']
             derieved_section = fullstudy['DerivedSection']
 
-            # Retrieve the sources of PICOS annotation (XXX: This is some form of ETL if multiple data sources were involved!!!)
+            # Retrieve the distant supervision sources of PICOS annotation (TODO: This is some form of ETL if multiple data sources were involved!!!)
             participants = fetchParticipantSources(protocol_section)
             intervention_comparator = fetchIntcompSources(protocol_section)
             outcomes = fetchOutcomeSources(protocol_section)
             study_type = fetchStdTypeSources(protocol_section)
 
             sources = {**participants, **intervention_comparator, **outcomes, **study_type}
+            print( sources ) # Sources here correspond to distant supervision arm
+
+            # Retrieve the Ontology sources of PICOS annotation
+
+
+
 
             # Scenario I.Weak labeling: Distant Supervision
             expanded_sources_i = expandSources_i(protocol_section, sources)
@@ -170,10 +171,10 @@ with open(theFile, 'a+') as wf:
             o_annotation_collector = []
             annotation_collector = []
 
-            # Scenario I.Weak labeling: Distant Supervision
-            scenario_1_annotations = scheme_i( expanded_sources_i, expanded_targets, PICOS, abstain_options )
+            # Scenario I.Weak labeling: Ontology
+            # scenario_1_annotations = scheme_i( expanded_sources_i, expanded_targets, PICOS, abstain_options )
 
-            # Scenario II. Weak labeling: Distant Supervision + Task-specific rules
+            # Scenario II. Weak labeling: Ontology + (Distant Supervision + Task-specific rules)
             # scenario_2_annotations = scheme_ii( sources, expanded_targets, PICOS )
 
             '''
