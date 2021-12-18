@@ -1,9 +1,36 @@
 import pandas as pd
 import csv
 
-def preprocessOntology():
+import spacy
+#loading the english language small model of spacy
+en = spacy.load('en_core_web_sm')
+stopwords = en.Defaults.stop_words
+import string
 
-    return None
+
+def preprocessOntology(term):
+
+    # remove stopwords
+    lst = [ token for token in term.split() if token.lower() not in stopwords ]
+    lst = ' '.join(lst)
+
+    # remove numbers
+    numRemove = ''.join([i for i in lst if not i.isdigit()])
+
+    # remove punctuation
+    punctRemove = numRemove.translate(str.maketrans('', '', string.punctuation))
+
+    return punctRemove
+
+def countTerm(umls):
+
+    flagger = 0
+    for k,v in umls.items():
+        if len(v) > 500:
+            flagger = flagger + 1
+    
+    return flagger
+
 
 def loadUMLS():
 
@@ -21,28 +48,36 @@ def loadUMLS():
         for counter, row in enumerate(rd):
             ontology = row[0]
             term = row[3]
+            processed_term = preprocessOntology(term)
 
-            if 'P' in row[-1] and '-' not in row[-1]:
+            if 'P' in row[-1] and '-' not in row[-1] and len(term) > 1:
                 if ontology not in umls_p:
-                    umls_p[ ontology ] = [term]
+                    umls_p[ ontology ] = {processed_term}
                 else:
-                    umls_p[ontology].append(term)
+                    umls_p[ontology].add(term)
 
-            if 'I' in row[-1] and '-' not in row[-1]:
+            if 'I' in row[-1] and '-' not in row[-1] and len(term) > 1:
                 if ontology not in umls_i:
-                    umls_i[ ontology ] = [term]
+                    preprocessOntology(term)
+                    umls_i[ ontology ] = {term}
                 else:
-                    umls_i[ontology].append(term)
+                    umls_i[ontology].add(term)
 
-            if 'O' in row[-1] and '-' not in row[-1]:
+            if 'O' in row[-1] and '-' not in row[-1] and len(term) > 1:
                 if ontology not in umls_o:
-                    umls_o[ ontology ] = [term]
+                    preprocessOntology(term)
+                    umls_o[ ontology ] = {term}
                 else:
-                    umls_o[ontology].append(term)
+                    umls_o[ontology].add(term)
 
-    print(len(umls_p))
-    print(len(umls_i))
-    print(len(umls_o))
+            if counter == 400:
+                break
+
+
+    # print(countTerm(umls_p))
+    # print(countTerm(umls_i))
+    # print(countTerm(umls_o))
+
 
     return None
 
@@ -140,13 +175,13 @@ def loadChEBI():
 def loadOntology():
 
     loadUMLS()
-    loadRaceEthnicity()
-    loadCTDdisease()
-    loadDO()
-    loadGenders()
+    # loadRaceEthnicity()
+    # loadCTDdisease()
+    # loadDO()
+    # loadGenders()
 
-    loadCTDchem()
-    loadChEBI()
+    # loadCTDchem()
+    # loadChEBI()
 
     return None
 
