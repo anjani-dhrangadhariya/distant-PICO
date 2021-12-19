@@ -14,6 +14,9 @@ en = spacy.load('en_core_web_sm')
 stopwords = en.Defaults.stop_words
 import string
 
+additional_stopwords = ['of']
+stopwords.update(additional_stopwords)
+
 
 '''
 Description:
@@ -35,7 +38,7 @@ def preprocessOntology(term):
     numRemove = ''.join([i for i in lst if not i.isdigit()])
 
     # remove punctuation
-    punctRemove = numRemove.translate(str.maketrans('', '', string.punctuation))
+    punctRemove = numRemove.translate(str.maketrans(' ', ' ', string.punctuation))
 
     return punctRemove
 
