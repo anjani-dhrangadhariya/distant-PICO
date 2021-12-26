@@ -5,11 +5,10 @@ def OntologyLoaderDoc(a):
 print( OntologyLoaderDoc.__doc__ )
 
 import csv
+import sqlite3
 
 import pandas as pd
 import spacy
-import sqlite3 
-from OntoUtils import filterSAB
 
 #loading the english language small model of spacy
 en = spacy.load('en_core_web_sm')
@@ -19,50 +18,36 @@ import string
 additional_stopwords = ['of']
 stopwords.update(additional_stopwords)
 
+from Ontologies.OntoUtils import (allowedTermLength, countTerm, filterSAB,
+                                  preprocessOntology, removeNonHuman)
+from Ontologies.parseOntlogies import createMySQLConn
+
 # Load the non-human ontology filter
 non_human_umls = filterSAB()
 
-'''
-Description:
-    This function could be used for preprocessing ontology terms. Preprocessing includes 1) Remove stopwords 2) Remove numbers 3) Remove punctuations
+def select_all_tasks(conn):
+    """
+    Query all rows in the tasks table
+    :param conn: the Connection object
+    :return:
+    """
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM terminology1")
 
-Args:
-    term (str): String variable containing the ontology term
+    rows = cur.fetchall()
 
-Returns:
-    preprocessed term (str): String variable containing the preprocessed ontology term
-'''
-def preprocessOntology(term):
+    return rows
 
-    # remove stopwords
-    lst = [ token for token in term.split() if token.lower() not in stopwords ]
-    lst = ' '.join(lst)
 
-    # remove numbers
-    numRemove = ''.join([i for i in lst if not i.isdigit()])
+def loadUMLSdb(fpath):
 
-    # remove punctuation
-    punctRemove = numRemove.translate(str.maketrans(' ', ' ', string.punctuation))
+    conn = createMySQLConn( fpath )
 
-    return punctRemove
+    rows = select_all_tasks(conn)
 
-def allowedTermLength(term):
-    return True if len(term.split()) > 1 else False
+    print(len(rows))
 
-def countTerm(umls):
 
-    flagger = 0
-    for k,v in umls.items():
-        if len(v) > 500:
-            flagger = flagger + 1
-    return flagger
-
-def removeNonHuman(umls_d):
-
-    for i in non_human_umls:
-        umls_d.pop(i, None)
-
-    return umls_d
 
 '''
 Description:
