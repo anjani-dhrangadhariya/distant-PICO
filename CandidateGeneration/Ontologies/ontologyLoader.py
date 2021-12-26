@@ -22,8 +22,7 @@ from Ontologies.OntoUtils import (allowedTermLength, countTerm, filterSAB,
                                   preprocessOntology, removeNonHuman)
 from Ontologies.parseOntlogies import createMySQLConn
 
-# Load the non-human ontology filter
-non_human_umls = filterSAB()
+
 
 def select_all_tasks(conn):
     """
