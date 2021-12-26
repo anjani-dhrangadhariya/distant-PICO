@@ -1,3 +1,13 @@
+import pandas as pd
+import spacy
+
+#loading the english language small model of spacy
+en = spacy.load('en_core_web_sm')
+stopwords = en.Defaults.stop_words
+import string
+
+additional_stopwords = ['of']
+stopwords.update(additional_stopwords)
 def filterSAB():
     return ['SNOMEDCT_VET', 'NCI_ZFin', 'NCI_ICDC', 'NCI_JAX']
 
