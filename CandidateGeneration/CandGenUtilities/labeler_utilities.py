@@ -35,3 +35,6 @@ def abstainOption():
 
 def punct():
     return ['-', '/', '\\']
+
+def filterSAB():
+    return ['SNOMEDCT_VET', 'NCI_ZFin', 'NCI_ICDC', 'NCI_JAX']
