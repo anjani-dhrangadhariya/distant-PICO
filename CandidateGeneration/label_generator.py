@@ -49,20 +49,7 @@ from SourceTargetExpander.expand_sources import *
 from SourceTargetExpander.expand_targets import *
 from TargetFetcher.all_targetsfetcher import *
 from SourceTargetAligner.labeling import *
-
-################################################################################
-# Set the logger here
-################################################################################
-# LOG_FILE = os.getcwd() + "/logs"
-# if not os.path.exists(LOG_FILE):
-#     os.makedirs(LOG_FILE)
-
-# LOG_FILE = LOG_FILE + "/" + dt.datetime.fromtimestamp(time.time()).strftime('%Y_%m_%d %H_%M_%S') + ".log"
-# logFormatter = logging.Formatter("%(levelname)s %(asctime)s %(processName)s %(message)s")
-# fileHandler = logging.FileHandler("{0}".format(LOG_FILE))
-# rootLogger = logging.getLogger()
-# rootLogger.addHandler(fileHandler)
-# rootLogger.setLevel(logging.INFO)
+from Ontologies.ontologyLoader import *
 
 ################################################################################
 # Initialize 
@@ -80,6 +67,15 @@ mapping = generateMapping()
 PICOS = generateLabels()
 PICOS_reverse = generateAntiLabels(PICOS)
 abstain_options = abstainOption()
+
+################################################################################
+# Initialize Labeling function sources
+################################################################################
+
+# Retrieve the UMLS arm of PICOS annotation
+loadUMLSdb('/mnt/nas2/data/systematicReview/UMLS/english_subset/umls_preprocessed/umls.db')
+
+
 
 ################################################################################
 # Instantiate ElasticSearch
@@ -109,6 +105,7 @@ print('Total number of records retrieved: ', res['hits']['total']['value'])
 theFile = '/home/anjani/distant-PICO/CandidateGeneration/ResultInspection/resolve_annot_corpus.tsv'
 aggregated_file = '/mnt/nas2/data/systematicReview/clinical_trials_gov/Weak_PICO/PICOS_data_preprocessed/aggregated_1_1.txt'
 merged_file = '/mnt/nas2/data/systematicReview/clinical_trials_gov/Weak_PICO/PICOS_data_preprocessed/merged_1_1.txt'
+
 # with open(aggregated_file, 'a+') as awf , open(merged_file, 'a+') as mwf:
 with open(theFile, 'a+') as wf:
 
@@ -137,18 +134,15 @@ with open(theFile, 'a+') as wf:
             protocol_section = fullstudy['ProtocolSection']
             derieved_section = fullstudy['DerivedSection']
 
+            #############################################################################
             # Retrieve the distant supervision sources of PICOS annotation (TODO: This is some form of ETL if multiple data sources were involved!!!)
+            #############################################################################
             participants = fetchParticipantSources(protocol_section)
             intervention_comparator = fetchIntcompSources(protocol_section)
             outcomes = fetchOutcomeSources(protocol_section)
             study_type = fetchStdTypeSources(protocol_section)
 
             sources = {**participants, **intervention_comparator, **outcomes, **study_type}
-            print( sources ) # Sources here correspond to distant supervision arm
-
-            # Retrieve the Ontology sources of PICOS annotation
-
-
 
 
             # Scenario I.Weak labeling: Distant Supervision
