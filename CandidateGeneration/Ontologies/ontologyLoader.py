@@ -85,25 +85,23 @@ def loadUMLS():
             term = row[3]
             processed_term = preprocessOntology(term)
 
-            if 'P' in row[-1] and '-' not in row[-1] and allowedTermLength(term) == True:
+            if 'P' in row[-1] and '-' not in row[-1] and allowedTermLength(processed_term) == True:
                 if ontology not in umls_p:
                     umls_p[ ontology ] = {processed_term}
                 else:
-                    umls_p[ontology].add(term)
+                    umls_p[ontology].add(processed_term)
 
-            if 'I' in row[-1] and '-' not in row[-1] and allowedTermLength(term) == True:
+            if 'I' in row[-1] and '-' not in row[-1] and allowedTermLength(processed_term) == True:
                 if ontology not in umls_i:
-                    preprocessOntology(term)
-                    umls_i[ ontology ] = {term}
+                    umls_i[ ontology ] = {processed_term}
                 else:
-                    umls_i[ontology].add(term)
+                    umls_i[ontology].add(processed_term)
 
-            if 'O' in row[-1] and '-' not in row[-1] and allowedTermLength(term) == True:
+            if 'O' in row[-1] and '-' not in row[-1] and allowedTermLength(processed_term) == True:
                 if ontology not in umls_o:
-                    preprocessOntology(term)
-                    umls_o[ ontology ] = {term}
+                    umls_o[ ontology ] = {processed_term}
                 else:
-                    umls_o[ontology].add(term)
+                    umls_o[ontology].add(processed_term)
 
             # if counter == 400:
             #     break
