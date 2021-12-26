@@ -8,6 +8,7 @@ import csv
 
 import pandas as pd
 import spacy
+from CandGenUtilities.labeler_utilities import filterSAB
 
 #loading the english language small model of spacy
 en = spacy.load('en_core_web_sm')
@@ -17,6 +18,8 @@ import string
 additional_stopwords = ['of']
 stopwords.update(additional_stopwords)
 
+# Load the non-human ontology filter
+non_human_umls = filterSAB()
 
 '''
 Description:
@@ -45,12 +48,6 @@ def preprocessOntology(term):
 def allowedTermLength(term):
     return True if len(term.split()) > 1 else False
 
-def removePunct(term):
-    return term.translate(str.maketrans('', '', string.punctuation))
-
-def removeNum(term):
-    return ''.join([i for i in term if not i.isdigit()])
-
 def countTerm(umls):
 
     flagger = 0
@@ -58,6 +55,13 @@ def countTerm(umls):
         if len(v) > 500:
             flagger = flagger + 1
     return flagger
+
+def removeNonHuman(umls_d):
+
+    for i in non_human_umls:
+        umls_d.pop(i, None)
+
+    return umls_d
 
 '''
 Description:
@@ -85,35 +89,46 @@ def loadUMLS():
             term = row[3]
             processed_term = preprocessOntology(term)
 
-            if 'P' in row[-1] and '-' not in row[-1] and allowedTermLength(processed_term) == True:
+            if '-' in row[-1]:
+                abstain = True
+            else:
+                abstain = False
+
+            if 'P' in row[-1] and allowedTermLength(processed_term) == True:
                 if ontology not in umls_p:
-                    umls_p[ ontology ] = {processed_term}
+                    umls_p[ ontology ] = { (processed_term, abstain) }
                 else:
-                    umls_p[ontology].add(processed_term)
+                    umls_p[ontology].add( (processed_term, abstain) )
 
-            if 'I' in row[-1] and '-' not in row[-1] and allowedTermLength(processed_term) == True:
+            if 'I' in row[-1] and allowedTermLength(processed_term) == True:
                 if ontology not in umls_i:
-                    umls_i[ ontology ] = {processed_term}
+                    umls_i[ ontology ] = { (processed_term, abstain) }
                 else:
-                    umls_i[ontology].add(processed_term)
+                    umls_i[ontology].add( (processed_term, abstain) )
 
-            if 'O' in row[-1] and '-' not in row[-1] and allowedTermLength(processed_term) == True:
+            if 'O' in row[-1] and allowedTermLength(processed_term) == True:
+
                 if ontology not in umls_o:
-                    umls_o[ ontology ] = {processed_term}
+                    umls_o[ ontology ] = { (processed_term, abstain) }
                 else:
-                    umls_o[ontology].add(processed_term)
+                    umls_o[ontology].add( (processed_term, abstain) )
 
             # if counter == 400:
             #     break
 
-    # Remove ontologies with less than 500 terms
+    # Remove ontologies with less than 500 terms 
     umls_p = {k: v for k, v in umls_p.items() if len(v) > 500}
     umls_i = {k: v for k, v in umls_i.items() if len(v) > 500}
     umls_o = {k: v for k, v in umls_o.items() if len(v) > 500}
 
-    print( countTerm(umls_p) )
-    print( countTerm(umls_i) )
-    print( countTerm(umls_o) )
+    # if the ontology is not relevant to "human" class, remove it
+    umls_p = removeNonHuman(umls_p)
+    umls_i = removeNonHuman(umls_i)
+    umls_o = removeNonHuman(umls_o)
+
+    # print( countTerm(umls_p) )
+    # print( countTerm(umls_i) )
+    # print( countTerm(umls_o) )
 
     return umls_p, umls_i, umls_o
 
