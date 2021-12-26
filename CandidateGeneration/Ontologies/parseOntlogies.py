@@ -6,11 +6,44 @@ def ParseOntDoc(a):
 
 print( ParseOntDoc.__doc__ )
 
-import os
-import errno
-from collections import defaultdict
-import msgpack
 import csv
+import errno
+import os
+import sqlite3
+from collections import defaultdict
+from sqlite3 import Error
+
+import msgpack
+import pandas as pd
+
+def init_sqlite_tables(fpath, dataframe):
+
+    conn = sqlite3.connect(fpath)
+    sql = """CREATE TABLE IF NOT EXISTS terminology1 (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    SAB text NOT NULL,
+                    TUI text NOT NULL,
+                    CUI text NOT NULL,
+                    TERM text NOT NULL,
+                    STY text NOT NULL,
+                    PICO text NOT NULL
+                );"""
+    conn.execute(sql)
+
+    sql = """CREATE INDEX IF NOT EXISTS idx_sources 
+                        ON terminology1 (sab);"""
+    conn.execute(sql)
+
+    sql = """CREATE INDEX IF NOT EXISTS idx_source_terms 
+                ON terminology1 (sab, tui);"""
+    conn.execute(sql)
+
+    rows = list(dataframe.itertuples())
+    conn.executemany(
+        "INSERT into terminology1(SAB, TUI, CUI, TERM, STY, PICO) values (?,?,?,?,?,?)", rows)
+    conn.commit()
+    conn.close()
+
 
 def cui2tuiMapper(indir, outdir, tui2pio):
 
@@ -61,7 +94,7 @@ def cui2tuiMapper(indir, outdir, tui2pio):
     # MRCONSO.RRF
     with open(f'{indir}/MRCONSO.RRF', 'r') as fp, open(
             f'{outdir}/concepts.tsv', 'w') as op:
-        op.write('SAB\tTUI\tCUI\tTERM\tSemanticGroup\tPICO\n')
+        op.write('SAB\tTUI\tCUI\tTERM\tSTY\tPICO\n')
         for line in fp:
             row = line.strip().split('|')
             cui, sab, term = row[0], row[11], row[14]
@@ -73,8 +106,29 @@ def cui2tuiMapper(indir, outdir, tui2pio):
 
     print('Completed mapping CUIs to TUIs and stored the file in directory: ', outdir)
 
+    df = pd.read_csv(
+        f'{outdir}/concepts.tsv',
+        sep='\t',
+        header=0,
+        quotechar=None,
+        quoting=3,
+        index_col=0,
+        na_filter=False,
+        dtype={
+            'SAB': 'object',
+            'TUI': 'object',
+            'CUI': 'object',
+            'TERM': 'object',
+            'STY': 'object',
+            'PICO': 'object'
+        }
+    )
+
+    # Open the written file and load it into MySQL
+    init_sqlite_tables(f'{outdir}/umls.db', df)
+
 indir = '/mnt/nas2/data/systematicReview/UMLS/english_subset/2021AB/META'
 outdir = '/mnt/nas2/data/systematicReview/UMLS/english_subset/umls_preprocessed'
 f_tui2pio = '/mnt/nas2/data/systematicReview/UMLS/english_subset/umls_preprocessed/tui_pio.tsv'
 
-#cui2tuiMapper(indir, outdir, f_tui2pio)
+# cui2tuiMapper(indir, outdir, f_tui2pio)
