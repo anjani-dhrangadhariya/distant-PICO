@@ -8,7 +8,8 @@ import csv
 
 import pandas as pd
 import spacy
-from CandGenUtilities.labeler_utilities import filterSAB
+import sqlite3 
+from OntoUtils import filterSAB
 
 #loading the english language small model of spacy
 en = spacy.load('en_core_web_sm')
@@ -85,6 +86,7 @@ def loadUMLS():
         rd = csv.reader(fd, delimiter="\t", quotechar='"')
         next(rd, None)
         for counter, row in enumerate(rd):
+
             ontology = row[0]
             term = row[3]
             processed_term = preprocessOntology(term)
@@ -121,7 +123,7 @@ def loadUMLS():
     umls_i = {k: v for k, v in umls_i.items() if len(v) > 500}
     umls_o = {k: v for k, v in umls_o.items() if len(v) > 500}
 
-    # if the ontology is not relevant to "human" class, remove it
+    # If the ontology is not relevant to "Human" class, remove it
     umls_p = removeNonHuman(umls_p)
     umls_i = removeNonHuman(umls_i)
     umls_o = removeNonHuman(umls_o)
