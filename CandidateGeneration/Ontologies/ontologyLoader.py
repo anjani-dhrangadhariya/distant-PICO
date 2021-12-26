@@ -24,29 +24,20 @@ from Ontologies.parseOntlogies import createMySQLConn
 
 
 
-def select_all_tasks(conn):
+def selectTerminology(conn, pico_category):
     """
     Query all rows in the tasks table
     :param conn: the Connection object
     :return:
     """
+
+    pico_category =  '%'+pico_category+'%'
     cur = conn.cursor()
-    cur.execute("SELECT * FROM terminology1")
+    cur.execute("SELECT * FROM terminology1 WHERE PICO LIKE ?", (pico_category,))
 
     rows = cur.fetchall()
 
     return rows
-
-
-def loadUMLSdb(fpath):
-
-    conn = createMySQLConn( fpath )
-
-    rows = select_all_tasks(conn)
-
-    print(len(rows))
-
-
 
 '''
 Description:
@@ -58,65 +49,25 @@ Args:
 Returns:
     UMLS ontologies (dict, dict, dict): three dictionaries (each corresponding to P, I/C and O) containing ontology terms grouped by Ontology 
 '''
-def loadUMLS():
+def loadUMLSdb(fpath, label, remove_vet = True):
 
-    inputFile = '/mnt/nas2/data/systematicReview/UMLS/english_subset/umls_preprocessed/concepts.tsv'
+    umls = dict()
 
-    umls_p = dict()
-    umls_i = dict()
-    umls_o = dict()
+    conn = createMySQLConn( fpath )
 
-    with open(inputFile) as fd:
-        rd = csv.reader(fd, delimiter="\t", quotechar='"')
-        next(rd, None)
-        for counter, row in enumerate(rd):
+    rows = selectTerminology(conn, label)
 
-            ontology = row[0]
-            term = row[3]
-            processed_term = preprocessOntology(term)
+    df = pd.DataFrame(rows, columns=['idx', 'SAB', 'TUI', 'CUI', 'TERM', 'STY', 'PICOS'])
 
-            if '-' in row[-1]:
-                abstain = True
-            else:
-                abstain = False
+    df['TERM_PRE'] = df.TERM.apply(preprocessOntology)
 
-            if 'P' in row[-1] and allowedTermLength(processed_term) == True:
-                if ontology not in umls_p:
-                    umls_p[ ontology ] = { (processed_term, abstain) }
-                else:
-                    umls_p[ontology].add( (processed_term, abstain) )
+    df_new = df.groupby(['SAB']).apply(lambda x: list(zip( x.TERM_PRE , x.PICOS))).to_dict()
 
-            if 'I' in row[-1] and allowedTermLength(processed_term) == True:
-                if ontology not in umls_i:
-                    umls_i[ ontology ] = { (processed_term, abstain) }
-                else:
-                    umls_i[ontology].add( (processed_term, abstain) )
+    if remove_vet == True:
+        df_new = removeNonHuman(df_new)
 
-            if 'O' in row[-1] and allowedTermLength(processed_term) == True:
+    return df_new
 
-                if ontology not in umls_o:
-                    umls_o[ ontology ] = { (processed_term, abstain) }
-                else:
-                    umls_o[ontology].add( (processed_term, abstain) )
-
-            # if counter == 400:
-            #     break
-
-    # Remove ontologies with less than 500 terms 
-    umls_p = {k: v for k, v in umls_p.items() if len(v) > 500}
-    umls_i = {k: v for k, v in umls_i.items() if len(v) > 500}
-    umls_o = {k: v for k, v in umls_o.items() if len(v) > 500}
-
-    # If the ontology is not relevant to "Human" class, remove it
-    umls_p = removeNonHuman(umls_p)
-    umls_i = removeNonHuman(umls_i)
-    umls_o = removeNonHuman(umls_o)
-
-    # print( countTerm(umls_p) )
-    # print( countTerm(umls_i) )
-    # print( countTerm(umls_o) )
-
-    return umls_p, umls_i, umls_o
 
 '''
 Description:
