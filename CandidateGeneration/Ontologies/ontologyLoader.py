@@ -83,18 +83,20 @@ def loadDO():
 
     inputFile = '/mnt/nas2/data/systematicReview/Ontologies/participant/DOID.csv'
     doid = []
+    doid_syn = []
 
     with open(inputFile) as fd:
         rd = csv.reader(fd, delimiter=",")
         next(rd, None)
         for counter, row in enumerate(rd):
             doid.append( row[1] )
+
             if row[2]:
                 synonyms = row[2]
                 synonyms = synonyms.split('|')
-                doid.extend( synonyms )
+                doid_syn.extend( synonyms )
 
-    return doid
+    return doid, doid_syn
 
 '''
 Description:
@@ -110,6 +112,7 @@ def loadCTDdisease():
 
     inputFile = '/mnt/nas2/data/systematicReview/Ontologies/participant/CTD_diseases.csv'
     ctd_disease = []
+    ctd_disease_syn = []
 
     with open(inputFile) as fd:
         rd = csv.reader(fd, delimiter=",")
@@ -119,36 +122,9 @@ def loadCTDdisease():
             if row[7]:
                 synonyms = row[7]
                 synonyms = synonyms.split('|')
-                ctd_disease.extend( synonyms )
+                ctd_disease_syn.extend( synonyms )
 
-    return ctd_disease
-
-'''
-Description:
-    This function loads a dictionary of CDC (Centers for Disease Control and Prevention) Race and Ethnicity set compiled from
-    https://www.cdc.gov/nchs/data/dvs/race_ethnicity_codeset.pdf
-
-Args:
-    None 
-
-Returns:
-    CDC dictionary (list): A list containing all the terms from CDC (Centers for Disease Control and Prevention) Race and Ethnicity set 
-'''
-def loadRaceEthnicity():
-
-    inputFile = '/mnt/nas2/data/systematicReview/Ontologies/participant/cdc_race_ethnicity_codeset_v1.csv'
-
-    race_eth = []
-
-    with open(inputFile) as fd:
-        rd = csv.reader(fd, delimiter=",")
-        next(rd, None)
-        for counter, row in enumerate(rd):
-            race_eth.append( row[2] )
-            if row[3]:
-                race_eth.append( row[3] )
-
-    return race_eth
+    return ctd_disease, ctd_disease_syn
 
 '''
 Description:
@@ -189,6 +165,7 @@ def loadCTDchem():
 
     inputFile = '/mnt/nas2/data/systematicReview/Ontologies/intervention/CTD_chemicals.tsv'
     ctd_chem = []
+    ctd_chem_syn = []
 
     with open(inputFile) as fd:
         rd = csv.reader(fd, delimiter="\t")
@@ -198,10 +175,9 @@ def loadCTDchem():
             if len(row[7]) > 2:
                 synonyms = row[7]
                 synonyms = synonyms.split('|')
-                ctd_chem.extend( synonyms )
+                ctd_chem_syn.extend( synonyms )
 
-    return ctd_chem
-
+    return ctd_chem, ctd_chem_syn
 
 '''
 Description:
@@ -218,6 +194,7 @@ def loadChEBI():
     inputFile = '/mnt/nas2/data/systematicReview/Ontologies/intervention/CHEBI.csv'
 
     chebi = []
+    chebi_syn = []
 
     with open(inputFile) as fd:
         rd = csv.reader(fd, delimiter=",")
@@ -229,18 +206,4 @@ def loadChEBI():
                 synonyms = synonyms.split('|')
                 chebi.extend( synonyms )
 
-    return chebi
-
-
-def loadOntology():
-
-    umls_p, umls_i, umls_o = loadUMLS()
-    race_eth = loadRaceEthnicity()
-    ctd_disease = loadCTDdisease()
-    doid = loadDO()
-    genders = loadGenders()
-
-    ctd_chem = loadCTDchem()
-    chebi = loadChEBI()
-
-    return None
+    return chebi, chebi_syn
