@@ -72,8 +72,43 @@ abstain_options = abstainOption()
 # Initialize Labeling function sources
 ################################################################################
 
-# Retrieve the UMLS arm of PICOS annotation
-loadUMLSdb('/mnt/nas2/data/systematicReview/UMLS/english_subset/umls_preprocessed/umls.db')
+try:
+
+    umls_db = '/mnt/nas2/data/systematicReview/UMLS/english_subset/umls_preprocessed/umls.db'
+    
+    # Retrieve the UMLS arm of PICOS annotation
+    umls_p  = loadUMLSdb(umls_db, 'P')    
+    umls_i = loadUMLSdb(umls_db, 'I')
+    umls_o = loadUMLSdb(umls_db, 'O')
+
+    # Retrieve non-UMLS Ontologies 
+    p_DO, p_DO_syn = loadDO()
+    p_ctd, p_ctd_syn = loadCTDdisease()
+    i_ctd, i_ctd_syn = loadCTDchem()
+    i_chebi, i_chebi_syn = loadChEBI()
+
+    # Load external dictionaries
+    p_genders = loadGenders()
+
+
+    # TODO Retrieve distant supervision sources
+
+
+
+
+
+
+except Exception as ex:
+    
+    template = "An exception of type {0} occurred. Arguments:{1!r}"
+    message = template.format(type(ex).__name__, ex.args)
+    print( message )
+
+    exc_type, exc_obj, exc_tb = sys.exc_info()
+    fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+    print(exc_type, fname, exc_tb.tb_lineno)
+
+    print(traceback.format_exc())
 
 
 
@@ -156,6 +191,10 @@ with open(theFile, 'a+') as wf:
 
             # Expand the targets of PICOS annotation
             expanded_targets = expandTargets(protocol_section, targets)
+
+
+
+
 
             #################################################################
             # Direct matching begins
