@@ -77,9 +77,12 @@ try:
     umls_db = '/mnt/nas2/data/systematicReview/UMLS/english_subset/umls_preprocessed/umls.db'
     
     # Retrieve the UMLS arm of PICOS annotation
-    umls_p  = loadUMLSdb(umls_db, 'P')    
-    umls_i = loadUMLSdb(umls_db, 'I')
-    umls_o = loadUMLSdb(umls_db, 'O')
+    print('Retrieving UMLS ontology arm (Preprocessing applied)')
+    # umls_p  = loadUMLSdb(umls_db, 'P')    
+    # umls_i = loadUMLSdb(umls_db, 'I')
+    # umls_o = loadUMLSdb(umls_db, 'O')
+
+    # print( umls_p.keys() )
 
     # Retrieve non-UMLS Ontologies 
     p_DO, p_DO_syn = loadDO()
@@ -92,11 +95,6 @@ try:
 
 
     # TODO Retrieve distant supervision sources
-
-
-
-
-
 
 except Exception as ex:
     
@@ -132,7 +130,7 @@ results_gen = helpers.scan(
 match_scores = []
 intervention_types = []
 
-res = es.search(index="ctofull2021-index", body={"query": {"match_all": {}}}, size=5)
+res = es.search(index="ctofull2021-index", body={"query": {"match_all": {}}}, size=10)
 print('Total number of records retrieved: ', res['hits']['total']['value'])
 
 # theFile ='/mnt/nas2/data/systematicReview/clinical_trials_gov/distant_pico_pre/secondary_outcomes.txt'
@@ -173,28 +171,28 @@ with open(theFile, 'a+') as wf:
             # Retrieve the distant supervision sources of PICOS annotation (TODO: This is some form of ETL if multiple data sources were involved!!!)
             #############################################################################
             participants = fetchParticipantSources(protocol_section)
+            expanded_condition = expandCondition(participants['p_condition'], fetch_pos=True, fetch_abb=True)
+
             intervention_comparator = fetchIntcompSources(protocol_section)
+            expanded_intervention = expandIntervention(intervention_comparator, fetch_pos=True, fetch_abb=True)
+
             outcomes = fetchOutcomeSources(protocol_section)
+            expanded_outcome = expand_o(protocol_section, outcomes)
+
             study_type = fetchStdTypeSources(protocol_section)
 
             sources = {**participants, **intervention_comparator, **outcomes, **study_type}
 
 
             # Scenario I.Weak labeling: Distant Supervision
-            expanded_sources_i = expandSources_i(protocol_section, sources)
+            # expanded_sources_i = expandSources_ii(protocol_section, sources)
 
-            # Scenario II. Weak labeling: Distant Supervision + Task-specific rules
-            # expanded_sources_ii = expandSources_ii(protocol_section, sources) 
 
             # Retrieve the targets of PICOS annotation
-            targets = fetchTargets(protocol_section)
+            # targets = fetchTargets(protocol_section)
 
             # Expand the targets of PICOS annotation
-            expanded_targets = expandTargets(protocol_section, targets)
-
-
-
-
+            # expanded_targets = expandTargets(protocol_section, targets)
 
             #################################################################
             # Direct matching begins
