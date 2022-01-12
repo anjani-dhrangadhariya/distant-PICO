@@ -114,7 +114,17 @@ sentence_mapper = []
 
 try:
 
-    print('XYZ')
+    corpus = []
+
+    train_dir = '/mnt/nas2/data/systematicReview/clinical_trials_gov/Weak_PICO/groundtruth/ebm_nlp'
+    with open(f'{train_dir}/{args.entity}/sentences.txt', 'r') as rf:
+        for eachStudy in rf:
+            data = json.loads(eachStudy)
+            
+            for k,v in data.items():
+                corpus.extend( v[0] )
+
+    
 
 except Exception as ex:
     
