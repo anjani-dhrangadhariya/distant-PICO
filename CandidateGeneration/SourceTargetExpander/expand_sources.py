@@ -24,18 +24,8 @@ from SourceTargetExpander.SourceExpander.expand_interventions import *
 from SourceTargetExpander.SourceExpander.expand_outcomes import *
 from SourceTargetExpander.SourceExpander.expand_stdtype import *
 
-def expand_o(json_object, sources):
+def expand_s(json_object, sources):
 
-    
-    # if 'o_name' in sources:
-    #     expanded_prim_outcomes = expandOutcomes(sources['o_name'])
-    #     expanded_sources['eo_name'] = expanded_prim_outcomes
+    expanded_studytype = expandStudyType(sources['s_type'])
 
-    # # -------------------------------------------------------------------------------------
-    # # Study type
-    # # -------------------------------------------------------------------------------------
-    # if 's_type' in sources:
-    #     expanded_studytype = expandStudyType(sources['s_type'])
-    #     expanded_sources['es_type'] = expanded_studytype
-
-    return expanded_intervention
+    return expanded_studytype

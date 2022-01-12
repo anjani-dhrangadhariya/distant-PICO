@@ -28,23 +28,27 @@ def expandOutcomes(outcome_source, fetch_pos = True, fetch_abb = True):
 
     expanded_outcome = dict()
 
+    values = []
+
     for key, value in outcome_source.items():
         if fetch_abb == True:
             if '(' in value or ')' in value or '[' in value  or ']' in value:
                 abbreviations = fetchAcronyms(value)
                 if abbreviations is not None:
-                    values = abbreviations
+                    values.extend(abbreviations) 
                 else:
-                    values = [value] # If no abbreviations found
+                    values.extend([value])  # If no abbreviations found
             else:
-                values = [value] # If no round brackets found
+                values.extend([value]) # If no round brackets found
         else:
-            values = [value] # If abbreviations are not to be retrieved
+            values.extend([value]) # If abbreviations are not to be retrieved
 
+    # After retrieving all the abbreviations, add the POS tags
+    for i, eachValue in enumerate( list(set(values)) ):
+
+        key1 = key + '_' + str(i)
         if fetch_pos == True:
-            expanded_outcome = appendPOSSED(expanded_outcome, values, key)
-
-        else:
-            expanded_outcome[key] = value
+            possed = getPOStags( eachValue )
+            expanded_outcome[key1] = possed
 
     return expanded_outcome
