@@ -177,134 +177,15 @@ with open(theFile, 'a+') as wf:
             expanded_intervention = expandIntervention(intervention_comparator, fetch_pos=True, fetch_abb=True)
 
             outcomes = fetchOutcomeSources(protocol_section)
-            expanded_outcome = expand_o(protocol_section, outcomes)
+            expanded_prim_outcomes = expandOutcomes(outcomes, fetch_pos = True, fetch_abb = True)
 
-            study_type = fetchStdTypeSources(protocol_section)
+            study_type = fetchStdTypeSources(protocol_section) # TODO: Expand the study type sources
 
-            sources = {**participants, **intervention_comparator, **outcomes, **study_type}
-
-
-            # Scenario I.Weak labeling: Distant Supervision
-            # expanded_sources_i = expandSources_ii(protocol_section, sources)
+            # Write the sources to a files
 
 
-            # Retrieve the targets of PICOS annotation
-            # targets = fetchTargets(protocol_section)
-
-            # Expand the targets of PICOS annotation
-            # expanded_targets = expandTargets(protocol_section, targets)
-
-            #################################################################
-            # Direct matching begins
-            # P = 1, I/C = 2, O = 3, S = 4, ABSTAIN = -1, Ospan = 0
-            # expanded_sources: All the sources from entire CTO NCTIDs; expanded_targets: All the targets from entire CTO NCTIDs
-            #################################################################  
-            o_annotation_collector = []
-            annotation_collector = []
-
-            # Scenario I.Weak labeling: Ontology
-            # scenario_1_annotations = scheme_i( expanded_sources_i, expanded_targets, PICOS, abstain_options )
-
-            # Scenario II. Weak labeling: Ontology + (Distant Supervision + Task-specific rules)
-            # scenario_2_annotations = scheme_ii( sources, expanded_targets, PICOS )
-
-            '''
-            for key, value in expanded_sources.items():
-
-                if 'gender' in key:
-                    candidate_targets = mapping[key]
-                    gender_annotations = directAligner( value, expanded_targets, candidate_targets, PICOS['P'] )
-                    if gender_annotations and len( getSecOrdKeys(gender_annotations) ) > 1:
-                        annotation_collector.append( gender_annotations )
 
 
-                if 'sample_size' in key:
-                    candidate_targets = mapping[key]
-                    sampsize_annotations = directAligner( [value], expanded_targets, candidate_targets, PICOS['P'] )   # direct aligner expects values as lists       
-                    if sampsize_annotations and len( getSecOrdKeys(sampsize_annotations) ) > 1:
-                        annotation_collector.append( sampsize_annotations )
-
-                if 'age' in key:
-                    candidate_targets = mapping[key]
-                    stdage_annotations = directAligner( value['StdAge'], expanded_targets, candidate_targets, PICOS['P'] )
-                    if stdage_annotations and len( getSecOrdKeys(stdage_annotations) ) > 1:
-                        annotation_collector.append( stdage_annotations )
-
-                    if 'exactAge' in value:
-                        exctage_annotattions = regexAligner( [value['exactAge']], expanded_targets, candidate_targets, PICOS['P'] ) # reGeX aligner expects values as lists   
-                        if exctage_annotattions and len( getSecOrdKeys(exctage_annotattions) ) > 1:
-                            annotation_collector.append( exctage_annotattions )                 
-
-                if 'condition' in key:
-                    candidate_targets = mapping[key]
-                    condition_annotations = longTailConditionAligner( value, expanded_targets, candidate_targets, PICOS['P'] )
-                    if condition_annotations and len( getSecOrdKeys(condition_annotations) ) > 1:
-                        annotation_collector.append( condition_annotations )
-
-                if 'ei_name' in key: 
-                    candidate_targets = mapping[key]
-                    int_annotations = longTailInterventionAligner( value, expanded_targets, candidate_targets, PICOS['IC'] )
-                    if int_annotations and len( getSecOrdKeys(int_annotations) ) > 1:
-                        annotation_collector.append( int_annotations )
-
-                if 'ei_syn' in key:
-                    candidate_targets = mapping[key]
-                    int_syn_annotations = longTailInterventionAligner( value, expanded_targets, candidate_targets, PICOS['IC'] )
-                    if int_syn_annotations and len( getSecOrdKeys(int_syn_annotations) ) > 1:
-                        annotation_collector.append( int_syn_annotations )
-
-                if 'eo_name' in key:
-                  
-                    if args.o_labeler1 == True:
-                        # Labeler 1 - Direct match
-                        candidate_targets = mapping[key]
-                        out_annotations_L1 = longTailOutcomeAligner( value, expanded_targets, candidate_targets, PICOS['O'] )
-                        if out_annotations_L1 and len( getSecOrdKeys(out_annotations_L1) ) > 1:
-                            out_annotations_L1 = merge_sources( out_annotations_L1 )
-                            o_annotation_collector.append( out_annotations_L1 )
-
-                    if args.o_labeler2 == True:
-                        # Labeler 2 POS labeler
-                        out_annotations_L2 = outcomePOSaligner( expanded_targets, candidate_targets, PICOS['O'], allowedPOS() )
-                        if out_annotations_L2:
-                            o_annotation_collector.append( out_annotations_L2 )
-
-
-                if 'es_type' in key and 'N.A.' not in value:
-                    candidate_targets = mapping[key]
-                    studytype_annotations = regexAligner( [value], expanded_targets, candidate_targets, PICOS['S'] )   # direct aligner expects values as lists       
-                    if studytype_annotations and len( getSecOrdKeys(studytype_annotations) ) > 1:
-                        annotation_collector.append( studytype_annotations )
-
-            # All the annotations for individual entities are collected here
-            if o_annotation_collector:
-                # print( o_annotation_collector )
-                for lf1, lf2 in zip( o_annotation_collector[0], o_annotation_collector[1] ):
-                    # print( lf1, ' : ', lf2 )
-                    l1 = o_annotation_collector[0][lf1]
-                    l2 = o_annotation_collector[1][lf2]
-
-                    for sentence_l1, sentence_l2 in zip( l1, l2 ):
-                        common_tokens = l1[sentence_l1]['tokens']
-                        l1_labels = l1[sentence_l1][str(3)]
-                        l2_labels = l2[sentence_l2][str(3)]
-
-                        if set(l1_labels) != -1 and set(l2_labels) != -1:
-                            hit_tokens.extend( common_tokens )
-                            for wl1, wl2 in zip( l1_labels, l2_labels ):
-                                hit_l1l2_labels.append( [ int(wl1), int(wl2), int(3) ] )
-            '''
-
-
-            # Direct global aggregation 
-            # globally_aggregated = global_annot_aggregator(annotation_collector)
-
-            # # Resolve the overlapping labels
-            # globally_merged = merge_labels(globally_aggregated)
-
-            # # Add CTO identifiers to the annotations
-            # globally_merged['id'] = NCT_id
-            # globally_aggregated['id'] = NCT_id
 
             # dump to file
             # json.dump(globally_aggregated, awf)
