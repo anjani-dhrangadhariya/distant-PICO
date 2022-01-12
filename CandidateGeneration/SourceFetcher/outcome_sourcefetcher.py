@@ -29,8 +29,7 @@ def fetchPrimaryOutcome(json_document):
                 for i, eachOutcome in enumerate(primOutcome):
                     if 'PrimaryOutcomeMeasure' in eachOutcome:
                         primOutcome = eachOutcome['PrimaryOutcomeMeasure']
-                        possed_source = getPOStags( str(primOutcome) )
-                        outcomes_list['PrimaryOutcome_' + str(i)] = possed_source
+                        outcomes_list['PrimaryOutcome_' + str(i)] = primOutcome
 
     return outcomes_list
 
@@ -55,8 +54,7 @@ def fetchSecondaryOutcome(json_document):
                 for i, eachOutcome in enumerate(secondOutcome) :
                     if 'SecondaryOutcomeMeasure' in eachOutcome:
                         secondOutcome = eachOutcome['SecondaryOutcomeMeasure']
-                        possed_source = getPOStags( str(secondOutcome) )
-                        outcomes_list['SecondaryOutcome_'+str(i)] = possed_source
+                        outcomes_list['SecondaryOutcome_'+str(i)] = secondOutcome
 
     return outcomes_list 
 
@@ -76,11 +74,9 @@ def fetchOutcomeSources(json_document):
     combined_sources = dict()
 
     o_primary = fetchPrimaryOutcome(json_document)
-    # combined_sources['o_primary'] = o_primary
-
     o_secondary = fetchSecondaryOutcome(json_document)
-    # combined_sources['o_secondary'] = o_secondary
 
-    combined_sources['o_name'] = {**o_primary, **o_secondary}
+    if {**o_primary, **o_secondary}:
+        combined_sources = {**o_primary, **o_secondary}
 
     return combined_sources

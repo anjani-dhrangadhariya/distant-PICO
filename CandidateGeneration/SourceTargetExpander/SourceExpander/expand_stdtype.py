@@ -33,12 +33,12 @@ def expandStudyType(studytype_source):
     if 'Randomized' not in studytype_source:
         return 'N.A.'
     elif studytype_source == 'Randomized':
-        expanded_studytype_source['regex'] = randomized_source_pattern
-        expanded_studytype_source['dictionary'] = ['RCT']
+        # expanded_studytype_source['regex'] = randomized_source_pattern
+        expanded_studytype_source['dictionary'] = ['RCTs', 'RCT']
         # return re.compile(randomized_source_pattern)
         return expanded_studytype_source
     elif studytype_source == 'Non-Randomized':
         # return re.compile(nonrandomized_source_pattern)
-        expanded_studytype_source['regex'] = nonrandomized_source_pattern
+        # expanded_studytype_source['regex'] = nonrandomized_source_pattern
         expanded_studytype_source['dictionary'] = ['non RCTs', 'non RCT']
         return expanded_studytype_source

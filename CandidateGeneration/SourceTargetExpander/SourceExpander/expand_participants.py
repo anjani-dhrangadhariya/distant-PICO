@@ -24,8 +24,8 @@ Returns:
 '''
 def expandGender(gender_source):
 
-    male_source = ['Male', 'Males', ' Men ', ' Man ', 'Boy', 'Boys']
-    female_source = ['Female', 'Females', 'Women', 'Woman', 'Girl', 'Girls']
+    male_source = ['Male', 'Males']
+    female_source = ['Female', 'Females']
 
     expanded_gender_source = {}
 
@@ -115,21 +115,30 @@ Args:
 Returns:
     dictionary: returns a dictionary of expanded condition terms along with their abbreviations
 '''
-def expandCondition(condition_source, fetch_pos = False, fetch_abb = True):
+def expandCondition(condition_source, fetch_pos = True, fetch_abb = True):
 
-    expanded_condition_source = {}
+    expanded_condition_source = []
+    expanded_condition_dict = {}
 
-    for cond_i in condition_source:
+    for key, cond_i in condition_source.items():
+
         expanded_acronyms = fetchAcronyms( cond_i )
 
         if expanded_acronyms is not None:
-            expanded_condition_source['dictionary'] = expanded_acronyms
-            expanded_condition_source['dictionary'].append(cond_i) # also extend with the original value
+            expanded_condition_source.extend( expanded_acronyms )
+            expanded_condition_source.extend( [cond_i] ) # also extend with the original value
 
         else:
-            expanded_condition_source['dictionary'] = cond_i
+            expanded_condition_source.extend( [cond_i] ) #
 
-    return expanded_condition_source
+
+        # After retrieving all the abbreviations, add the POS tags
+        for i, eachValue in enumerate(expanded_condition_source):
+            if fetch_pos == True:
+                possed =  getPOStags( eachValue )
+                expanded_condition_dict[key] = possed
+
+    return expanded_condition_dict
 
 def expandSampleSize(sampsize_source):
 

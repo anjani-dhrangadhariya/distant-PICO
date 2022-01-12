@@ -21,14 +21,15 @@ Returns:
 def fetchParticipantCondition(json_document):
 
     conditionInfo = {}
+    conditionList = []
 
     if 'ConditionsModule' in json_document:
         if 'ConditionList' in json_document['ConditionsModule']:
             conditionList = json_document['ConditionsModule']['ConditionList']['Condition']
 
             for i, eachCondition in enumerate(conditionList):
-                    possed_source = getPOStags( str(eachCondition) )
-                    conditionInfo['name_' +str(i)] = possed_source
+                    #possed_source = getPOStags( str(eachCondition) )
+                    conditionInfo['name_' + str(i)] = eachCondition
 
     return conditionInfo
 
@@ -136,6 +137,7 @@ def fetchParticipantSources(json_document):
     combined_sources = dict()
 
     p_condition = fetchParticipantCondition(json_document)
+
     p_age = fetchParticipantAge(json_document)
     p_gender = fetchParticipantGender(json_document)
     p_sampsize = fetchParticipantSampSize(json_document)

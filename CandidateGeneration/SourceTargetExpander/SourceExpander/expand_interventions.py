@@ -19,47 +19,51 @@ def expandIntervention(intervention_source, fetch_pos = True, fetch_abb = True):
 
     expanded_intervention = dict()
 
+    values = []
+
     for key, value in intervention_source.items():
 
         if 'arm' not in key:
             
             if '&' in value and 'vs' not in value and ',' not in value  and ':' not in value and '(' not in value and '[' not in value: # ampersand              
-                values = value.split('&')
-                values.append( value )
+                value_ = [x.strip() for x in value.split('&')]
+                values.extend( value_ )
 
             elif '&' not in value and 'vs' in value and ',' not in value  and ':' not in value and '/' not in value and '(' not in value and '[' not in value: # versus
-                values = value.split('vs')
-                values.append( value )
+                value_ = [x.strip() for x in value.split('vs')]
+                values.extend( value_ )
 
-            elif '&' not in value and 'vs' not in value and ',' not in value  and ':' in value and '/' not in value and '(' not in value and '[' not in value: # semi-colon
-                values = value.split(':')
-                values.append( value )
+            elif '&' not in value and 'vs' not in value and ',' not in value  and ';' in value and '/' not in value and '(' not in value and '[' not in value: # semi-colon
+                value_ = [x.strip() for x in value.split(';')]
+                values.extend( value_ )
 
             elif '&' not in value and 'vs' not in value and ',' in value  and ':' not in value and '/' not in value and '(' not in value and '[' not in value: # comma
-                values = value.split(',')
-                values.append( value )
+                value_ = [x.strip() for x in value.split(',')]
+                values.extend( value_ )
 
             elif '&' not in value and 'vs' not in value and ',' not in value  and ':' not in value and '/' in value and '(' not in value and '[' not in value: # forward slash
-                values = value.split('/')
-                values.append( value )
+                value_ = [x.strip() for x in value.split('/')]
+                values.extend( value_ )
 
             elif '&' not in value and 'vs' not in value and ',' not in value  and ':' not in value and '/' not in value and ('(' in value or '[' in value): # abbreviations
                 abbreviations = fetchAcronyms(value)
                 if abbreviations is not None:
-                    values = abbreviations
+                    values.extend( abbreviations )
                 else:
-                    values = [value]
+                    values.extend([value])
 
             else:
-                values = [value]
+                values.extend([value])
 
-            # After retrieving all the abbreviations, add the POS tags
-            for i, eachValue in enumerate(values):
-                key1 = key + '_' + str(i)
-                if fetch_pos == True:
-                    expanded_intervention = appendPOSSED(expanded_intervention, [eachValue], key1)
+    # After retrieving all the abbreviations, add the POS tags
+    for i, eachValue in enumerate( list(set(values)) ):
 
-        # else: # XXX: Arms group intervention terms here! Won't be used for experimentation or candidate generation
-        #     expanded_intervention[key] = value
+        key1 = key + '_' + str(i)
+        if fetch_pos == True:
+            possed = getPOStags( eachValue )
+            expanded_intervention[key1] = possed
+
+    # else: # XXX: Arms group intervention terms here! Won't be used for experimentation or candidate generation
+    #     expanded_intervention[key] = value
 
     return expanded_intervention

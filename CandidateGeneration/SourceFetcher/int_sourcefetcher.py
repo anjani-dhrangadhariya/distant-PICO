@@ -30,8 +30,7 @@ def fetchIntervention(protocol_section):
 
                 for i, eachIntervention in enumerate(intervention):
                     if 'InterventionName' in eachIntervention:
-                        possed_source = getPOStags( str(eachIntervention['InterventionName']) )
-                        interventionInfo['name_' +str(i)] = possed_source
+                        interventionInfo['name_' +str(i)] = eachIntervention['InterventionName']
 
                     # if 'InterventionArmGroupLabelList' in eachIntervention:
                     #     interventionInfo['arm_name_' + str(i)] = eachIntervention['InterventionArmGroupLabelList']
@@ -62,8 +61,7 @@ def fetchInterventionSyn(protocol_section):
                         synonym_list = eachIntervention['InterventionOtherNameList']['InterventionOtherName']
                         for j, eachSynonym in enumerate(synonym_list):
                             key = 'name_syn_' + str(i) + '_' + str(j)
-                            possed_source = getPOStags( str(eachSynonym) )
-                            interventionInfo[key] = possed_source
+                            interventionInfo[key] = eachSynonym
 
     return interventionInfo
 
@@ -88,6 +86,6 @@ def fetchIntcompSources(json_document):
 
 
     if {**i_name, **i_syn}:
-        combined_sources['i_name'] = {**i_name, **i_syn}
+        combined_sources = {**i_name, **i_syn}
 
     return combined_sources
