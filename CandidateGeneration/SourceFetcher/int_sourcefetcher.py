@@ -88,4 +88,4 @@ def fetchIntcompSources(json_document):
     if {**i_name, **i_syn}:
         combined_sources = {**i_name, **i_syn}
 
-    return combined_sources
+    return i_name, i_syn
