@@ -57,9 +57,9 @@ def loadUMLSdb(fpath, label, remove_vet = True):
 
     rows = selectTerminology(conn, label)
 
-    df = pd.DataFrame(rows, columns=['idx', 'SAB', 'TUI', 'CUI', 'TERM', 'STY', 'PICOS'])
+    df = pd.DataFrame(rows, columns=['idx', 'SAB', 'TUI', 'CUI', 'TERM', 'STY', 'PICOS', 'TERM_PRE'])
 
-    df['TERM_PRE'] = df.TERM.apply(preprocessOntology)
+    # df['TERM_PRE'] = df.TERM.apply(preprocessOntology)
 
     df_new = df.groupby(['SAB']).apply(lambda x: list(zip( x.TERM_PRE , x.PICOS))).to_dict()
 

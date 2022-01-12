@@ -15,6 +15,29 @@ from sqlite3 import Error
 
 import msgpack
 import pandas as pd
+import spacy
+
+#loading the english language small model of spacy
+en = spacy.load('en_core_web_sm')
+stopwords = en.Defaults.stop_words
+import string
+
+additional_stopwords = ['of']
+stopwords.update(additional_stopwords)
+
+def preprocessOntology(term):
+
+    # remove stopwords
+    lst = [ token for token in term.split() if token.lower() not in stopwords ]
+    lst = ' '.join(lst)
+
+    # remove numbers
+    numRemove = ''.join([i for i in lst if not i.isdigit()])
+
+    # remove punctuation
+    punctRemove = numRemove.translate(str.maketrans(' ', ' ', string.punctuation))
+
+    return punctRemove
 
 def createMySQLConn(db_file):
     """ create a database connection to the SQLite database
@@ -30,7 +53,7 @@ def createMySQLConn(db_file):
 
     return conn
 
-@staticmethod
+# @staticmethod
 def init_sqlite_tables(fpath, dataframe):
 
     conn = createMySQLConn(fpath)
@@ -41,7 +64,8 @@ def init_sqlite_tables(fpath, dataframe):
                     CUI text NOT NULL,
                     TERM text NOT NULL,
                     STY text NOT NULL,
-                    PICO text NOT NULL
+                    PICO text NOT NULL,
+                    TERM_PRE text not NULL
                 );"""
     conn.execute(sql)
 
@@ -55,11 +79,11 @@ def init_sqlite_tables(fpath, dataframe):
 
     rows = list(dataframe.itertuples())
     conn.executemany(
-        "INSERT into terminology1(SAB, TUI, CUI, TERM, STY, PICO) values (?,?,?,?,?,?)", rows)
+        "INSERT into terminology1(SAB, TUI, CUI, TERM, STY, PICO, TERM_PRE) values (?,?,?,?,?,?,?)", rows)
     conn.commit()
     conn.close()
 
-@staticmethod
+# @staticmethod
 def cui2tuiMapper(indir, outdir, tui2pio):
 
     # validate that the UMLS source REFs are provided
@@ -139,11 +163,14 @@ def cui2tuiMapper(indir, outdir, tui2pio):
         }
     )
 
+    # Preprocess the ontology terms here
+    df['TERM_PRE'] = df.TERM.apply(preprocessOntology)
+
     # Open the written file and load it into MySQL
-    init_sqlite_tables(f'{outdir}/umls.db', df)
+    init_sqlite_tables(f'{outdir}/umls_pre.db', df)
 
 indir = '/mnt/nas2/data/systematicReview/UMLS/english_subset/2021AB/META'
 outdir = '/mnt/nas2/data/systematicReview/UMLS/english_subset/umls_preprocessed'
 f_tui2pio = '/mnt/nas2/data/systematicReview/UMLS/english_subset/umls_preprocessed/tui_pio.tsv'
 
-# cui2tuiMapper(indir, outdir, f_tui2pio)
+#cui2tuiMapper(indir, outdir, f_tui2pio)
