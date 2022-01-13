@@ -55,8 +55,15 @@ from LabelingFunctions.ontologyLF import *
 from Ontologies.ontologyLoader import *
 from sanity_checks import *
 
+'''
+                for m in matches:
+                    if m.span() in tokenized_spans:
+                        spans_for_annot.append( m.span() )
+                        matched_term.append( m.group() )
+'''
+
 ################################################################################
-# Initialize 
+# Initialize and set seed
 ################################################################################
 # Get the experiment arguments
 args = getArguments()
@@ -90,8 +97,6 @@ try:
     # umls_i = loadUMLSdb(umls_db, 'I')
     # umls_o = loadUMLSdb(umls_db, 'O')
 
-    # print( umls_p.keys() )
-
     # Retrieve non-UMLS Ontologies 
     p_DO, p_DO_syn = loadDO()
     p_ctd, p_ctd_syn = loadCTDdisease()
@@ -101,8 +106,9 @@ try:
     # Load external dictionaries
     p_genders = loadGenders()
 
-
     # TODO Retrieve distant supervision sources
+
+
 
 except Exception as ex:
     
@@ -181,25 +187,30 @@ try:
     assert len(re.split(' ', text)) == len(X_validation_flatten) == len( list(WhitespaceTokenizer().span_tokenize(text)) )
     spans = list(WhitespaceTokenizer().span_tokenize(text))
 
-
     # Randomly choose an ontology to map
     ontology_SAB = list(umls_p.keys())
-    key = ontology_SAB[1]
+    key = ontology_SAB[2]
 
     # Rank the ontology based on coverage on the validation set
     ranked_umls_p = rankSAB( umls_p )
 
     # Combine the ontologies into labeling functions
-    partitioned_umls_p = partitionRankedSAB( ranked_umls_p )
+    partitioned_umls_p = partitionRankedSAB( ranked_umls_p ) # Once best UMLS combination is obtained, use them as individual LF arms
 
     # Ontology labeling
-    OntologyLabelingFunction( text, corpus, spans, umls_p[key] )
+    ont_matches, ont_labels = OntologyLabelingFunction( text, X_validation_flatten, spans, umls_p[key] )
 
-    # TODO: Distant Supervision labeling
+    # TODO: Distant Supervision labeling - This could fit with Dictionary Labeling function
 
-    # TODO: Dictionary Labeling Function
+    # Dictionary Labeling Function
+    p_DO_ont_matches, p_DO_ont_labels  = DictionaryLabelingFunction( text, X_validation_flatten, spans, p_DO, 'P' )
+    p_DO_syn_ont_matches, p_DO_syn_ont_labels  = DictionaryLabelingFunction( text, X_validation_flatten, spans, p_DO_syn, 'P' )
+    gender_ont_matches, gender_ont_labels  = DictionaryLabelingFunction( text, X_validation_flatten, spans, p_genders, 'P' )
 
     # TODO: ReGeX Labeling Function
+
+
+    # TODO: External Model Labeling function
 
 
 
