@@ -2,11 +2,6 @@ from nltk.tokenize import WhitespaceTokenizer, sent_tokenize, word_tokenize
 from nltk import ngrams
 
 
-def getNgrams():
-
-
-    return None
-
 def expandTerm( term , max_ngram, fuzzy_match):
     
     expandedTerm = []
@@ -22,7 +17,6 @@ def expandTerm( term , max_ngram, fuzzy_match):
         bigrams = ngrams(term.split(), 2)
         expandedTerm.extend( [' '.join(x)  for x in list(bigrams)] )
 
-    # for each expanded term, further expanded it for variation
     for eT in expandedTerm:
         termVariations.extend( [eT, eT.lower(), eT.rstrip('s'), eT + 's'] )
 
