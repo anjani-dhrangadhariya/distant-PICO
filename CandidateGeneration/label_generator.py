@@ -175,11 +175,10 @@ try:
     
     df = pd.DataFrame( {'text': corpus, 'labels': corpus_labels} )
     X_train, X_validation, y_train, y_validation = train_test_split(df['text'], df['labels'], test_size=0.20)
-
     X_validation_flatten = [item for sublist in list(X_validation) for item in sublist]
 
     text = ' '.join(X_validation_flatten)
-    assert len(re.split(' ', text)) == len(corpus) == len( list(WhitespaceTokenizer().span_tokenize(text)) )
+    assert len(re.split(' ', text)) == len(X_validation_flatten) == len( list(WhitespaceTokenizer().span_tokenize(text)) )
     spans = list(WhitespaceTokenizer().span_tokenize(text))
 
 
