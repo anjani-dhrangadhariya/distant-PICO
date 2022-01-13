@@ -21,11 +21,11 @@ def OntologyLabelingFunction(text,
     print( 'Total number of terms to check: ', len(term) )
 
     ontology_matches = []
+    label = []
 
     start_time = time.time()
     for i, t in enumerate(term):
 
-        onto_term = t[0]
         expandedTerms = expandTerm( t[0] , max_ngram, fuzzy_match)
 
         for t_i in expandedTerms:
@@ -33,10 +33,47 @@ def OntologyLabelingFunction(text,
                 r = re.compile(t_i)
                 matches = [m for m in r.finditer(text)]
                 ontology_matches.append( matches )
+                label.append( t[1] )
 
-        if i == 50:
+        if i == 20:
             break
 
     print("--- %s seconds ---" % (time.time() - start_time))
 
-    return ontology_matches
+    assert len(ontology_matches) == len(label)
+    return ontology_matches, label
+
+def DictionaryLabelingFunction(text, 
+                             text_tokenized,
+                             tokenized_spans,
+                             term,
+                             picos,
+                             fuzzy_match: bool = True,
+                             max_ngram: int = 5,
+                             abstain_decision: bool = False, 
+                             case_sensitive: bool = False):
+
+    print( 'Total number of terms to check: ', len(term) )
+
+    dictionary_matches = []
+    label = []
+
+    start_time = time.time()
+    for i, t in enumerate(term):
+
+        expandedTerms = expandTerm( t , max_ngram, fuzzy_match)
+
+        for t_i in expandedTerms:
+            if t_i in text:
+                r = re.compile(t_i)
+                matches = [m for m in r.finditer(text)]
+                dictionary_matches.append( matches )
+                label.append( picos )
+
+        if i == 20:
+            break
+
+    print("--- %s seconds ---" % (time.time() - start_time))
+
+    assert len(dictionary_matches) == len(label)
+    return dictionary_matches, label
