@@ -9,6 +9,7 @@ print( SourceTargetsDoc.__doc__ )
 import collections
 import datetime as dt
 import difflib
+from functools import reduce
 import itertools
 import json
 import logging
@@ -20,8 +21,9 @@ import time
 import traceback
 from collections import Counter, defaultdict
 from random import shuffle
+import operator
+
 import matplotlib
-#from OntoUtils import rankSAB
 import numpy as np
 import pandas as pd
 from elasticsearch import Elasticsearch, helpers
@@ -30,7 +32,7 @@ from elasticsearch_dsl import Q, Search
 matplotlib.use('agg')
 import matplotlib.pyplot as plt
 from pylab import *
-
+from sklearn.model_selection import train_test_split
 from snorkel.labeling.model import LabelModel
 
 # Import DISANT-PICO modules
@@ -40,7 +42,7 @@ from snorkel.labeling.model import LabelModel
 from CandGenUtilities.experiment_arguments import *
 from CandGenUtilities.labeler_utilities import *
 from CandGenUtilities.source_target_mapping import *
-from sanity_checks import *
+from LabelingFunctions.ontologyLF import *
 # from SourceFetcher.int_sourcefetcher import *
 # from SourceFetcher.outcome_sourcefetcher import *
 # from SourceFetcher.parti_sourcefetcher import *
@@ -51,7 +53,7 @@ from sanity_checks import *
 # from TargetFetcher.all_targetsfetcher import *
 # from SourceTargetAligner.labeling import *
 from Ontologies.ontologyLoader import *
-from LabelingFunctions.ontologyLF import *
+from sanity_checks import *
 
 ################################################################################
 # Initialize 
@@ -69,6 +71,10 @@ mapping = generateMapping()
 PICOS = generateLabels()
 PICOS_reverse = generateAntiLabels(PICOS)
 abstain_options = abstainOption()
+
+seed = 0
+seed_everything(seed)
+print('The random seed is set to: ', seed)
 
 ################################################################################
 # Initialize Labeling function sources
@@ -146,10 +152,7 @@ def partitionRankedSAB(umls_d):
             temp3.append( keys[i:] )
             partitioned_lfs.append( temp3 )
 
-
-    print( len( partitioned_lfs ) )
-
-    return None
+    return partitioned_lfs
 
 hit_tokens = []
 hit_l1l2_labels = []
@@ -158,6 +161,7 @@ sentence_mapper = []
 try:
 
     corpus = []
+    corpus_labels = []
 
     train_dir = '/mnt/nas2/data/systematicReview/clinical_trials_gov/Weak_PICO/groundtruth/ebm_nlp'
     with open(f'{train_dir}/{args.entity}/sentences.txt', 'r') as rf:
@@ -165,9 +169,16 @@ try:
             data = json.loads(eachStudy)
             
             for k,v in data.items():
-                corpus.extend( [x.strip() for x in v[0]] )
+                corpus.append( [x.strip() for x in v[0]] )
+                corpus_labels.append( [x.strip() for x in v[1]] )
 
-    text = ' '.join(corpus)
+    
+    df = pd.DataFrame( {'text': corpus, 'labels': corpus_labels} )
+    X_train, X_validation, y_train, y_validation = train_test_split(df['text'], df['labels'], test_size=0.20)
+
+    X_validation_flatten = [item for sublist in list(X_validation) for item in sublist]
+
+    text = ' '.join(X_validation_flatten)
     assert len(re.split(' ', text)) == len(corpus) == len( list(WhitespaceTokenizer().span_tokenize(text)) )
     spans = list(WhitespaceTokenizer().span_tokenize(text))
 
@@ -181,7 +192,6 @@ try:
 
     # Combine the ontologies into labeling functions
     partitioned_umls_p = partitionRankedSAB( ranked_umls_p )
-
 
     # Ontology labeling
     OntologyLabelingFunction( text, corpus, spans, umls_p[key] )

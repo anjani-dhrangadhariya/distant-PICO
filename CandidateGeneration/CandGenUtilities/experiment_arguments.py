@@ -1,8 +1,11 @@
 import argparse
 from pathlib import Path
+from random import random
 
 # pyTorch essentials
 import torch
+import os
+import random
 
 def getSources(annotations, lab):
 
@@ -29,3 +32,12 @@ def getArguments():
     args = parser.parse_args()
 
     return args
+
+def seed_everything( seed ):
+    random.seed(seed)
+    os.environ['PYTHONHASHSEED'] = str(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    torch.backends.cudnn.deterministic = True
