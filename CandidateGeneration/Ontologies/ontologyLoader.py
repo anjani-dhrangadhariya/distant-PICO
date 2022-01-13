@@ -5,8 +5,9 @@ def OntologyLoaderDoc(a):
 print( OntologyLoaderDoc.__doc__ )
 
 import csv
-from pathlib import Path
 import sqlite3
+import string
+from pathlib import Path
 
 import pandas as pd
 import spacy
@@ -14,15 +15,15 @@ import spacy
 #loading the english language small model of spacy
 en = spacy.load('en_core_web_sm')
 stopwords = en.Defaults.stop_words
-import string
+
 
 additional_stopwords = ['of']
 stopwords.update(additional_stopwords)
 
 from Ontologies.OntoUtils import (allowedTermLength, countTerm, filterSAB,
-                                  preprocessOntology, removeNonHuman, termCountThreshold)
+                                  preprocessOntology, removeNonHuman,
+                                  removeTerms, termCountThreshold)
 from Ontologies.parseOntlogies import createMySQLConn
-
 
 
 def selectTerminology(conn, pico_category):
@@ -50,7 +51,7 @@ Args:
 Returns:
     UMLS ontologies (dict, dict, dict): three dictionaries (each corresponding to P, I/C and O) containing ontology terms grouped by Ontology 
 '''
-def loadUMLSdb(fpath, label, remove_vet: bool = True, min_terms: int = 500):
+def loadUMLSdb(fpath, label, remove_vet: bool = True, min_terms: int = 500, char_threshold:int = 3):
 
     umls = dict()
 
@@ -67,12 +68,13 @@ def loadUMLSdb(fpath, label, remove_vet: bool = True, min_terms: int = 500):
     if remove_vet == True:
         df_new = removeNonHuman(df_new)
 
-    print('SAB before: ', len(df_new))
+    # Remove terms with less than 'char_threshold characters
+    if char_threshold:
+        df_new = removeTerms( df_new, char_threshold )
+
     # Remove the SAB with less than X terms
     if min_terms:
         df_new = termCountThreshold( df_new )
-    print('SAB after: ', len(df_new))
-
 
     return df_new
 

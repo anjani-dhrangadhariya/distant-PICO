@@ -102,3 +102,12 @@ def partitionRankedSAB(umls_d):
             partitioned_lfs.append( temp3 )
 
     return partitioned_lfs
+
+def removeTerms( umls_d, char_threshold ):
+
+    filtered_onto = dict()
+    for k,v in umls_d.items():
+        temp_v = [ v_i for v_i in v if len(v_i[0]) > char_threshold  ]
+        filtered_onto[k] = temp_v
+
+    return filtered_onto
