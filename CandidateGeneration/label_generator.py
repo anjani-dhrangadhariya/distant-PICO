@@ -19,8 +19,9 @@ import sys
 import time
 import traceback
 from collections import Counter, defaultdict
-
+from random import shuffle
 import matplotlib
+#from OntoUtils import rankSAB
 import numpy as np
 import pandas as pd
 from elasticsearch import Elasticsearch, helpers
@@ -33,23 +34,24 @@ from pylab import *
 from snorkel.labeling.model import LabelModel
 
 # Import DISANT-PICO modules
-from AnnotationAggregation.label_aggregator import *
-from AnnotationAggregation.label_resolver import *
-from AnnotationAggregation.sourcelevel_merging import *
+# from AnnotationAggregation.label_aggregator import *
+# from AnnotationAggregation.label_resolver import *
+# from AnnotationAggregation.sourcelevel_merging import *
 from CandGenUtilities.experiment_arguments import *
 from CandGenUtilities.labeler_utilities import *
 from CandGenUtilities.source_target_mapping import *
 from sanity_checks import *
-from SourceFetcher.int_sourcefetcher import *
-from SourceFetcher.outcome_sourcefetcher import *
-from SourceFetcher.parti_sourcefetcher import *
-from SourceFetcher.stdtype_sourcefetcher import *
-from SourceTargetAligner.labeling_operators import *
-from SourceTargetExpander.expand_sources import *
-from SourceTargetExpander.expand_targets import *
-from TargetFetcher.all_targetsfetcher import *
-from SourceTargetAligner.labeling import *
+# from SourceFetcher.int_sourcefetcher import *
+# from SourceFetcher.outcome_sourcefetcher import *
+# from SourceFetcher.parti_sourcefetcher import *
+# from SourceFetcher.stdtype_sourcefetcher import *
+# from SourceTargetAligner.labeling_operators import *
+# from SourceTargetExpander.expand_sources import *
+# from SourceTargetExpander.expand_targets import *
+# from TargetFetcher.all_targetsfetcher import *
+# from SourceTargetAligner.labeling import *
 from Ontologies.ontologyLoader import *
+from LabelingFunctions.ontologyLF import *
 
 ################################################################################
 # Initialize 
@@ -74,11 +76,11 @@ abstain_options = abstainOption()
 
 try:
 
-    umls_db = '/mnt/nas2/data/systematicReview/UMLS/english_subset/umls_preprocessed/umls.db'
+    umls_db = '/mnt/nas2/data/systematicReview/UMLS/english_subset/umls_preprocessed/umls_pre.db'
     
     # Retrieve the UMLS arm of PICOS annotation
     print('Retrieving UMLS ontology arm (Preprocessing applied)')
-    # umls_p  = loadUMLSdb(umls_db, 'P')    
+    umls_p  = loadUMLSdb(umls_db, 'P')    
     # umls_i = loadUMLSdb(umls_db, 'I')
     # umls_o = loadUMLSdb(umls_db, 'O')
 
@@ -108,6 +110,32 @@ except Exception as ex:
 
     print(traceback.format_exc())
 
+def rankSAB(umls_d):
+
+    keys = [k for k in umls_d.keys()] 
+
+    shuffle(keys)
+
+    umls_d_new = dict()
+
+    for k in keys:
+        umls_d_new[k] = umls_d[k]
+
+    return umls_d_new
+
+def partitionRankedSAB(umls_d):
+
+    keys = list(umls_d.keys())
+
+    partitioned_lfs = [ [None] * len( keys ) ]
+
+    
+
+
+    
+    
+    return None
+
 hit_tokens = []
 hit_l1l2_labels = []
 sentence_mapper = []
@@ -122,9 +150,34 @@ try:
             data = json.loads(eachStudy)
             
             for k,v in data.items():
-                corpus.extend( v[0] )
+                corpus.extend( [x.strip() for x in v[0]] )
 
-    
+    text = ' '.join(corpus)
+    assert len(re.split(' ', text)) == len(corpus) == len( list(WhitespaceTokenizer().span_tokenize(text)) )
+    spans = list(WhitespaceTokenizer().span_tokenize(text))
+
+
+    # Randomly choose an ontology to map
+    ontology_SAB = list(umls_p.keys())
+    key = ontology_SAB[1]
+
+    # Rank the ontology based on coverage on the validation set
+    ranked_umls_p = rankSAB( umls_p )
+
+    # Combine the ontologies into labeling functions
+    partitioned_umls_p = partitionRankedSAB( ranked_umls_p )
+
+
+    # Ontology labeling
+    OntologyLabelingFunction( text, corpus, spans, umls_p[key] )
+
+    # TODO: Distant Supervision labeling
+
+    # TODO: Dictionary Labeling Function
+
+    # TODO: ReGeX Labeling Function
+
+
 
 except Exception as ex:
     
