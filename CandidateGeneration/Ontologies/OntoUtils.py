@@ -1,3 +1,4 @@
+import random
 import pandas as pd
 import spacy
 
@@ -63,3 +64,15 @@ def termCountThreshold(umls_d):
     [ umls_d.pop(i, None) for i in list_k ]
 
     return umls_d
+
+def rankSAB(umls_d):
+
+    keys =  list(umls_d.keys())
+    random.shuffle(keys)
+    umls_d = [(key, umls_d[key]) for key in keys]
+
+    return umls_d
+
+def partitionRankedSAB(umls_d):
+
+    return None
