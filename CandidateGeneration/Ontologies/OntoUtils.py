@@ -55,3 +55,11 @@ def removeNonHuman(umls_d):
         umls_d.pop(i, None)
 
     return umls_d
+
+
+def termCountThreshold(umls_d):
+
+    list_k = [k for k, v in umls_d.items() if len(v) < 500]
+    [ umls_d.pop(i, None) for i in list_k ]
+
+    return umls_d

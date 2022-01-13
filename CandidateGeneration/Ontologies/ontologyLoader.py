@@ -5,6 +5,7 @@ def OntologyLoaderDoc(a):
 print( OntologyLoaderDoc.__doc__ )
 
 import csv
+from pathlib import Path
 import sqlite3
 
 import pandas as pd
@@ -19,7 +20,7 @@ additional_stopwords = ['of']
 stopwords.update(additional_stopwords)
 
 from Ontologies.OntoUtils import (allowedTermLength, countTerm, filterSAB,
-                                  preprocessOntology, removeNonHuman)
+                                  preprocessOntology, removeNonHuman, termCountThreshold)
 from Ontologies.parseOntlogies import createMySQLConn
 
 
@@ -49,7 +50,7 @@ Args:
 Returns:
     UMLS ontologies (dict, dict, dict): three dictionaries (each corresponding to P, I/C and O) containing ontology terms grouped by Ontology 
 '''
-def loadUMLSdb(fpath, label, remove_vet = True):
+def loadUMLSdb(fpath, label, remove_vet: bool = True, min_terms: int = 500):
 
     umls = dict()
 
@@ -65,6 +66,13 @@ def loadUMLSdb(fpath, label, remove_vet = True):
 
     if remove_vet == True:
         df_new = removeNonHuman(df_new)
+
+    print('SAB before: ', len(df_new))
+    # Remove the SAB with less than X terms
+    if min_terms:
+        df_new = termCountThreshold( df_new )
+    print('SAB after: ', len(df_new))
+
 
     return df_new
 
