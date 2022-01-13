@@ -67,12 +67,12 @@ results_gen = helpers.scan(
 
 # theFile ='/mnt/nas2/data/systematicReview/clinical_trials_gov/distant_pico_pre/secondary_outcomes.txt'
 # theFile ='/home/anjani/distant-PICO/CandidateGeneration/ResultInspection/label_overlap_inspection.txt'
-theFile = '/home/anjani/distant-PICO/CandidateGeneration/ResultInspection/resolve_annot_corpus.tsv'
-aggregated_file = '/mnt/nas2/data/systematicReview/clinical_trials_gov/Weak_PICO/PICOS_data_preprocessed/aggregated_1_1.txt'
-merged_file = '/mnt/nas2/data/systematicReview/clinical_trials_gov/Weak_PICO/PICOS_data_preprocessed/merged_1_1.txt'
+#theFile = '/home/anjani/distant-PICO/CandidateGeneration/ResultInspection/resolve_annot_corpus.tsv'
+#aggregated_file = '/mnt/nas2/data/systematicReview/clinical_trials_gov/Weak_PICO/PICOS_data_preprocessed/aggregated_1_1.txt'
+#merged_file = '/mnt/nas2/data/systematicReview/clinical_trials_gov/Weak_PICO/PICOS_data_preprocessed/merged_1_1.txt'
 
 
-with open(f'{outdir}/intervention.txt', 'a+') as iwf, open(f'{outdir}/intervention_syn.txt', 'a+') as iswf, open(f'{outdir}/outcome.txt', 'a+') as owf, open(f'{outdir}/participant.txt', 'a+') as pwf:
+with open(f'{outdir}/intervention.txt', 'a+') as iwf,open(f'{outdir}/intervention_syn.txt', 'a+') as iswf, open(f'{outdir}/outcome.txt', 'a+') as owf, open(f'{outdir}/participant.txt', 'a+') as pwf:
 
 
     # Iterate through all of the fetched CTO index documents
