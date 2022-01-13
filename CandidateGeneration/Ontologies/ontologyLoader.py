@@ -104,6 +104,7 @@ def loadDO():
             if row[2]:
                 synonyms = row[2]
                 synonyms = synonyms.split('|')
+
                 doid_syn.extend( synonyms )
 
     return doid, doid_syn
