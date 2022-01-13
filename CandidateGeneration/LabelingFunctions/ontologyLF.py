@@ -1,6 +1,7 @@
 from nltk import ngrams
 import re
 from nltk.tokenize import WhitespaceTokenizer, sent_tokenize, word_tokenize
+import time
 
 def extractAnnotation(source, target, span_generator, match):
     
@@ -35,28 +36,31 @@ Takes a labeling source (terms belonging to either one or more ontologies under 
 '''
 def OntologyLabelingFunction(text, text_tokenized, tokenized_spans, term, max_ngram: int = 5, abstain_decision: bool = True, case_sensitive: bool = False):
 
+    print( 'Total number of terms to check: ', len(term) )
+
     spans_for_annot = []
     matched_term = []
 
+    start_time = time.time()
     for i, t in enumerate(term):
+        print(i)
         onto_term = t[0]
 
-        if len( onto_term.split() ) > max_ngram:
-            fivegrams = ngrams(onto_term.split(), max_ngram)
+        #if len( onto_term.split() ) > max_ngram:
+            #fivegrams = ngrams(onto_term.split(), max_ngram)
             # print( list(fivegrams) )
 
         for t_i in [onto_term, onto_term.lower(), onto_term.rstrip('s'), onto_term + 's']:
             if t_i in text:
-
                 r = re.compile(t_i)
                 matches = [m for m in r.finditer(text)]
-                for m in matches:
-                    if m.span() in tokenized_spans:
-                        spans_for_annot.append( m.span() )
-                        matched_term.append( m.group() )
+                print('Number of matches identified {} for term {} : ', len(list(matches)) , t_i )
+
 
             
-        # if i == 50:
-        #     break
+        if i == 50:
+            break
+
+    print("--- %s seconds ---" % (time.time() - start_time))
 
     print( 'Total spans identified: ', len(spans_for_annot) )
