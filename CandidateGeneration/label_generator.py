@@ -126,7 +126,7 @@ try:
     # umls_o = loadUMLSdb(umls_db, 'O')
  
     print('Retrieving non-UMLS Ontologies  (Preprocessing applied)')
-    p_DO, p_DO_syn = loadDO()
+    p_DO, p_DO_syn = loadOnt( '/mnt/nas2/data/systematicReview/Ontologies/participant/DOID.csv', delim = ',', term_index = 1, term_syn_index = 2  )
     p_ctd, p_ctd_syn = loadOnt( '/mnt/nas2/data/systematicReview/Ontologies/participant/CTD_diseases.tsv', delim = '\t', term_index = 0, term_syn_index = 7 )
     i_ctd, i_ctd_syn = loadOnt( '/mnt/nas2/data/systematicReview/Ontologies/intervention/CTD_chemicals.tsv', delim = '\t', term_index = 0, term_syn_index = 7 )
     i_chebi, i_chebi_syn = loadOnt('/mnt/nas2/data/systematicReview/Ontologies/intervention/CHEBI.csv', delim = ',', term_index = 1, term_syn_index = 2  )
@@ -142,10 +142,12 @@ try:
     ds_intervention_syn = loadDS(indir_ds, 'intervention_syn')
     ds_outcome = loadDS(indir_ds, 'outcome')
 
+    print('Retrieving ReGeX patterns')
+    p_sampsize = loadPattern( 'samplesize' )
+    p_agerange = loadPattern( 'age1' )
+    p_agemax = loadPattern( 'age2' )
+
     # TODO: Retrieve external models
-
-    # TODO: Retrieve ReGeX
-
 
 
     corpus = []
@@ -179,23 +181,40 @@ try:
     # Combine the ontologies into labeling functions
     partitioned_umls_p = partitionRankedSAB( ranked_umls_p ) # Once best UMLS combination is obtained, use them as individual LF arms
 
-    # Ontology labeling
-    ont_matches, ont_labels = OntologyLabelingFunction( text, X_validation_flatten, spans, umls_p[key] )
-    p_DO_ont_matches, p_DO_ont_labels  = DictionaryLabelingFunction( text, X_validation_flatten, spans, p_DO, 'P' )
-    p_DO_syn_ont_matches, p_DO_syn_ont_labels  = DictionaryLabelingFunction( text, X_validation_flatten, spans, p_DO_syn, 'P' )
+    # UMLS Ontology labeling
+    ont_matches, ont_labels = OntologyLabelingFunction( text, X_validation_flatten, spans, umls_p[key], picos=None, expand_term=True )
+
+    # non-UMLS Ontology labeling
+    p_DO_ont_matches, p_DO_ont_labels  = OntologyLabelingFunction( text, X_validation_flatten, spans, p_DO, picos='P', expand_term=True )
+    p_DO_syn_ont_matches, p_DO_syn_ont_labels  = OntologyLabelingFunction( text, X_validation_flatten, spans, p_DO_syn, picos='P', expand_term=True )
+
+    p_ctd_matches, p_ctd_labels  = OntologyLabelingFunction( text, X_validation_flatten, spans, p_ctd, picos='P', expand_term=True )
+    p_ctd_syn_matches, p_ctd_syn_labels  = OntologyLabelingFunction( text, X_validation_flatten, spans, p_ctd_syn, picos='P', expand_term=True )
+
+    i_ctd_matches, i_ctd_labels  = OntologyLabelingFunction( text, X_validation_flatten, spans, i_ctd, picos='I', expand_term=True )
+    i_ctd_syn_matches, i_ctd_syn_labels  = OntologyLabelingFunction( text, X_validation_flatten, spans, i_ctd_syn, picos='I', expand_term=True )
+
+    i_chebi_matches, i_chebi_labels  = OntologyLabelingFunction( text, X_validation_flatten, spans, i_chebi, picos='I', expand_term=True )
+    i_chebi_syn_matches, i_chebi_syn_labels  = OntologyLabelingFunction( text, X_validation_flatten, spans, i_chebi_syn, picos='I', expand_term=True )
 
     # Distant Supervision labeling - This could fit with Dictionary Labeling function
-    p_DS_matches, p_DS_labels  = DictionaryLabelingFunction( text, X_validation_flatten, spans, ds_participant, 'P' )
-    i_ds_matches, i_ds_labels  = DictionaryLabelingFunction( text, X_validation_flatten, spans, ds_intervention, 'I' )
-    i_syn_ds_matches, i_syn_ds_labels  = DictionaryLabelingFunction( text, X_validation_flatten, spans, ds_intervention_syn, 'I' )
-    o_ds_matches, o_ds_labels  = DictionaryLabelingFunction( text, X_validation_flatten, spans, ds_outcome, 'O' )
+    p_DS_matches, p_DS_labels  = OntologyLabelingFunction( text, X_validation_flatten, spans, ds_participant, picos='P', expand_term=True )
+    i_ds_matches, i_ds_labels  = OntologyLabelingFunction( text, X_validation_flatten, spans, ds_intervention, picos='I', expand_term=True )
+    i_syn_ds_matches, i_syn_ds_labels  = OntologyLabelingFunction( text, X_validation_flatten, spans, ds_intervention_syn, picos='I', expand_term=True )
+    o_ds_matches, o_ds_labels  = OntologyLabelingFunction( text, X_validation_flatten, spans, ds_outcome, picos='O', expand_term=True )
 
     # Dictionary Labeling Function
-    gender_matches, gender_labels  = DictionaryLabelingFunction( text, X_validation_flatten, spans, p_genders, 'P' )
-    comparator_matches, comparator_labels  = DictionaryLabelingFunction( text, X_validation_flatten, spans, i_comparator, 'I' )
-
+    gender_matches, gender_labels  = OntologyLabelingFunction( text, X_validation_flatten, spans, p_genders, picos='P', expand_term=True )
+    comparator_matches, comparator_labels  = OntologyLabelingFunction( text, X_validation_flatten, spans, i_comparator, picos='I', expand_term=True  )
+    
     # TODO: ReGeX Labeling Function
+    samplesize_matches, samplesize_labels = OntologyLabelingFunction( text, X_validation_flatten, spans, [p_sampsize], picos='P', expand_term=False )
+    agerange_matches, agerange_labels = OntologyLabelingFunction( text, X_validation_flatten, spans, [p_agerange], picos='P', expand_term=False )
+    agemax_matches, agemax_labels = OntologyLabelingFunction( text, X_validation_flatten, spans, [p_agemax], picos='P', expand_term=False )
 
+    print( len( samplesize_matches ) )
+    print( len( agerange_matches ) )
+    print( len( agemax_matches ) )
 
     # TODO: External Model Labeling function
 

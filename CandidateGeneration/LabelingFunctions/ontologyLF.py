@@ -12,30 +12,44 @@ Takes a labeling source (terms belonging to either one or more ontologies under 
 def OntologyLabelingFunction(text, 
                              text_tokenized,
                              tokenized_spans,
-                             term,
+                             source_terms,
+                             picos: str,
                              fuzzy_match: bool = True,
+                             expand_term: bool = True,
                              max_ngram: int = 5,
                              abstain_decision: bool = True, 
                              case_sensitive: bool = False):
 
-    print( 'Total number of terms to check: ', len(term) )
+    print( 'Total number of terms to check: ', len(source_terms) )
 
     ontology_matches = []
     label = []
 
     start_time = time.time()
-    for i, t in enumerate(term):
+    for i, term in enumerate(source_terms):
 
-        expandedTerms = expandTerm( t[0] , max_ngram, fuzzy_match)
+        t = term[0] if isinstance( term , tuple ) else term
+        l = term[1] if isinstance( term , tuple ) else picos
+
+        expandedTerms = expandTerm( t , max_ngram, fuzzy_match) if expand_term else [t]      
 
         for t_i in expandedTerms:
-            if t_i in text:
-                r = re.compile(t_i)
-                matches = [m for m in r.finditer(text)]
-                ontology_matches.append( matches )
-                label.append( t[1] )
 
-        if i == 20:
+            if isinstance( t_i , re._pattern_type ):
+                if t_i.search(text):
+
+                    matches = [m for m in t_i.finditer(text)]
+                    ontology_matches.append( matches )
+                    label.append( l )
+            else:
+                if t_i in text:
+
+                    r = re.compile(t_i)
+                    matches = [m for m in r.finditer(text)]
+                    ontology_matches.append( matches )
+                    label.append( l )
+
+        if i == 200:
             break
 
     print("--- %s seconds ---" % (time.time() - start_time))
