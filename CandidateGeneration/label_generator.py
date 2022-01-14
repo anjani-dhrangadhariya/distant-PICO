@@ -207,14 +207,13 @@ try:
     gender_matches, gender_labels  = OntologyLabelingFunction( text, X_validation_flatten, spans, p_genders, picos='P', expand_term=True )
     comparator_matches, comparator_labels  = OntologyLabelingFunction( text, X_validation_flatten, spans, i_comparator, picos='I', expand_term=True  )
     
-    # TODO: ReGeX Labeling Function
+    # ReGeX Labeling Function
     samplesize_matches, samplesize_labels = OntologyLabelingFunction( text, X_validation_flatten, spans, [p_sampsize], picos='P', expand_term=False )
     agerange_matches, agerange_labels = OntologyLabelingFunction( text, X_validation_flatten, spans, [p_agerange], picos='P', expand_term=False )
     agemax_matches, agemax_labels = OntologyLabelingFunction( text, X_validation_flatten, spans, [p_agemax], picos='P', expand_term=False )
 
-    print( len( samplesize_matches ) )
-    print( len( agerange_matches ) )
-    print( len( agemax_matches ) )
+    # TODO: Heutistic Labeling Function
+
 
     # TODO: External Model Labeling function
 
