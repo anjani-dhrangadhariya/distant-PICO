@@ -86,8 +86,6 @@ def getPOStags(value):
     pos_dict['pos'] = pos
     pos_dict['pos_fine'] = pos_fine   
 
-    # pos_ed = [ value, text, lemma, pos, pos_fine ]
-
     return pos_dict
 
 '''
