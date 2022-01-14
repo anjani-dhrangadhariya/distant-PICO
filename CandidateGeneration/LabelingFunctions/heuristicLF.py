@@ -34,3 +34,26 @@ def posPattern_i( text, validation_text_flatten, validation_pos_flatten, spans, 
                 labels.append( picos )              
     
     return regex_pos_matches, regex_pos_spans, labels
+
+
+def heurPattern_pa( text, validation_text_flatten, validation_pos_flatten, spans, picos: str, lr_window: int = 1 ):
+
+    regex_heur_matches = []
+    regex_heur_labels = []
+
+
+    eg_pattern = 'age.(.*?)(years|months)'
+
+    compiled_pattern = re.compile( eg_pattern )
+
+    if compiled_pattern.search(text):
+
+        matches = [m for m in compiled_pattern.finditer(text)]
+
+        for m in matches:
+            if len(m[0]) < 20:
+                regex_heur_matches.append( m )
+                regex_heur_labels.append( picos )
+
+
+    return regex_heur_matches, regex_heur_labels

@@ -24,7 +24,7 @@ from random import shuffle
 import operator
 
 import matplotlib
-from LabelingFunctions.heuristicLF import posPattern_i
+from LabelingFunctions.heuristicLF import heurPattern_pa, posPattern_i
 from load_data import load_validation_set
 import numpy as np
 import pandas as pd
@@ -201,18 +201,23 @@ try:
     # Dictionary Labeling Function
     gender_matches, gender_labels  = OntologyLabelingFunction( text, validation_text_flatten, spans, p_genders, picos='P', expand_term=True )
     comparator_matches, comparator_labels  = OntologyLabelingFunction( text, validation_text_flatten, spans, i_comparator, picos='I', expand_term=True  )
-    
-    # ReGeX Labeling Function
-    samplesize_matches, samplesize_labels = OntologyLabelingFunction( text, validation_text_flatten, spans, [p_sampsize], picos='P', expand_term=False )
-    agerange_matches, agerange_labels = OntologyLabelingFunction( text, validation_text_flatten, spans, [p_agerange], picos='P', expand_term=False )
-    agemax_matches, agemax_labels = OntologyLabelingFunction( text, validation_text_flatten, spans, [p_agemax], picos='P', expand_term=False )
     '''
 
 
-    # TODO: Heutistic Labeling Function
-    # print( validation_pos_flatten )
-    posPattern_i( text, validation_text_flatten, validation_pos_flatten, spans )
+    # ReGeX Labeling Function
+    samplesize_matches, samplesize_labels = OntologyLabelingFunction( text, validation_text_flatten, spans, [p_sampsize], picos='P', expand_term=False )
+    agerange_matches, agerange_labels = OntologyLabelingFunction( text, validation_text_flatten, spans, [p_agerange], picos='P', expand_term=False )
 
+    '''
+    for i in agerange_matches[0]:
+        print(i.groups(0))
+    '''
+
+    agemax_matches, agemax_labels = OntologyLabelingFunction( text, validation_text_flatten, spans, [p_agemax], picos='P', expand_term=False )
+
+    # TODO: Heutistic Labeling Function
+    i_posregMatches, i_posregSpans, i_posregLabels = posPattern_i( text, validation_text_flatten, validation_pos_flatten, spans, picos='I' )
+    pa_regex_heur_matches, pa_regex_heur_labels = heurPattern_pa( text, validation_text_flatten, validation_pos_flatten, spans, picos='I' )
 
 
     # TODO: External Model Labeling function
