@@ -4,7 +4,6 @@ def OntologyLoaderDoc(a):
 
 print( OntologyLoaderDoc.__doc__ )
 
-from ast import pattern
 import csv
 import json
 import sqlite3
