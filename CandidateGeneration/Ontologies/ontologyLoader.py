@@ -5,6 +5,7 @@ def OntologyLoaderDoc(a):
 print( OntologyLoaderDoc.__doc__ )
 
 import csv
+import json
 import sqlite3
 import string
 from pathlib import Path
@@ -107,7 +108,10 @@ def loadDO():
 
                 doid_syn.extend( synonyms )
 
-    return doid, doid_syn
+    doid_prepro = list(map(preprocessOntology, doid))
+    doid_syn_prepro = list(map(preprocessOntology, doid_syn))
+
+    return doid_prepro, doid_syn_prepro
 
 '''
 Description:
@@ -134,8 +138,11 @@ def loadCTDdisease():
                 synonyms = row[7]
                 synonyms = synonyms.split('|')
                 ctd_disease_syn.extend( synonyms )
+    
+    ctd_disease_prepro = list(map(preprocessOntology, ctd_disease))
+    ctd_disease_syn_prepro = list(map(preprocessOntology, ctd_disease_syn))
 
-    return ctd_disease, ctd_disease_syn
+    return ctd_disease_prepro, ctd_disease_syn_prepro
 
 '''
 Description:
@@ -188,7 +195,10 @@ def loadCTDchem():
                 synonyms = synonyms.split('|')
                 ctd_chem_syn.extend( synonyms )
 
-    return ctd_chem, ctd_chem_syn
+    ctd_chem_prepro = list(map(preprocessOntology, ctd_chem))
+    ctd_chem_syn_prepro = list(map(preprocessOntology, ctd_chem_syn))
+
+    return ctd_chem_prepro, ctd_chem_syn_prepro
 
 '''
 Description:
@@ -215,6 +225,35 @@ def loadChEBI():
             if row[2]:
                 synonyms = row[2]
                 synonyms = synonyms.split('|')
-                chebi.extend( synonyms )
+                chebi_syn.extend( synonyms )
 
-    return chebi, chebi_syn
+    chebi_prepro = list(map(preprocessOntology, chebi))
+    chebi_syn_prepro = list(map(preprocessOntology, chebi_syn))  
+
+    return chebi_prepro, chebi_syn_prepro
+
+
+def loadDS(fpath, picos):
+
+    ds_source = []
+
+    with open(f'{fpath}/{picos}.txt', 'r') as fp:
+
+        for sourceLine in fp:
+            sourceJSON = json.loads(sourceLine)
+
+            for k,v in sourceJSON.items():
+                ds_source.append( v['text'] )
+
+    ds_source = list( set( ds_source ) )
+    ds_source_prepro = list(map(preprocessOntology, ds_source))
+
+    return ds_source_prepro
+
+def loadExternalModel(fpath):
+
+    # Loads a model from a path onto CUDA
+    
+
+
+    return None

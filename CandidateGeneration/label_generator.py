@@ -35,23 +35,10 @@ from pylab import *
 from sklearn.model_selection import train_test_split
 from snorkel.labeling.model import LabelModel
 
-# Import DISANT-PICO modules
-# from AnnotationAggregation.label_aggregator import *
-# from AnnotationAggregation.label_resolver import *
-# from AnnotationAggregation.sourcelevel_merging import *
 from CandGenUtilities.experiment_arguments import *
 from CandGenUtilities.labeler_utilities import *
 from CandGenUtilities.source_target_mapping import *
 from LabelingFunctions.ontologyLF import *
-# from SourceFetcher.int_sourcefetcher import *
-# from SourceFetcher.outcome_sourcefetcher import *
-# from SourceFetcher.parti_sourcefetcher import *
-# from SourceFetcher.stdtype_sourcefetcher import *
-# from SourceTargetAligner.labeling_operators import *
-# from SourceTargetExpander.expand_sources import *
-# from SourceTargetExpander.expand_targets import *
-# from TargetFetcher.all_targetsfetcher import *
-# from SourceTargetAligner.labeling import *
 from Ontologies.ontologyLoader import *
 from sanity_checks import *
 
@@ -86,41 +73,6 @@ print('The random seed is set to: ', seed)
 ################################################################################
 # Initialize Labeling function sources
 ################################################################################
-
-try:
-
-    umls_db = '/mnt/nas2/data/systematicReview/UMLS/english_subset/umls_preprocessed/umls_pre.db'
-    
-    # Retrieve the UMLS arm of PICOS annotation
-    print('Retrieving UMLS ontology arm (Preprocessing applied)')
-    umls_p  = loadUMLSdb(umls_db, 'P')    
-    # umls_i = loadUMLSdb(umls_db, 'I')
-    # umls_o = loadUMLSdb(umls_db, 'O')
-
-    # Retrieve non-UMLS Ontologies 
-    p_DO, p_DO_syn = loadDO()
-    p_ctd, p_ctd_syn = loadCTDdisease()
-    i_ctd, i_ctd_syn = loadCTDchem()
-    i_chebi, i_chebi_syn = loadChEBI()
-
-    # Load external dictionaries
-    p_genders = loadGenders()
-
-    # TODO Retrieve distant supervision sources
-
-
-
-except Exception as ex:
-    
-    template = "An exception of type {0} occurred. Arguments:{1!r}"
-    message = template.format(type(ex).__name__, ex.args)
-    print( message )
-
-    exc_type, exc_obj, exc_tb = sys.exc_info()
-    fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-    print(exc_type, fname, exc_tb.tb_lineno)
-
-    print(traceback.format_exc())
 
 def rankSAB(umls_d):
 
@@ -166,6 +118,32 @@ sentence_mapper = []
 
 try:
 
+    umls_db = '/mnt/nas2/data/systematicReview/UMLS/english_subset/umls_preprocessed/umls_pre.db'
+    
+    print('Retrieving UMLS ontology arm (Preprocessing applied)')
+    umls_p  = loadUMLSdb(umls_db, 'P')    
+    # umls_i = loadUMLSdb(umls_db, 'I')
+    # umls_o = loadUMLSdb(umls_db, 'O')
+ 
+    print('Retrieving non-UMLS Ontologies  (Preprocessing applied)')
+    p_DO, p_DO_syn = loadDO()
+    p_ctd, p_ctd_syn = loadCTDdisease()
+    i_ctd, i_ctd_syn = loadCTDchem()
+    i_chebi, i_chebi_syn = loadChEBI()
+
+    print('Retrieving hand-crafted dictionaries')
+    p_genders = loadGenders()
+
+    print('Retrieving distant supervision dictionaries')
+    indir_ds = '/mnt/nas2/data/systematicReview/ds_cto_dict'
+    ds_participant = loadDS(indir_ds, 'participant')
+    ds_intervention = loadDS(indir_ds, 'intervention')
+    ds_intervention_syn = loadDS(indir_ds, 'intervention_syn')
+    ds_outcome = loadDS(indir_ds, 'outcome')
+
+    # TODO: Retrieve external models
+
+
     corpus = []
     corpus_labels = []
 
@@ -200,7 +178,11 @@ try:
     # Ontology labeling
     ont_matches, ont_labels = OntologyLabelingFunction( text, X_validation_flatten, spans, umls_p[key] )
 
-    # TODO: Distant Supervision labeling - This could fit with Dictionary Labeling function
+    # Distant Supervision labeling - This could fit with Dictionary Labeling function
+    p_DS_matches, p_DS_labels  = DictionaryLabelingFunction( text, X_validation_flatten, spans, ds_participant, 'P' )
+    i_ds_matches, i_ds_labels  = DictionaryLabelingFunction( text, X_validation_flatten, spans, ds_intervention, 'I' )
+    i_syn_ds_matches, i_syn_ds_labels  = DictionaryLabelingFunction( text, X_validation_flatten, spans, ds_intervention_syn, 'I' )
+    o_ds_matches, o_ds_labels  = DictionaryLabelingFunction( text, X_validation_flatten, spans, ds_outcome, 'O' )
 
     # Dictionary Labeling Function
     p_DO_ont_matches, p_DO_ont_labels  = DictionaryLabelingFunction( text, X_validation_flatten, spans, p_DO, 'P' )
