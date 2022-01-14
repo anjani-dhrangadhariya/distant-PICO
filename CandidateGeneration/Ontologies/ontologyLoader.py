@@ -4,6 +4,7 @@ def OntologyLoaderDoc(a):
 
 print( OntologyLoaderDoc.__doc__ )
 
+from ast import pattern
 import csv
 import json
 import sqlite3
@@ -12,6 +13,8 @@ from pathlib import Path
 
 import pandas as pd
 import spacy
+
+import re
 
 #loading the english language small model of spacy
 en = spacy.load('en_core_web_sm')
@@ -82,42 +85,10 @@ def loadUMLSdb(fpath, label, remove_vet: bool = True, min_terms: int = 500, char
 
 '''
 Description:
-    This function loads Disease Ontolgoy DO terms and their synonyms
-
-Args:
-    None 
-
-Returns:
-    DO terms (list): A list containing all the terms and their synonyms from the Disease Ontology (DO)
-'''
-def loadDO():
-
-    inputFile = '/mnt/nas2/data/systematicReview/Ontologies/participant/DOID.csv'
-    doid = []
-    doid_syn = []
-
-    with open(inputFile) as fd:
-        rd = csv.reader(fd, delimiter=",")
-        next(rd, None)
-        for counter, row in enumerate(rd):
-            doid.append( row[1] )
-
-            if row[2]:
-                synonyms = row[2]
-                synonyms = synonyms.split('|')
-
-                doid_syn.extend( synonyms )
-
-    doid_prepro = list(map(preprocessOntology, doid))
-    doid_syn_prepro = list(map(preprocessOntology, doid_syn))
-
-    return doid_prepro, doid_syn_prepro
-
-'''
-Description:
     This function loads Comparative Toxicogenomics Database (CTD) disease terms and their synonyms
     This function loads Comparative Toxicogenomics Database (CTD) chemical terms and their synonyms
     This function loads Chemical Entities of Biological Interest (ChEBI) terms and their synonyms
+    This function loads Disease Ontolgoy DO terms and their synonyms
 
 Args:
     fpath, delim, term_index, term_syn_index
@@ -126,6 +97,7 @@ Returns:
     CTD terms (list): A list containing all the terms corresponding to Disease set and their synonyms from the Comparative Toxicogenomics Database (CTD)
     CTD terms (list): A list containing all the terms corresponding to Chemical set and their synonyms from the Comparative Toxicogenomics Database (CTD)
     ChEBI terms (list): A list containing all the terms corresponding and their synonyms from the Chemical Entities of Biological Interest (ChEBI)
+    DO terms (list): A list containing all the terms and their synonyms from the Disease Ontology (DO)
 '''
 def loadOnt(fpath, delim, term_index, term_syn_index):
 
@@ -192,3 +164,23 @@ def loadExternalModel(fpath):
     # Loads a model from a path onto CUDA
 
     return None
+
+def loadPattern( pattern_name ):
+
+    if pattern_name == 'samplesize':
+
+        samp_size_pattern =  r'([0-9]+ ?(patients?|subjects?|participants?|people?|individuals?|persons?|healthy individuals?)+)'
+        compiled_pattern = re.compile(samp_size_pattern)
+        return compiled_pattern
+
+    if pattern_name == 'age1':
+
+        age_range_pattern =  r'(([Aa]ge[ds]? )?\b([0-9]{1,2})\b(\s+years?|\s+months?)?(\s+old|-old)?\s?(-|to)\s?\b([0-9]{1,2})\b(\s+years?|\s+months?)+(\s+old|-old)?)'
+        compiled_pattern = re.compile(age_range_pattern)
+        return compiled_pattern
+
+    if pattern_name == 'age2':
+
+        age_range_pattern =  r'(([Aa]ge[ds]? ?)\b([0-9]{1,2})\b(\s+years?|\s+months?)?(\s+old|-old)?\s?(and above| and older)?)'
+        compiled_pattern = re.compile(age_range_pattern)
+        return compiled_pattern
