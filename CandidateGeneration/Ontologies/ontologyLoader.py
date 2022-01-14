@@ -158,12 +158,6 @@ def loadDS(fpath, picos):
 
     return ds_source_prepro
 
-def loadExternalModel(fpath):
-
-    # Loads a model from a path onto CUDA
-
-    return None
-
 def loadPattern( pattern_name ):
 
     if pattern_name == 'samplesize':
@@ -183,3 +177,9 @@ def loadPattern( pattern_name ):
         age_range_pattern =  r'(([Aa]ge[ds]? ?)\b([0-9]{1,2})\b(\s+years?|\s+months?)?(\s+old|-old)?\s?(and above| and older)?)'
         compiled_pattern = re.compile(age_range_pattern)
         return compiled_pattern
+
+def loadExternalModel(fpath):
+
+    # Loads a model from a path onto CUDA
+
+    return None
