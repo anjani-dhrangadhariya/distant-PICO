@@ -127,8 +127,8 @@ try:
  
     print('Retrieving non-UMLS Ontologies  (Preprocessing applied)')
     p_DO, p_DO_syn = loadDO()
-    p_ctd, p_ctd_syn = loadCTDdisease()
-    i_ctd, i_ctd_syn = loadCTDchem()
+    p_ctd, p_ctd_syn = loadCTD( '/mnt/nas2/data/systematicReview/Ontologies/participant/CTD_diseases.tsv' )
+    i_ctd, i_ctd_syn = loadCTD( '/mnt/nas2/data/systematicReview/Ontologies/intervention/CTD_chemicals.tsv' )
     i_chebi, i_chebi_syn = loadChEBI()
 
     print('Retrieving hand-crafted dictionaries')

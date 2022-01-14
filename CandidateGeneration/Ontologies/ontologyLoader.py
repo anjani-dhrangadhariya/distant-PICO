@@ -116,33 +116,34 @@ def loadDO():
 '''
 Description:
     This function loads Comparative Toxicogenomics Database (CTD) disease terms and their synonyms
+    This function loads Comparative Toxicogenomics Database (CTD) chemical terms and their synonyms
 
 Args:
-    None 
+    fpath: Path 
 
 Returns:
     CTD terms (list): A list containing all the terms corresponding to Disease set and their synonyms from the Comparative Toxicogenomics Database (CTD)
+    CTD terms (list): A list containing all the terms corresponding to Chemical set and their synonyms from the Comparative Toxicogenomics Database (CTD)
 '''
-def loadCTDdisease():
+def loadCTD(fpath):
 
-    inputFile = '/mnt/nas2/data/systematicReview/Ontologies/participant/CTD_diseases.csv'
-    ctd_disease = []
-    ctd_disease_syn = []
+    ctd = []
+    ctd_syn = []
 
-    with open(inputFile) as fd:
-        rd = csv.reader(fd, delimiter=",")
+    with open(fpath) as fd:
+        rd = csv.reader(fd, delimiter="\t")
         next(rd, None)
         for counter, row in enumerate(rd):
-            ctd_disease.append( row[0] )
-            if row[7]:
+            ctd.append( row[0] )
+            if row[7] and len(row[7]) > 2:
                 synonyms = row[7]
                 synonyms = synonyms.split('|')
-                ctd_disease_syn.extend( synonyms )
+                ctd_syn.extend( synonyms )
     
-    ctd_disease_prepro = list(map(preprocessOntology, ctd_disease))
-    ctd_disease_syn_prepro = list(map(preprocessOntology, ctd_disease_syn))
+    ctd_prepro = list(map(preprocessOntology, ctd))
+    ctd_syn_prepro = list(map(preprocessOntology, ctd_syn))
 
-    return ctd_disease_prepro, ctd_disease_syn_prepro
+    return ctd_prepro, ctd_syn_prepro
 
 '''
 Description:
@@ -166,37 +167,6 @@ def loadDict(fpath):
             terms.append( line.strip() )
 
     return terms
-
-'''
-Description:
-    This function loads Comparative Toxicogenomics Database (CTD) chemical terms and their synonyms
-
-Args:
-    None 
-
-Returns:
-    CTD terms (list): A list containing all the terms corresponding to Chemical set and their synonyms from the Comparative Toxicogenomics Database (CTD)
-'''
-def loadCTDchem():
-
-    inputFile = '/mnt/nas2/data/systematicReview/Ontologies/intervention/CTD_chemicals.tsv'
-    ctd_chem = []
-    ctd_chem_syn = []
-
-    with open(inputFile) as fd:
-        rd = csv.reader(fd, delimiter="\t")
-        next(rd, None)
-        for counter, row in enumerate(rd):
-            ctd_chem.append( row[0] )
-            if len(row[7]) > 2:
-                synonyms = row[7]
-                synonyms = synonyms.split('|')
-                ctd_chem_syn.extend( synonyms )
-
-    ctd_chem_prepro = list(map(preprocessOntology, ctd_chem))
-    ctd_chem_syn_prepro = list(map(preprocessOntology, ctd_chem_syn))
-
-    return ctd_chem_prepro, ctd_chem_syn_prepro
 
 '''
 Description:
