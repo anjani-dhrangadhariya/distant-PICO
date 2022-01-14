@@ -132,7 +132,8 @@ try:
     i_chebi, i_chebi_syn = loadChEBI()
 
     print('Retrieving hand-crafted dictionaries')
-    p_genders = loadGenders()
+    p_genders = loadDict('/mnt/nas2/data/systematicReview/Ontologies/participant/gender_sexuality.txt')
+    i_comparator = loadDict('/mnt/nas2/data/systematicReview/Ontologies/intervention/comparator_dict.txt')
 
     print('Retrieving distant supervision dictionaries')
     indir_ds = '/mnt/nas2/data/systematicReview/ds_cto_dict'
@@ -177,6 +178,8 @@ try:
 
     # Ontology labeling
     ont_matches, ont_labels = OntologyLabelingFunction( text, X_validation_flatten, spans, umls_p[key] )
+    p_DO_ont_matches, p_DO_ont_labels  = DictionaryLabelingFunction( text, X_validation_flatten, spans, p_DO, 'P' )
+    p_DO_syn_ont_matches, p_DO_syn_ont_labels  = DictionaryLabelingFunction( text, X_validation_flatten, spans, p_DO_syn, 'P' )
 
     # Distant Supervision labeling - This could fit with Dictionary Labeling function
     p_DS_matches, p_DS_labels  = DictionaryLabelingFunction( text, X_validation_flatten, spans, ds_participant, 'P' )
@@ -185,9 +188,8 @@ try:
     o_ds_matches, o_ds_labels  = DictionaryLabelingFunction( text, X_validation_flatten, spans, ds_outcome, 'O' )
 
     # Dictionary Labeling Function
-    p_DO_ont_matches, p_DO_ont_labels  = DictionaryLabelingFunction( text, X_validation_flatten, spans, p_DO, 'P' )
-    p_DO_syn_ont_matches, p_DO_syn_ont_labels  = DictionaryLabelingFunction( text, X_validation_flatten, spans, p_DO_syn, 'P' )
-    gender_ont_matches, gender_ont_labels  = DictionaryLabelingFunction( text, X_validation_flatten, spans, p_genders, 'P' )
+    gender_matches, gender_labels  = DictionaryLabelingFunction( text, X_validation_flatten, spans, p_genders, 'P' )
+    comparator_matches, comparator_labels  = DictionaryLabelingFunction( text, X_validation_flatten, spans, i_comparator, 'I' )
 
     # TODO: ReGeX Labeling Function
 

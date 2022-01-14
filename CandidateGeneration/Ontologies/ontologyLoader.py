@@ -157,17 +157,15 @@ Args:
 Returns:
     Gender and sexual orientation terms (list): A list containing all the terms corresponding to gender identities and sexual orientations
 '''
-def loadGenders():
+def loadDict(fpath):
 
-    inputFile = '/mnt/nas2/data/systematicReview/Ontologies/participant/gender_sexuality.txt'
+    terms = []
 
-    genders = []
-
-    with open(inputFile, 'r') as fd:
+    with open(fpath, 'r') as fd:
         for line in fd:
-            genders.append( line.strip() )
+            terms.append( line.strip() )
 
-    return genders
+    return terms
 
 '''
 Description:
