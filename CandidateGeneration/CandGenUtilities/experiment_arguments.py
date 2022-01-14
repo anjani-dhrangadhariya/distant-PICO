@@ -24,7 +24,7 @@ def getArguments():
 
     # List of arguments to set up experiment
     parser = argparse.ArgumentParser()
-    parser.add_argument('-entity', type = str, default = 'p')
+    parser.add_argument('-entity', type = str, default = 'i')
     parser.add_argument('-o_labeler1', type = bool, default = True)
     parser.add_argument('-o_labeler2', type = bool, default = True) # embed_type = {contextual, semantic} 
     parser.add_argument('-int_example', type = int, default= 10)

@@ -12,15 +12,17 @@ import os
 import sqlite3
 from collections import defaultdict
 from sqlite3 import Error
+import string
 
 import msgpack
 import pandas as pd
-import spacy
 
-#loading the english language small model of spacy
+import spacy
+from scispacy.abbreviation import AbbreviationDetector
+
 en = spacy.load('en_core_web_sm')
+en.add_pipe("abbreviation_detector")
 stopwords = en.Defaults.stop_words
-import string
 
 additional_stopwords = ['of']
 stopwords.update(additional_stopwords)
@@ -38,6 +40,29 @@ def preprocessOntology(term):
     punctRemove = numRemove.translate(str.maketrans(' ', ' ', string.punctuation))
 
     return punctRemove
+
+'''
+Description:
+    The function fetches POS tags for the input string
+
+Args:
+    String: free-text string
+
+Returns:
+    Dictionary (dict): returns a dictionary containing free-text string with its tokenized string, token lemma, POS tags for the tokens, finer POS tags for the token
+'''
+def getPOStags(value):
+
+    doc = en(value)
+
+    pos_dict = dict()
+
+    tokens = [ token.text for token in doc ]
+    lemma = [ token.lemma_ for token in doc ]
+    pos = [ token.pos_ for token in doc ]
+    pos_fine = [ token.tag_ for token in doc ]
+
+    return pd.Series( { 'TOKENS':tokens, 'LEMMA':lemma, 'POS':pos, 'POS_FINE':pos_fine } )
 
 def createMySQLConn(db_file):
     """ create a database connection to the SQLite database
@@ -65,7 +90,11 @@ def init_sqlite_tables(fpath, dataframe):
                     TERM text NOT NULL,
                     STY text NOT NULL,
                     PICO text NOT NULL,
-                    TERM_PRE text not NULL
+                    TERM_PRE text not NULL,
+                    TOKENS text not NULL,
+                    LEMMA text not NULL,
+                    POS text not NULL,
+                    POS_FINE text not NULL
                 );"""
     conn.execute(sql)
 
@@ -144,6 +173,7 @@ def cui2tuiMapper(indir, outdir, tui2pio):
 
 
     print('Completed mapping CUIs to TUIs and stored the file in directory: ', outdir)
+    
 
     df = pd.read_csv(
         f'{outdir}/concepts.tsv',
@@ -166,8 +196,11 @@ def cui2tuiMapper(indir, outdir, tui2pio):
     # Preprocess the ontology terms here
     df['TERM_PRE'] = df.TERM.apply(preprocessOntology)
 
+    # Add POS-tags
+    df = df.merge( df.TERM_PRE.apply(getPOStags) , left_index=True, right_index=True )
+
     # Open the written file and load it into MySQL
-    init_sqlite_tables(f'{outdir}/umls_pre.db', df)
+    init_sqlite_tables(f'{outdir}/umls_meta.db', df)
 
 indir = '/mnt/nas2/data/systematicReview/UMLS/english_subset/2021AB/META'
 outdir = '/mnt/nas2/data/systematicReview/UMLS/english_subset/umls_preprocessed'
