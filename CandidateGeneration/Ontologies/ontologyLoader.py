@@ -117,33 +117,35 @@ def loadDO():
 Description:
     This function loads Comparative Toxicogenomics Database (CTD) disease terms and their synonyms
     This function loads Comparative Toxicogenomics Database (CTD) chemical terms and their synonyms
+    This function loads Chemical Entities of Biological Interest (ChEBI) terms and their synonyms
 
 Args:
-    fpath: Path 
+    fpath, delim, term_index, term_syn_index
 
 Returns:
     CTD terms (list): A list containing all the terms corresponding to Disease set and their synonyms from the Comparative Toxicogenomics Database (CTD)
     CTD terms (list): A list containing all the terms corresponding to Chemical set and their synonyms from the Comparative Toxicogenomics Database (CTD)
+    ChEBI terms (list): A list containing all the terms corresponding and their synonyms from the Chemical Entities of Biological Interest (ChEBI)
 '''
-def loadCTD(fpath):
+def loadOnt(fpath, delim, term_index, term_syn_index):
 
-    ctd = []
-    ctd_syn = []
+    term = []
+    term_syn = []
 
     with open(fpath) as fd:
-        rd = csv.reader(fd, delimiter="\t")
+        rd = csv.reader(fd, delimiter = delim)
         next(rd, None)
         for counter, row in enumerate(rd):
-            ctd.append( row[0] )
-            if row[7] and len(row[7]) > 2:
-                synonyms = row[7]
+            term.append( row[term_index] )
+            if row[term_syn_index]:
+                synonyms = row[term_syn_index]
                 synonyms = synonyms.split('|')
-                ctd_syn.extend( synonyms )
+                term_syn.extend( synonyms )
     
-    ctd_prepro = list(map(preprocessOntology, ctd))
-    ctd_syn_prepro = list(map(preprocessOntology, ctd_syn))
+    term_prepro = list(map(preprocessOntology, term))
+    term_syn_prepro = list(map(preprocessOntology, term_syn))
 
-    return ctd_prepro, ctd_syn_prepro
+    return term_prepro, term_syn_prepro
 
 '''
 Description:
@@ -168,39 +170,6 @@ def loadDict(fpath):
 
     return terms
 
-'''
-Description:
-    This function loads Chemical Entities of Biological Interest (ChEBI) terms and their synonyms
-
-Args:
-    None 
-
-Returns:
-    ChEBI terms (list): A list containing all the terms corresponding and their synonyms from the Chemical Entities of Biological Interest (ChEBI)
-'''
-def loadChEBI():
-
-    inputFile = '/mnt/nas2/data/systematicReview/Ontologies/intervention/CHEBI.csv'
-
-    chebi = []
-    chebi_syn = []
-
-    with open(inputFile) as fd:
-        rd = csv.reader(fd, delimiter=",")
-        next(rd, None)
-        for counter, row in enumerate(rd):
-            chebi.append( row[1] )
-            if row[2]:
-                synonyms = row[2]
-                synonyms = synonyms.split('|')
-                chebi_syn.extend( synonyms )
-
-    chebi_prepro = list(map(preprocessOntology, chebi))
-    chebi_syn_prepro = list(map(preprocessOntology, chebi_syn))  
-
-    return chebi_prepro, chebi_syn_prepro
-
-
 def loadDS(fpath, picos):
 
     ds_source = []
@@ -221,7 +190,5 @@ def loadDS(fpath, picos):
 def loadExternalModel(fpath):
 
     # Loads a model from a path onto CUDA
-    
-
 
     return None

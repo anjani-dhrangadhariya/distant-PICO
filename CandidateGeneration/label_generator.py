@@ -127,9 +127,9 @@ try:
  
     print('Retrieving non-UMLS Ontologies  (Preprocessing applied)')
     p_DO, p_DO_syn = loadDO()
-    p_ctd, p_ctd_syn = loadCTD( '/mnt/nas2/data/systematicReview/Ontologies/participant/CTD_diseases.tsv' )
-    i_ctd, i_ctd_syn = loadCTD( '/mnt/nas2/data/systematicReview/Ontologies/intervention/CTD_chemicals.tsv' )
-    i_chebi, i_chebi_syn = loadChEBI()
+    p_ctd, p_ctd_syn = loadOnt( '/mnt/nas2/data/systematicReview/Ontologies/participant/CTD_diseases.tsv', delim = '\t', term_index = 0, term_syn_index = 7 )
+    i_ctd, i_ctd_syn = loadOnt( '/mnt/nas2/data/systematicReview/Ontologies/intervention/CTD_chemicals.tsv', delim = '\t', term_index = 0, term_syn_index = 7 )
+    i_chebi, i_chebi_syn = loadOnt('/mnt/nas2/data/systematicReview/Ontologies/intervention/CHEBI.csv', delim = ',', term_index = 1, term_syn_index = 2  )
 
     print('Retrieving hand-crafted dictionaries')
     p_genders = loadDict('/mnt/nas2/data/systematicReview/Ontologies/participant/gender_sexuality.txt')
@@ -143,6 +143,9 @@ try:
     ds_outcome = loadDS(indir_ds, 'outcome')
 
     # TODO: Retrieve external models
+
+    # TODO: Retrieve ReGeX
+
 
 
     corpus = []
