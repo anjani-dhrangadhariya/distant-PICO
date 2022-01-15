@@ -55,14 +55,10 @@ def getPOStags(value):
 
     doc = en(value)
 
-    pos_dict = dict()
-
     tokens = [ token.text for token in doc ]
-    lemma = [ token.lemma_ for token in doc ]
-    pos = [ token.pos_ for token in doc ]
     pos_fine = [ token.tag_ for token in doc ]
 
-    return pd.Series( { 'TOKENS':tokens, 'LEMMA':lemma, 'POS':pos, 'POS_FINE':pos_fine } )
+    return pd.Series( { 'TOKENS':tokens, 'POS_FINE':pos_fine } )
 
 def createMySQLConn(db_file):
     """ create a database connection to the SQLite database
@@ -92,8 +88,6 @@ def init_sqlite_tables(fpath, dataframe):
                     PICO text NOT NULL,
                     TERM_PRE text not NULL,
                     TOKENS text not NULL,
-                    LEMMA text not NULL,
-                    POS text not NULL,
                     POS_FINE text not NULL
                 );"""
     conn.execute(sql)
