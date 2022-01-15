@@ -137,6 +137,9 @@ try:
     ds_intervention_syn = loadDS(indir_ds, 'intervention_syn')
     ds_outcome = loadDS(indir_ds, 'outcome')
 
+    print('Retrieving abbreviations dictionaries')
+    p_abb = loadAbbreviations('/mnt/nas2/data/systematicReview/Ontologies/participant/diseaseabbreviations.tsv')
+
     print('Retrieving ReGeX patterns')
     p_sampsize = loadPattern( 'samplesize' )
     p_agerange = loadPattern( 'age1' )
@@ -207,6 +210,10 @@ try:
     # Dictionary Labeling Function
     gender_matches, gender_labels  = OntologyLabelingFunction( text, validation_text_flatten, spans, p_genders, picos='P', expand_term=True, fuzzy_match = False )
     comparator_matches, comparator_labels  = OntologyLabelingFunction( text, validation_text_flatten, spans, i_comparator, picos='I', expand_term=True, fuzzy_match = False  )
+
+    # Abbreviation dictionary Labeling function
+    p_abb_matches, p_abb_labels  = OntologyLabelingFunction( text, validation_text_flatten, spans, p_abb, picos='P', expand_term=False, fuzzy_match = False )
+    
     
     #########################################################################################
     # Level 4 - Rule based LF's (ReGeX, Heuristics, Ontology based fuzzy bigram match)

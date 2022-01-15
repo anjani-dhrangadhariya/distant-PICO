@@ -55,5 +55,4 @@ def heurPattern_pa( text, validation_text_flatten, validation_pos_flatten, spans
                 regex_heur_matches.append( m )
                 regex_heur_labels.append( picos )
 
-
     return regex_heur_matches, regex_heur_labels

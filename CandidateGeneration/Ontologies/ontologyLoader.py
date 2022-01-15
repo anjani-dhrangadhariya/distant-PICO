@@ -141,6 +141,17 @@ def loadDict(fpath):
 
     return terms
 
+def loadAbbreviations(fpath):
+
+    terms = []
+
+    with open(fpath, 'r') as fd:
+        for line in fd:
+            abb = line.split('\t')[0]
+            terms.append( abb.strip() )
+
+    return terms
+
 def loadDS(fpath, picos):
 
     ds_source = []
