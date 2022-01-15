@@ -15,7 +15,7 @@ def OntologyLabelingFunction(text,
                              source_terms,
                              picos: str,
                              expand_term: bool,
-                             fuzzy_match: bool = True,
+                             fuzzy_match: bool,
                              max_ngram: int = 5,
                              abstain_decision: bool = True, 
                              case_sensitive: bool = False):

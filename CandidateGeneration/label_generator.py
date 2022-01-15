@@ -174,35 +174,35 @@ try:
     '''
 
     # non-UMLS Ontology labeling
-    p_DO_ont_matches, p_DO_ont_labels  = OntologyLabelingFunction( text, validation_text_flatten, spans, p_DO, picos='P', expand_term=True )
-    p_DO_syn_ont_matches, p_DO_syn_ont_labels  = OntologyLabelingFunction( text, validation_text_flatten, spans, p_DO_syn, picos='P', expand_term=True )
+    p_DO_ont_matches, p_DO_ont_labels  = OntologyLabelingFunction( text, validation_text_flatten, spans, p_DO, picos='P', expand_term=True, fuzzy_match = False )
+    p_DO_syn_ont_matches, p_DO_syn_ont_labels  = OntologyLabelingFunction( text, validation_text_flatten, spans, p_DO_syn, picos='P', expand_term=True, fuzzy_match = False )
 
-    p_ctd_matches, p_ctd_labels  = OntologyLabelingFunction( text, validation_text_flatten, spans, p_ctd, picos='P', expand_term=True )
-    p_ctd_syn_matches, p_ctd_syn_labels  = OntologyLabelingFunction( text, validation_text_flatten, spans, p_ctd_syn, picos='P', expand_term=True )
+    p_ctd_matches, p_ctd_labels  = OntologyLabelingFunction( text, validation_text_flatten, spans, p_ctd, picos='P', expand_term=True , fuzzy_match = False)
+    p_ctd_syn_matches, p_ctd_syn_labels  = OntologyLabelingFunction( text, validation_text_flatten, spans, p_ctd_syn, picos='P', expand_term=True, fuzzy_match = False )
 
-    i_ctd_matches, i_ctd_labels  = OntologyLabelingFunction( text, validation_text_flatten, spans, i_ctd, picos='I', expand_term=True )
-    i_ctd_syn_matches, i_ctd_syn_labels  = OntologyLabelingFunction( text, validation_text_flatten, spans, i_ctd_syn, picos='I', expand_term=True )
+    i_ctd_matches, i_ctd_labels  = OntologyLabelingFunction( text, validation_text_flatten, spans, i_ctd, picos='I', expand_term=True, fuzzy_match = False )
+    i_ctd_syn_matches, i_ctd_syn_labels  = OntologyLabelingFunction( text, validation_text_flatten, spans, i_ctd_syn, picos='I', expand_term=True, fuzzy_match = False )
 
-    i_chebi_matches, i_chebi_labels  = OntologyLabelingFunction( text, validation_text_flatten, spans, i_chebi, picos='I', expand_term=True )
-    i_chebi_syn_matches, i_chebi_syn_labels  = OntologyLabelingFunction( text, validation_text_flatten, spans, i_chebi_syn, picos='I', expand_term=True )
+    i_chebi_matches, i_chebi_labels  = OntologyLabelingFunction( text, validation_text_flatten, spans, i_chebi, picos='I', expand_term=True , fuzzy_match = False)
+    i_chebi_syn_matches, i_chebi_syn_labels  = OntologyLabelingFunction( text, validation_text_flatten, spans, i_chebi_syn, picos='I', expand_term=True, fuzzy_match = False )
 
-    o_oae_matches, o_oae_labels = OntologyLabelingFunction( text, validation_text_flatten, spans, o_oae, picos='O', expand_term=True )
-    o_oae_syn_matches, o_oae_syn_labels = OntologyLabelingFunction( text, validation_text_flatten, spans, o_oae_syn, picos='O', expand_term=True )
+    o_oae_matches, o_oae_labels = OntologyLabelingFunction( text, validation_text_flatten, spans, o_oae, picos='O', expand_term=True , fuzzy_match = False)
+    o_oae_syn_matches, o_oae_syn_labels = OntologyLabelingFunction( text, validation_text_flatten, spans, o_oae_syn, picos='O', expand_term=True, fuzzy_match = False )
 
     # Distant Supervision labeling - This could fit with Dictionary Labeling function
-    p_DS_matches, p_DS_labels  = OntologyLabelingFunction( text, validation_text_flatten, spans, ds_participant, picos='P', expand_term=True )
-    i_ds_matches, i_ds_labels  = OntologyLabelingFunction( text, validation_text_flatten, spans, ds_intervention, picos='I', expand_term=True )
-    i_syn_ds_matches, i_syn_ds_labels  = OntologyLabelingFunction( text, validation_text_flatten, spans, ds_intervention_syn, picos='I', expand_term=True )
-    o_ds_matches, o_ds_labels  = OntologyLabelingFunction( text, validation_text_flatten, spans, ds_outcome, picos='O', expand_term=True )
+    p_DS_matches, p_DS_labels  = OntologyLabelingFunction( text, validation_text_flatten, spans, ds_participant, picos='P', expand_term=True, fuzzy_match = False )
+    i_ds_matches, i_ds_labels  = OntologyLabelingFunction( text, validation_text_flatten, spans, ds_intervention, picos='I', expand_term=True, fuzzy_match = False )
+    i_syn_ds_matches, i_syn_ds_labels  = OntologyLabelingFunction( text, validation_text_flatten, spans, ds_intervention_syn, picos='I', expand_term=True, fuzzy_match = False )
+    o_ds_matches, o_ds_labels  = OntologyLabelingFunction( text, validation_text_flatten, spans, ds_outcome, picos='O', expand_term=True, fuzzy_match = False )
 
     # Dictionary Labeling Function
-    gender_matches, gender_labels  = OntologyLabelingFunction( text, validation_text_flatten, spans, p_genders, picos='P', expand_term=True )
-    comparator_matches, comparator_labels  = OntologyLabelingFunction( text, validation_text_flatten, spans, i_comparator, picos='I', expand_term=True  )
+    gender_matches, gender_labels  = OntologyLabelingFunction( text, validation_text_flatten, spans, p_genders, picos='P', expand_term=True, fuzzy_match = False )
+    comparator_matches, comparator_labels  = OntologyLabelingFunction( text, validation_text_flatten, spans, i_comparator, picos='I', expand_term=True, fuzzy_match = False  )
     
     # ReGeX Labeling Function
-    samplesize_matches, samplesize_labels = OntologyLabelingFunction( text, validation_text_flatten, spans, [p_sampsize], picos='P', expand_term=False )
-    agerange_matches, agerange_labels = OntologyLabelingFunction( text, validation_text_flatten, spans, [p_agerange], picos='P', expand_term=False )
-    agemax_matches, agemax_labels = OntologyLabelingFunction( text, validation_text_flatten, spans, [p_agemax], picos='P', expand_term=False )
+    samplesize_matches, samplesize_labels = OntologyLabelingFunction( text, validation_text_flatten, spans, [p_sampsize], picos='P', expand_term=False, fuzzy_match = False )
+    agerange_matches, agerange_labels = OntologyLabelingFunction( text, validation_text_flatten, spans, [p_agerange], picos='P', expand_term=False, fuzzy_match = False )
+    agemax_matches, agemax_labels = OntologyLabelingFunction( text, validation_text_flatten, spans, [p_agemax], picos='P', expand_term=False, fuzzy_match = False )
 
     # TODO: Heutistic Labeling Function
     i_posregMatches, i_posregSpans, i_posregLabels = posPattern_i( text, validation_text_flatten, validation_pos_flatten, spans, picos='I' )
