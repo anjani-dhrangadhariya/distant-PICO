@@ -43,13 +43,6 @@ from LabelingFunctions.ontologyLF import *
 from Ontologies.ontologyLoader import *
 from sanity_checks import *
 
-'''
-                for m in matches:
-                    if m.span() in tokenized_spans:
-                        spans_for_annot.append( m.span() )
-                        matched_term.append( m.group() )
-'''
-
 ################################################################################
 # Initialize and set seed
 ################################################################################
@@ -131,6 +124,7 @@ try:
     p_ctd, p_ctd_syn = loadOnt( '/mnt/nas2/data/systematicReview/Ontologies/participant/CTD_diseases.tsv', delim = '\t', term_index = 0, term_syn_index = 7 )
     i_ctd, i_ctd_syn = loadOnt( '/mnt/nas2/data/systematicReview/Ontologies/intervention/CTD_chemicals.tsv', delim = '\t', term_index = 0, term_syn_index = 7 )
     i_chebi, i_chebi_syn = loadOnt('/mnt/nas2/data/systematicReview/Ontologies/intervention/CHEBI.csv', delim = ',', term_index = 1, term_syn_index = 2  )
+    o_oae, o_oae_syn = loadOnt('/mnt/nas2/data/systematicReview/Ontologies/outcome/OAE.csv', delim=',', term_index=1, term_syn_index=2 )
 
     print('Retrieving hand-crafted dictionaries')
     p_genders = loadDict('/mnt/nas2/data/systematicReview/Ontologies/participant/gender_sexuality.txt')
@@ -177,7 +171,7 @@ try:
 
     # UMLS Ontology labeling
     ont_matches, ont_labels = OntologyLabelingFunction( text, validation_text_flatten, spans, umls_i[key], picos=None, expand_term=True )
-
+    '''
 
     # non-UMLS Ontology labeling
     p_DO_ont_matches, p_DO_ont_labels  = OntologyLabelingFunction( text, validation_text_flatten, spans, p_DO, picos='P', expand_term=True )
@@ -192,6 +186,9 @@ try:
     i_chebi_matches, i_chebi_labels  = OntologyLabelingFunction( text, validation_text_flatten, spans, i_chebi, picos='I', expand_term=True )
     i_chebi_syn_matches, i_chebi_syn_labels  = OntologyLabelingFunction( text, validation_text_flatten, spans, i_chebi_syn, picos='I', expand_term=True )
 
+    o_oae_matches, o_oae_labels = OntologyLabelingFunction( text, validation_text_flatten, spans, o_oae, picos='O', expand_term=True )
+    o_oae_syn_matches, o_oae_syn_labels = OntologyLabelingFunction( text, validation_text_flatten, spans, o_oae_syn, picos='O', expand_term=True )
+
     # Distant Supervision labeling - This could fit with Dictionary Labeling function
     p_DS_matches, p_DS_labels  = OntologyLabelingFunction( text, validation_text_flatten, spans, ds_participant, picos='P', expand_term=True )
     i_ds_matches, i_ds_labels  = OntologyLabelingFunction( text, validation_text_flatten, spans, ds_intervention, picos='I', expand_term=True )
@@ -201,18 +198,10 @@ try:
     # Dictionary Labeling Function
     gender_matches, gender_labels  = OntologyLabelingFunction( text, validation_text_flatten, spans, p_genders, picos='P', expand_term=True )
     comparator_matches, comparator_labels  = OntologyLabelingFunction( text, validation_text_flatten, spans, i_comparator, picos='I', expand_term=True  )
-    '''
-
-
+    
     # ReGeX Labeling Function
     samplesize_matches, samplesize_labels = OntologyLabelingFunction( text, validation_text_flatten, spans, [p_sampsize], picos='P', expand_term=False )
     agerange_matches, agerange_labels = OntologyLabelingFunction( text, validation_text_flatten, spans, [p_agerange], picos='P', expand_term=False )
-
-    '''
-    for i in agerange_matches[0]:
-        print(i.groups(0))
-    '''
-
     agemax_matches, agemax_labels = OntologyLabelingFunction( text, validation_text_flatten, spans, [p_agemax], picos='P', expand_term=False )
 
     # TODO: Heutistic Labeling Function
