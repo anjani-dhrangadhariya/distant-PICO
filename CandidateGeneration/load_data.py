@@ -21,6 +21,16 @@ seed = 0
 seed_everything(seed)
 print('The random seed is set to: ', seed)
 
+'''
+Description:
+    Loads EBM-NLP training set with PICO annotations, splits it into training and validation sets, and returns validation set
+
+Args:
+    train_dir (str): String containing path to the EBM-NLP directory
+
+Returns:
+    pandas data frame: a pandas dataframe for EBM-NLP training and validation sets
+'''
 def load_validation_set(train_dir):
     corpus = []
     corpus_labels = []
