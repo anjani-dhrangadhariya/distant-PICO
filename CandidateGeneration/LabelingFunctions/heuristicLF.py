@@ -1,6 +1,20 @@
 import re
 
-def posPattern_i( text, validation_text_flatten, validation_pos_flatten, spans, picos: str, lr_window: int = 1 ):
+'''
+Description:
+    Labeling function labels input data (str) with "Intervention" label using a heuristic combining ReGeX and part-of-speech (POS) tags
+
+Args:
+    text (str): input to be labeled
+    text_flatten (list): list of tokens corresponding to the text input
+    text_pos_flatten (list): list of POS tags corresponding to the token input
+    spans (list): list of span values corresponding to the text and token inputs
+    picos (str): label to release for the input spans
+
+Returns:
+    regex_pos_matches, regex_pos_spans, labels (lists): returns 3 lists each containing free text matches, spans and the span labels
+'''
+def posPattern_i( text, text_flatten, text_pos_flatten, spans, picos: str ):
 
     regex_matches = []
 
@@ -21,9 +35,9 @@ def posPattern_i( text, validation_text_flatten, validation_pos_flatten, spans, 
             longest_match = []
             longest_match_span = []
 
-            for i, pos_i in enumerate(reversed( validation_pos_flatten[ :index ] )):
+            for i, pos_i in enumerate(reversed( text_pos_flatten[ :index ] )):
                 if pos_i in ['NN', 'NNS', 'NNP', 'NNS', 'JJ']:
-                    longest_match = validation_text_flatten[ index-i : index+1 ] 
+                    longest_match = text_flatten[ index-i : index+1 ] 
                     longest_match_span = spans[ index-i : index+1 ] 
                 else:
                     break
@@ -35,8 +49,21 @@ def posPattern_i( text, validation_text_flatten, validation_pos_flatten, spans, 
     
     return regex_pos_matches, regex_pos_spans, labels
 
+'''
+Description:
+    Labeling function labels input data (str) with "Participant: Age" label using a heuristic combining ReGeX and a rule
 
-def heurPattern_pa( text, validation_text_flatten, validation_pos_flatten, spans, picos: str, lr_window: int = 1 ):
+Args:
+    text (str): input to be labeled
+    text_flatten (list): list of tokens corresponding to the text input
+    text_pos_flatten (list): list of POS tags corresponding to the token input
+    spans (list): list of span values corresponding to the text and token inputs
+    picos (str): label to release for the input spans
+
+Returns:
+    regex_heur_matches, regex_heur_labels (lists): returns 2 lists each containing free text matches (matching text and span) and the span labels
+'''
+def heurPattern_pa( text, text_flatten, text_pos_flatten, spans, picos: str ):
 
     regex_heur_matches = []
     regex_heur_labels = []
