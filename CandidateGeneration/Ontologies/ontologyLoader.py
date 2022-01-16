@@ -23,10 +23,10 @@ stopwords = en.Defaults.stop_words
 additional_stopwords = ['of']
 stopwords.update(additional_stopwords)
 
-from Ontologies.OntoUtils import (allowedTermLength, countTerm, filterSAB,
+from Ontologies.ontoUtils import (allowedTermLength, countTerm, filterSAB,
                                   preprocessOntology, removeNonHuman,
                                   removeTerms, termCountThreshold)
-from Ontologies.parseOntlogies import createMySQLConn
+from Ontologies.ontologyParser import createMySQLConn
 
 
 def selectTerminology(conn, pico_category):
@@ -192,5 +192,6 @@ def loadPattern( pattern_name ):
 def loadExternalModel(fpath):
 
     # Loads a model from a path onto CUDA
+    
 
     return None
