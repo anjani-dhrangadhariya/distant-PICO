@@ -6,27 +6,40 @@ def ParseOntDoc(a):
 
 print( ParseOntDoc.__doc__ )
 
+# Generic imports
 import csv
 import errno
 import os
 import sqlite3
+import string
 from collections import defaultdict
 from sqlite3 import Error
-import string
 
-import msgpack
+# Data science generic libraries
+import numpy as np
 import pandas as pd
+import msgpack
 
+# NLP-specifc imports
 import spacy
 from scispacy.abbreviation import AbbreviationDetector
 
 en = spacy.load('en_core_web_sm')
 en.add_pipe("abbreviation_detector")
 stopwords = en.Defaults.stop_words
-
 additional_stopwords = ['of']
 stopwords.update(additional_stopwords)
 
+'''
+Description:
+    This function could be used for preprocessing ontology terms. Preprocessing includes 1) Remove stopwords 2) Remove numbers 3) Remove punctuations
+
+Args:
+    term (str): String variable containing the ontology term
+
+Returns:
+    preprocessed term (str): String variable containing the preprocessed ontology term
+'''
 def preprocessOntology(term):
 
     # remove stopwords
@@ -60,12 +73,18 @@ def getPOStags(value):
 
     return pd.Series( { 'TOKENS':tokens, 'POS_FINE':pos_fine } )
 
+'''
+Description:
+    Creates a database connection to the SQLite database specified by the db_file
+
+Args:
+    db_file (str): Path to the SQLite database 
+
+Returns:
+    conn (str): Connection object or None
+'''
 def createMySQLConn(db_file):
-    """ create a database connection to the SQLite database
-        specified by the db_file
-    :param db_file: database file
-    :return: Connection object or None
-    """
+
     conn = None
     try:
         conn = sqlite3.connect(db_file)
@@ -74,7 +93,17 @@ def createMySQLConn(db_file):
 
     return conn
 
-# @staticmethod
+'''
+Description:
+    Creates a database connection to the SQLite database specified by the fpath and load UMLS data into the database from dataframe
+
+Args:
+    fpath (str): Path to the SQLite database 
+    dataframe (DataFrame): Dataframe containing UMLS data to load into the SQLite database passed through fpath
+
+Returns:
+    
+'''
 def init_sqlite_tables(fpath, dataframe):
 
     conn = createMySQLConn(fpath)
@@ -106,7 +135,19 @@ def init_sqlite_tables(fpath, dataframe):
     conn.commit()
     conn.close()
 
-# @staticmethod
+'''
+Description:
+    Maps UMLS CUI to TUI, writes them to a file specified by tui2pio, preprocesses the ontologies, generates POS tags and writes them to a UMLS
+    database using function init_sqlite_tables
+
+Args:
+    indir (str): Path to input directory with raw UMLS files 
+    outdir (str): TODO
+    tui2pio (str):  TODO
+
+Returns:
+    
+'''
 def cui2tuiMapper(indir, outdir, tui2pio):
 
     # validate that the UMLS source REFs are provided
