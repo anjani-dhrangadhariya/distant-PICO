@@ -177,7 +177,7 @@ try:
     #########################################################################################
     # UMLS Ontology labeling
     ont_matches, ont_labels = OntologyLabelingFunction( text, validation_text_flatten, spans, umls_i[key], picos=None, expand_term=True )
-    '''
+    
 
     #########################################################################################
     # Level 2 - Non-UMLS LF's
@@ -213,7 +213,7 @@ try:
 
     # Abbreviation dictionary Labeling function
     p_abb_matches, p_abb_labels  = OntologyLabelingFunction( text, validation_text_flatten, spans, p_abb, picos='P', expand_term=False, fuzzy_match = False )
-    
+
     
     #########################################################################################
     # Level 4 - Rule based LF's (ReGeX, Heuristics, Ontology based fuzzy bigram match)
@@ -223,7 +223,7 @@ try:
     agerange_matches, agerange_labels = OntologyLabelingFunction( text, validation_text_flatten, spans, [p_agerange], picos='P', expand_term=False, fuzzy_match = False )
     agemax_matches, agemax_labels = OntologyLabelingFunction( text, validation_text_flatten, spans, [p_agemax], picos='P', expand_term=False, fuzzy_match = False )
 
-    # TODO: Heutistic Labeling Function
+    # Heutistic Labeling Function
     i_posregMatches, i_posregSpans, i_posregLabels = posPattern_i( text, validation_text_flatten, validation_pos_flatten, spans, picos='I' )
     pa_regex_heur_matches, pa_regex_heur_labels = heurPattern_pa( text, validation_text_flatten, validation_pos_flatten, spans, picos='I' )
 
@@ -252,6 +252,8 @@ try:
     #########################################################################################
     # TODO  Level 5 - External Model Labeling function
     #########################################################################################
+    '''
+
     
 
 
