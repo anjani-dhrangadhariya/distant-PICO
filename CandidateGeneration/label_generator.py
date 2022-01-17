@@ -24,8 +24,10 @@ from random import shuffle
 import operator
 
 import matplotlib
+from LabelingFunctions.LFutils import spans2Labels
+from LabelingFunctions.externalmodelLF import ExternalModelLabelingFunction
 from LabelingFunctions.heuristicLF import heurPattern_pa, posPattern_i
-from load_data import load_validation_set
+from load_data import loadEBMPICO
 import numpy as np
 import pandas as pd
 from elasticsearch import Elasticsearch, helpers
@@ -41,7 +43,6 @@ from CandGenUtilities.labeler_utilities import *
 from CandGenUtilities.source_target_mapping import *
 from LabelingFunctions.ontologyLF import *
 from Ontologies.ontologyLoader import *
-from sanity_checks import *
 
 ################################################################################
 # Initialize and set seed
@@ -115,9 +116,9 @@ try:
     umls_db = '/mnt/nas2/data/systematicReview/UMLS/english_subset/umls_preprocessed/umls_pre.db'
     
     print('Retrieving UMLS ontology arm (Preprocessing applied)')
-    # umls_p  = loadUMLSdb(umls_db, 'P')    
-    # umls_i = loadUMLSdb(umls_db, 'I')
-    # umls_o = loadUMLSdb(umls_db, 'O')
+    #umls_p  = loadUMLSdb(umls_db, 'P')    
+    umls_i = loadUMLSdb(umls_db, 'I')
+    #umls_o = loadUMLSdb(umls_db, 'O')
  
     print('Retrieving non-UMLS Ontologies  (Preprocessing applied)')
     p_DO, p_DO_syn = loadOnt( '/mnt/nas2/data/systematicReview/Ontologies/participant/DOID.csv', delim = ',', term_index = 1, term_syn_index = 2  )
@@ -149,24 +150,29 @@ try:
 
 
     # Load validation data
-    ebm_nlp = '/mnt/nas2/data/systematicReview/clinical_trials_gov/Weak_PICO/groundtruth/ebm_nlp'
-    train, validation = load_validation_set( ebm_nlp )
+    ebm_nlp = '/mnt/nas2/data/systematicReview/PICO_datasets/EBM_parsed'
+    train, validation = loadEBMPICO( ebm_nlp )
     
     validation_text_flatten = [item for sublist in list(validation['text']) for item in sublist]
-    validation_labels_flatten = [item for sublist in list(validation['labels']) for item in sublist]
     validation_pos_flatten = [item for sublist in list(validation['pos']) for item in sublist]
+
+    validation_p_labels_flatten = [item for sublist in list(validation['p']) for item in sublist]
+    validation_i_labels_flatten = [item for sublist in list(validation['i']) for item in sublist]
+    validation_o_labels_flatten = [item for sublist in list(validation['o']) for item in sublist]
 
     text = ' '.join(validation_text_flatten)
     assert len(re.split(' ', text)) == len(validation_text_flatten) == len( list(WhitespaceTokenizer().span_tokenize(text)) )
     spans = list(WhitespaceTokenizer().span_tokenize(text))
 
-    '''
+
     # Randomly choose an ontology to map
     ontology_SAB = list(umls_i.keys())
-    key = ontology_SAB[2]
+    key = ontology_SAB[4]
 
     # Rank the ontology based on coverage on the validation set
+    #ranked_umls_p = rankSAB( umls_p )
     ranked_umls_i = rankSAB( umls_i )
+    #ranked_umls_o = rankSAB( umls_o )
 
 
     # Combine the ontologies into labeling functions
@@ -176,9 +182,13 @@ try:
     # Level 1 - UMLS LF's
     #########################################################################################
     # UMLS Ontology labeling
-    ont_matches, ont_labels = OntologyLabelingFunction( text, validation_text_flatten, spans, umls_i[key], picos=None, expand_term=True )
-    
+    #ont_p_matches, ont_p_labels = OntologyLabelingFunction( text, validation_text_flatten, spans, umls_p[key], picos=None, expand_term=True, fuzzy_match=False )
+    ont_i_matches, ont_i_labels = OntologyLabelingFunction( text, validation_text_flatten, spans, umls_i[key], picos=None, expand_term=True, fuzzy_match=True )
+    #ont_o_matches, ont_o_labels = OntologyLabelingFunction( text, validation_text_flatten, spans, umls_o[key], picos=None, expand_term=True, fuzzy_match=False )
 
+    spans2Labels( ont_i_matches, ont_i_labels, spans )
+    
+    '''
     #########################################################################################
     # Level 2 - Non-UMLS LF's
     #########################################################################################
@@ -252,6 +262,7 @@ try:
     #########################################################################################
     # TODO  Level 5 - External Model Labeling function
     #########################################################################################
+    ExternalModelLabelingFunction()
     '''
 
     
