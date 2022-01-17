@@ -22,30 +22,16 @@ def expandTerm( term , max_ngram, fuzzy_match):
 
     return termVariations
 
-def extractAnnotation(source, target, span_generator, match):
-    
-    token = list()
-    annot = list()
-    
-    annotation_start_position = match[1][0]
-    annotation_stop_position = match[1][0] + match[1][2]
+def spans2Labels(matches, labels, spans):
 
-    annotation = [0] * len(target)
-    for n, i in enumerate(annotation):
-        if n >= annotation_start_position and n <= annotation_stop_position:
-            annotation[n] = 1
+    generateLabels = [0] * len( spans )
 
-    for span in span_generator:
-        token_ = target[span[0]:span[1]]
+    for m,j in zip( matches, labels ):
+        for m_i in m:
+            match_span = m_i.span()
+            if match_span in spans:
+                pass
+            else:
+                print( m_i.group() )
 
-        annot_ = annotation[span[0]:span[1]]
-        max_element_i = Counter(annot_)
-        max_element = max_element_i.most_common(1)
-
-        token.append(token_)
-        annot.append(max_element)
-
-    # Check if the number of annotations match number of tokens present in the sentence
-    assert len(token) == len(annot)
-        
-    return token, annot
+    return None
