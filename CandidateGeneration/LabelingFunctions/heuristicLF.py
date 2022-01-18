@@ -14,7 +14,7 @@ Args:
 Returns:
     regex_pos_matches, regex_pos_spans, labels (lists): returns 3 lists each containing free text matches, spans and the span labels
 '''
-def posPattern_i( text, text_flatten, text_pos_flatten, spans, picos: str ):
+def posPattern_i( text, text_tokenized, text_pos_flatten, spans, picos: str ):
 
     regex_matches = []
 
@@ -37,7 +37,7 @@ def posPattern_i( text, text_flatten, text_pos_flatten, spans, picos: str ):
 
             for i, pos_i in enumerate(reversed( text_pos_flatten[ :index ] )):
                 if pos_i in ['NN', 'NNS', 'NNP', 'NNS', 'JJ']:
-                    longest_match = text_flatten[ index-i : index+1 ] 
+                    longest_match = text_tokenized[ index-i : index+1 ] 
                     longest_match_span = spans[ index-i : index+1 ] 
                 else:
                     break
@@ -45,9 +45,15 @@ def posPattern_i( text, text_flatten, text_pos_flatten, spans, picos: str ):
             if len( longest_match ) > 1:
                 regex_pos_matches.append( longest_match )
                 regex_pos_spans.append( longest_match_span ) 
-                labels.append( picos )              
+                labels.append( picos )
+
+    for m, s in zip(regex_pos_matches, regex_pos_spans):
+
+        print( m, s )
+
     
     return regex_pos_matches, regex_pos_spans, labels
+
 
 '''
 Description:
