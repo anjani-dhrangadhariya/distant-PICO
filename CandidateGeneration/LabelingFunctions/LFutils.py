@@ -2,7 +2,7 @@ from nltk.tokenize import WhitespaceTokenizer, sent_tokenize, word_tokenize
 from nltk import ngrams
 
 pico2labelMap = dict()
-pico2labelMap = { 'P' : 1, 'I' : 2, 'O' : 3, '-P' : 0, '-I' : 0, '-O' : 0, 'IO' : 0, 'OI' : 0, 'PO' : 0, 'OP' : 0, 'IP': 0, 'PI': 0 }
+pico2labelMap = { 'P' : 1, 'I' : 2, 'O' : 3, '-P' : 0, '-I' : 0, '-O' : 0, 'IO' : 0, 'OI' : 0, 'PO' : 0, 'OP' : 0, 'IP': 0, 'PI': 0, '-IO' : 0, '-OI' : 0, '-PO' : 0, '-OP' : 0, '-IP': 0, '-PI': 0 }
 
 
 def expandTerm( term , max_ngram, fuzzy_match):
