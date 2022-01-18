@@ -4,7 +4,7 @@ import time
 from nltk import ngrams
 from nltk.tokenize import WhitespaceTokenizer, sent_tokenize, word_tokenize
 
-from LabelingFunctions.LFutils import expandTerm
+from LabelingFunctions.LFutils import expandTerm, spansToLabels
 
 '''
 Takes a labeling source (terms belonging to either one or more ontologies under a single LF arm).
@@ -12,6 +12,7 @@ Takes a labeling source (terms belonging to either one or more ontologies under 
 def OntologyLabelingFunction(text, 
                              text_tokenized,
                              tokenized_spans,
+                             tokenized_start_spans,
                              source_terms,
                              picos: str,
                              expand_term: bool,
@@ -24,6 +25,9 @@ def OntologyLabelingFunction(text,
 
     ontology_matches = []
     label = []
+    terms = []
+
+    term_set = set()
 
     start_time = time.time()
     for i, term in enumerate(source_terms):
@@ -39,20 +43,30 @@ def OntologyLabelingFunction(text,
                 if t_i.search(text):
 
                     matches = [m for m in t_i.finditer(text)]
-                    ontology_matches.append( matches )
-                    label.append( l )
+                    if t_i not in term_set:
+                        term_set.add( t_i )
+                        ontology_matches.append( matches )
+                        terms.append( t_i )
+                        label.append( l )
             else:
                 if t_i in text:
 
                     r = re.compile(t_i)
                     matches = [m for m in r.finditer(text)]
-                    ontology_matches.append( matches )
-                    label.append( l )
+                    if t_i not in term_set:
+                        ontology_matches.append( matches )
+                        terms.append( t_i )
+                        label.append( l )
 
         if i == 200:
             break
 
+    assert len(ontology_matches) == len(label)
+
+    generated_labels = spansToLabels( ontology_matches, label, terms, tokenized_start_spans )
+
+    assert len( generated_labels ) == len( text_tokenized ) == len( tokenized_start_spans )
+
     print("--- %s seconds ---" % (time.time() - start_time))
 
-    assert len(ontology_matches) == len(label)
-    return ontology_matches, label
+    return generated_labels
