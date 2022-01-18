@@ -44,8 +44,8 @@ def loadEBMPICO(train_dir):
         data = json.load(rf)
         for k,v in data.items():
             pmid.append( k )
-            text.append( [x.strip() for x in v['tokens'] ] )
-            tokens.append( v['tokens'] )
+            #text.extend( [x.strip() for x in v['tokens'] ] )
+            tokens.append( [x.strip() for x in v['tokens'] ] )
             pos.append( v['pos'] )
             if 'participants' in v:
                 p.append( v['participants'] )
@@ -63,7 +63,7 @@ def loadEBMPICO(train_dir):
                 o.append( [ 0 ] * len( v['tokens'] ) )
     
 
-    df = pd.DataFrame( {'pmid': pmid, 'text': text, 'tokens': tokens, 'pos': pos, 'p': p, 'i': i, 'o': o } )
+    df = pd.DataFrame( {'pmid': pmid, 'tokens': tokens, 'pos': pos, 'p': p, 'i': i, 'o': o } )
 
     train, validation = train_test_split(df, test_size=0.20)
 
