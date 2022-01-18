@@ -49,7 +49,11 @@ def posPattern_i( text, text_tokenized, text_pos_flatten, spans, picos: str ):
 
     for m, s in zip(regex_pos_matches, regex_pos_spans):
 
-        print( m, s )
+        joined_m = ' '.join(m)
+        if len( s ) == 1:
+            joined_s = s[0]
+        else:
+            joined_s = ( s[0][0] , s[-1][-1] )
 
     
     return regex_pos_matches, regex_pos_spans, labels
