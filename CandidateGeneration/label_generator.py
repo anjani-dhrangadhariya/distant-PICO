@@ -176,8 +176,6 @@ try:
         for value in range( ss, es+1 ):
             start_spans[value] = i
 
-
-
     # Randomly choose an ontology to map
     # ontology_SAB = list(umls_i.keys())
     # key = ontology_SAB[4]
@@ -199,20 +197,19 @@ try:
     # ont_i_matches, ont_i_labels = OntologyLabelingFunction( text, validation_token_flatten, spans, umls_i[key], picos=None, expand_term=True, fuzzy_match=False )
     #ont_o_matches, ont_o_labels = OntologyLabelingFunction( text, validation_token_flatten, spans, umls_o[key], picos=None, expand_term=True, fuzzy_match=False )
     
-    
+    '''
     #########################################################################################
     # Level 2 - Non-UMLS LF's
     #########################################################################################
     # non-UMLS Ontology labeling
     p_DO_labels  = OntologyLabelingFunction( text, validation_token_flatten, spans, start_spans, p_DO, picos='P', expand_term=True, fuzzy_match = False )
     p_DO_syn_labels = OntologyLabelingFunction( text, validation_token_flatten, spans, start_spans, p_DO_syn, picos='P', expand_term=True, fuzzy_match = False )
-    '''
-    # p_ctd_labels  = OntologyLabelingFunction( text, validation_token_flatten, spans, start_spans, p_ctd, picos='P', expand_term=True , fuzzy_match = False)
-    # p_ctd_syn_labels = OntologyLabelingFunction( text, validation_token_flatten, spans, start_spans, p_ctd_syn, picos='P', expand_term=True, fuzzy_match = False )
 
+    p_ctd_labels  = OntologyLabelingFunction( text, validation_token_flatten, spans, start_spans, p_ctd, picos='P', expand_term=True , fuzzy_match = False)
+    p_ctd_syn_labels = OntologyLabelingFunction( text, validation_token_flatten, spans, start_spans, p_ctd_syn, picos='P', expand_term=True, fuzzy_match = False )
 
     i_ctd_labels  = OntologyLabelingFunction( text, validation_token_flatten, spans, start_spans, i_ctd, picos='I', expand_term=True, fuzzy_match = False )
-    # i_ctd_syn_labels  = OntologyLabelingFunction( text, validation_token_flatten, spans, start_spans, i_ctd_syn, picos='I', expand_term=True, fuzzy_match = False )
+    i_ctd_syn_labels  = OntologyLabelingFunction( text, validation_token_flatten, spans, start_spans, i_ctd_syn, picos='I', expand_term=True, fuzzy_match = False )
 
     i_chebi_labels  = OntologyLabelingFunction( text, validation_token_flatten, spans, start_spans, i_chebi, picos='I', expand_term=True , fuzzy_match = False)
     i_chebi_syn_labels  = OntologyLabelingFunction( text, validation_token_flatten, spans, start_spans, i_chebi_syn, picos='I', expand_term=True, fuzzy_match = False )
@@ -245,11 +242,13 @@ try:
     samplesize_labels = OntologyLabelingFunction( text, validation_token_flatten, spans, start_spans, [p_sampsize], picos='P', expand_term=False, fuzzy_match = False )
     agerange_labels = OntologyLabelingFunction( text, validation_token_flatten, spans, start_spans, [p_agerange], picos='P', expand_term=False, fuzzy_match = False )
     agemax_labels = OntologyLabelingFunction( text, validation_token_flatten, spans, start_spans, [p_agemax], picos='P', expand_term=False, fuzzy_match = False )
+    '''
 
     # Heutistic Labeling Function
-    #i_posregMatches, i_posregSpans, i_posregLabels = posPattern_i( text, validation_token_flatten, validation_pos_flatten, spans, picos='I' )
-    #pa_regex_heur_matches, pa_regex_heur_labels = heurPattern_pa( text, validation_token_flatten, validation_pos_flatten, spans, picos='I' )
+    i_posregMatches, i_posregSpans, i_posregLabels = posPattern_i( text, validation_token_flatten, validation_pos_flatten, spans, picos='I' )
+    # pa_regex_heur_matches, pa_regex_heur_labels = heurPattern_pa( text, validation_token_flatten, validation_pos_flatten, spans, picos='I' )
 
+    '''
     # Fuzzy ontology LFs
     p_DO_fz_labels  = OntologyLabelingFunction( text, validation_token_flatten, spans, start_spans, p_DO, picos='P', expand_term=True, fuzzy_match = True )
     p_DO_syn_fz_labels  = OntologyLabelingFunction( text, validation_token_flatten, spans, start_spans, p_DO_syn, picos='P', expand_term=True, fuzzy_match = True )
@@ -277,8 +276,6 @@ try:
     #########################################################################################
     ExternalModelLabelingFunction()
     '''
-    
-
 
 
 except Exception as ex:

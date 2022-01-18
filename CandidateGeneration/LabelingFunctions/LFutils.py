@@ -54,21 +54,36 @@ def get_word_index_span(char_offsets, sequence):
             char_to_word_index(char_end, sequence))
 
 
-def spansToLabels(matches, labels, terms, start_spans, generated_labels):
-
+def spansToLabels(matches, labels, terms, start_spans, generated_labels, text_tokenized):
 
     for m, t, l in zip(matches, terms, labels):
         
         for m_i in m:
 
-            start, end = get_word_index_span(
-                (m_i.span()[0], m_i.span()[1] - 1), start_spans
-            )
-            
-            if ( end + 1 - start ) > 1:
-                print( t, ' : ', ( end + 1 - start ) )
+            if len(m_i.group()) > 2:
 
-            for x in range( start, end+1 ):
-                generated_labels[x] = l
+                start, end = get_word_index_span(
+                    (m_i.span()[0], m_i.span()[1] - 1), start_spans
+                )
+                if end and start:
+
+                    match_temp = ' '.join( [text_tokenized[x]  for x in range( start, end+1 )] )
+                    for x in range( start, end+1 ):
+                        if len( match_temp.strip() ) == len(t.strip()):
+                            #print( match_temp.strip() , ' ----- ',  t.strip())
+                            generated_labels[x] = l
+
+                else:
+                    pass
+                    #print(start , ' : ', end , ' - ', t)
 
     return generated_labels
+
+
+def heurspansToLabels(matches, spans, labels, terms, start_spans, generated_labels, text_tokenized):
+
+    for m, s, t, l in zip(matches, spans, terms, labels):  
+        print( m, s )
+
+
+    return None

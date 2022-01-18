@@ -56,13 +56,13 @@ def OntologyLabelingFunction(text,
                     terms.append( t_i )
                     label.append( l )
 
-        if i == 300:
+        if i == 3000:
             break
 
     assert len(ontology_matches) == len(label)
 
     generated_labels = len( text_tokenized ) * [0]
-    generated_labels = spansToLabels( ontology_matches, label, terms, tokenized_start_spans, generated_labels )
+    generated_labels = spansToLabels( ontology_matches, label, terms, tokenized_start_spans, generated_labels, text_tokenized )
 
     assert len( generated_labels ) == len( text_tokenized )
 
