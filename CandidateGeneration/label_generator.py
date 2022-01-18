@@ -118,9 +118,9 @@ try:
     umls_db = '/mnt/nas2/data/systematicReview/UMLS/english_subset/umls_preprocessed/umls_pre.db'
     
     print('Retrieving UMLS ontology arm (Preprocessing applied)')
-    #umls_p  = loadUMLSdb(umls_db, 'P')    
-    # umls_i = loadUMLSdb(umls_db, 'I')
-    #umls_o = loadUMLSdb(umls_db, 'O')
+    umls_p  = loadUMLSdb(umls_db, 'P')    
+    umls_i = loadUMLSdb(umls_db, 'I')
+    umls_o = loadUMLSdb(umls_db, 'O')
  
     print('Retrieving non-UMLS Ontologies  (Preprocessing applied)')
     p_DO, p_DO_syn = loadOnt( '/mnt/nas2/data/systematicReview/Ontologies/participant/DOID.csv', delim = ',', term_index = 1, term_syn_index = 2  )
@@ -165,8 +165,6 @@ try:
     text = ' '.join(validation_token_flatten)
     assert len(re.split(' ', text)) == len(validation_token_flatten) == len( list(WhitespaceTokenizer().span_tokenize(text)) )
     spans = list(WhitespaceTokenizer().span_tokenize(text))
-    start_spans = [y[0] for y in spans]
-    end_spans = [y[1] for y in spans]
 
     start_spans = dict()
     for i, y in  enumerate(spans):
@@ -177,27 +175,33 @@ try:
             start_spans[value] = i
 
     # Randomly choose an ontology to map
-    # ontology_SAB = list(umls_i.keys())
-    # key = ontology_SAB[4]
+    ontology_SAB_p = list(umls_p.keys())
+    key_p = ontology_SAB_p[4]
+
+    ontology_SAB_i = list(umls_i.keys())
+    key_i = ontology_SAB_i[4]
+
+    ontology_SAB_o = list(umls_o.keys())
+    key_o = ontology_SAB_o[4]
 
     # Rank the ontology based on coverage on the validation set
-    #ranked_umls_p = rankSAB( umls_p )
-    # ranked_umls_i = rankSAB( umls_i )
-    #ranked_umls_o = rankSAB( umls_o )
+    ranked_umls_p = rankSAB( umls_p )
+    ranked_umls_i = rankSAB( umls_i )
+    ranked_umls_o = rankSAB( umls_o )
 
 
     # Combine the ontologies into labeling functions
-    # partitioned_umls_i = partitionRankedSAB( ranked_umls_i ) # Once best UMLS combination is obtained, use them as individual LF arms
+    partitioned_umls_i = partitionRankedSAB( ranked_umls_i ) # Once best UMLS combination is obtained, use them as individual LF arms
 
+    '''
     #########################################################################################
     # Level 1 - UMLS LF's
     #########################################################################################
     # UMLS Ontology labeling
-    #ont_p_matches, ont_p_labels = OntologyLabelingFunction( text, validation_token_flatten, spans, umls_p[key], picos=None, expand_term=True, fuzzy_match=False )
-    # ont_i_matches, ont_i_labels = OntologyLabelingFunction( text, validation_token_flatten, spans, umls_i[key], picos=None, expand_term=True, fuzzy_match=False )
-    #ont_o_matches, ont_o_labels = OntologyLabelingFunction( text, validation_token_flatten, spans, umls_o[key], picos=None, expand_term=True, fuzzy_match=False )
+    umls_p_labels = OntologyLabelingFunction( text, validation_token_flatten, spans, start_spans, umls_p[key_p], picos=None, expand_term=True, fuzzy_match=False )
+    umls_i_labels = OntologyLabelingFunction( text, validation_token_flatten, spans, start_spans, umls_i[key_i], picos=None, expand_term=True, fuzzy_match=False )
+    umls_o_labels = OntologyLabelingFunction( text, validation_token_flatten, spans, start_spans, umls_o[key_o], picos=None, expand_term=True, fuzzy_match=False )
     
-    '''
     #########################################################################################
     # Level 2 - Non-UMLS LF's
     #########################################################################################
@@ -242,13 +246,11 @@ try:
     samplesize_labels = OntologyLabelingFunction( text, validation_token_flatten, spans, start_spans, [p_sampsize], picos='P', expand_term=False, fuzzy_match = False )
     agerange_labels = OntologyLabelingFunction( text, validation_token_flatten, spans, start_spans, [p_agerange], picos='P', expand_term=False, fuzzy_match = False )
     agemax_labels = OntologyLabelingFunction( text, validation_token_flatten, spans, start_spans, [p_agemax], picos='P', expand_term=False, fuzzy_match = False )
-    '''
 
     # Heutistic Labeling Function
-    # i_posreg_labels = posPattern_i( text, validation_token_flatten, validation_pos_flatten, spans, start_spans, picos='I' )
+    i_posreg_labels = posPattern_i( text, validation_token_flatten, validation_pos_flatten, spans, start_spans, picos='I' )
     pa_regex_heur_labels = heurPattern_pa( text, validation_token_flatten, validation_pos_flatten, spans, start_spans, picos='I' )
 
-    '''
     # Fuzzy ontology LFs
     p_DO_fz_labels  = OntologyLabelingFunction( text, validation_token_flatten, spans, start_spans, p_DO, picos='P', expand_term=True, fuzzy_match = True )
     p_DO_syn_fz_labels  = OntologyLabelingFunction( text, validation_token_flatten, spans, start_spans, p_DO_syn, picos='P', expand_term=True, fuzzy_match = True )
@@ -274,8 +276,7 @@ try:
     #########################################################################################
     # TODO  Level 5 - External Model Labeling function
     #########################################################################################
-    ExternalModelLabelingFunction()
-    '''
+    ExternalModelLabelingFunction() '''
 
 
 except Exception as ex:

@@ -2,7 +2,7 @@ from nltk.tokenize import WhitespaceTokenizer, sent_tokenize, word_tokenize
 from nltk import ngrams
 
 pico2labelMap = dict()
-pico2labelMap = { 'P' : 1, 'I' : 2, 'O' : 3, '-P' : 0, '-I' : 0, '-O' : 0, 'IO' : 0, 'OI' : 0, 'PO' : 0, 'OP' : 0, 'IP': 0, 'PI': 0, '-IO' : 0, '-OI' : 0, '-PO' : 0, '-OP' : 0, '-IP': 0, '-PI': 0 }
+pico2labelMap = { 'P' : 1, 'I' : 2, 'O' : 3, '-P' : 0, '-I' : 0, '-O' : 0, 'IO' : 0, 'OI' : 0, 'PO' : 0, 'OP' : 0, 'IP': 0, 'PI': 0, '-IO' : 0, '-OI' : 0, '-PO' : 0, '-OP' : 0, '-IP': 0, '-PI': 0, '-PIO' : 0, 'PIO' : 0 }
 
 
 def expandTerm( term , max_ngram, fuzzy_match):
@@ -128,8 +128,12 @@ def heurspansToLabels2(matches, labels, start_spans, generated_labels, text_toke
 
 def pico2label(l):
 
-    print( l )
-    l = [2 if x =='I' else x for x in l]
+    l = [ pico2labelMap[ l_i ] if l_i != -1 else l_i for l_i in l ]
+
+    #print(l)
+
+    temp = [ l_i for l_i in l if l_i != -1 ]
+    print(temp)
+            
 
     return l
-

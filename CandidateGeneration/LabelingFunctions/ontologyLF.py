@@ -4,7 +4,7 @@ import time
 from nltk import ngrams
 from nltk.tokenize import WhitespaceTokenizer, sent_tokenize, word_tokenize
 
-from LabelingFunctions.LFutils import expandTerm, spansToLabels
+from LabelingFunctions.LFutils import expandTerm, pico2label, spansToLabels
 
 '''
 Takes a labeling source (terms belonging to either one or more ontologies under a single LF arm).
@@ -61,8 +61,9 @@ def OntologyLabelingFunction(text,
 
     assert len(ontology_matches) == len(label)
 
-    generated_labels = len( text_tokenized ) * [0]
+    generated_labels = len( text_tokenized ) * [-1]
     generated_labels = spansToLabels( ontology_matches, label, terms, tokenized_start_spans, generated_labels, text_tokenized )
+    generated_labels = pico2label( generated_labels )
 
     assert len( generated_labels ) == len( text_tokenized )
 
