@@ -22,6 +22,7 @@ def expandTerm( term , max_ngram, fuzzy_match):
 
     return termVariations
 
+'''
 def char_to_word_index(ci, sequence):
     """
     Given a character-level index (offset),
@@ -34,6 +35,18 @@ def char_to_word_index(ci, sequence):
         elif ci < co:
             return i - 1
     return i
+'''
+
+def char_to_word_index(ci, sequence):
+    """
+    Given a character-level index (offset),
+    return the index of the **word this char is in**
+    """
+    i = None
+    if ci in sequence:
+        i = sequence[ci]
+
+    return i
 
 def get_word_index_span(char_offsets, sequence):
     char_start, char_end = char_offsets
@@ -41,9 +54,8 @@ def get_word_index_span(char_offsets, sequence):
             char_to_word_index(char_end, sequence))
 
 
-def spansToLabels(matches, labels, terms, start_spans):
+def spansToLabels(matches, labels, terms, start_spans, generated_labels):
 
-    generated_labels = [0] * len( start_spans )
 
     for m, t, l in zip(matches, terms, labels):
         
@@ -52,6 +64,9 @@ def spansToLabels(matches, labels, terms, start_spans):
             start, end = get_word_index_span(
                 (m_i.span()[0], m_i.span()[1] - 1), start_spans
             )
+            
+            if ( end + 1 - start ) > 1:
+                print( t, ' : ', ( end + 1 - start ) )
 
             for x in range( start, end+1 ):
                 generated_labels[x] = l

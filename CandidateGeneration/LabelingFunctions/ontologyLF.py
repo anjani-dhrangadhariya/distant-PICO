@@ -43,29 +43,28 @@ def OntologyLabelingFunction(text,
                 if t_i.search(text):
 
                     matches = [m for m in t_i.finditer(text)]
-                    if t_i not in term_set:
-                        term_set.add( t_i )
-                        ontology_matches.append( matches )
-                        terms.append( t_i )
-                        label.append( l )
+                    term_set.add( t_i )
+                    ontology_matches.append( matches )
+                    terms.append( t_i )
+                    label.append( l )
             else:
                 if t_i in text:
 
                     r = re.compile(t_i)
                     matches = [m for m in r.finditer(text)]
-                    if t_i not in term_set:
-                        ontology_matches.append( matches )
-                        terms.append( t_i )
-                        label.append( l )
+                    ontology_matches.append( matches )
+                    terms.append( t_i )
+                    label.append( l )
 
-        if i == 200:
+        if i == 300:
             break
 
     assert len(ontology_matches) == len(label)
 
-    generated_labels = spansToLabels( ontology_matches, label, terms, tokenized_start_spans )
+    generated_labels = len( text_tokenized ) * [0]
+    generated_labels = spansToLabels( ontology_matches, label, terms, tokenized_start_spans, generated_labels )
 
-    assert len( generated_labels ) == len( text_tokenized ) == len( tokenized_start_spans )
+    assert len( generated_labels ) == len( text_tokenized )
 
     print("--- %s seconds ---" % (time.time() - start_time))
 

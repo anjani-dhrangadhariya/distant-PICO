@@ -168,6 +168,16 @@ try:
     start_spans = [y[0] for y in spans]
     end_spans = [y[1] for y in spans]
 
+    start_spans = dict()
+    for i, y in  enumerate(spans):
+        ss = y[0]
+        es = y[1]
+
+        for value in range( ss, es+1 ):
+            start_spans[value] = i
+
+
+
     # Randomly choose an ontology to map
     # ontology_SAB = list(umls_i.keys())
     # key = ontology_SAB[4]
@@ -194,9 +204,9 @@ try:
     # Level 2 - Non-UMLS LF's
     #########################################################################################
     # non-UMLS Ontology labeling
-    # p_DO_labels  = OntologyLabelingFunction( text, validation_token_flatten, spans, start_spans, p_DO, picos='P', expand_term=True, fuzzy_match = False )
-    # p_DO_syn_labels = OntologyLabelingFunction( text, validation_token_flatten, spans, start_spans, p_DO_syn, picos='P', expand_term=True, fuzzy_match = False )
-
+    p_DO_labels  = OntologyLabelingFunction( text, validation_token_flatten, spans, start_spans, p_DO, picos='P', expand_term=True, fuzzy_match = False )
+    p_DO_syn_labels = OntologyLabelingFunction( text, validation_token_flatten, spans, start_spans, p_DO_syn, picos='P', expand_term=True, fuzzy_match = False )
+    '''
     # p_ctd_labels  = OntologyLabelingFunction( text, validation_token_flatten, spans, start_spans, p_ctd, picos='P', expand_term=True , fuzzy_match = False)
     # p_ctd_syn_labels = OntologyLabelingFunction( text, validation_token_flatten, spans, start_spans, p_ctd_syn, picos='P', expand_term=True, fuzzy_match = False )
 
@@ -227,39 +237,39 @@ try:
     # Abbreviation dictionary Labeling function
     p_abb_labels  = OntologyLabelingFunction( text, validation_token_flatten, spans, start_spans, p_abb, picos='P', expand_term=False, fuzzy_match = False )
 
-    '''
+
     #########################################################################################
     # Level 4 - Rule based LF's (ReGeX, Heuristics, Ontology based fuzzy bigram match)
     #########################################################################################
     # ReGeX Labeling Function
-    samplesize_matches, samplesize_labels = OntologyLabelingFunction( text, validation_token_flatten, spans, [p_sampsize], picos='P', expand_term=False, fuzzy_match = False )
-    agerange_matches, agerange_labels = OntologyLabelingFunction( text, validation_token_flatten, spans, [p_agerange], picos='P', expand_term=False, fuzzy_match = False )
-    agemax_matches, agemax_labels = OntologyLabelingFunction( text, validation_token_flatten, spans, [p_agemax], picos='P', expand_term=False, fuzzy_match = False )
+    samplesize_labels = OntologyLabelingFunction( text, validation_token_flatten, spans, start_spans, [p_sampsize], picos='P', expand_term=False, fuzzy_match = False )
+    agerange_labels = OntologyLabelingFunction( text, validation_token_flatten, spans, start_spans, [p_agerange], picos='P', expand_term=False, fuzzy_match = False )
+    agemax_labels = OntologyLabelingFunction( text, validation_token_flatten, spans, start_spans, [p_agemax], picos='P', expand_term=False, fuzzy_match = False )
 
     # Heutistic Labeling Function
-    i_posregMatches, i_posregSpans, i_posregLabels = posPattern_i( text, validation_token_flatten, validation_pos_flatten, spans, picos='I' )
-    pa_regex_heur_matches, pa_regex_heur_labels = heurPattern_pa( text, validation_token_flatten, validation_pos_flatten, spans, picos='I' )
+    #i_posregMatches, i_posregSpans, i_posregLabels = posPattern_i( text, validation_token_flatten, validation_pos_flatten, spans, picos='I' )
+    #pa_regex_heur_matches, pa_regex_heur_labels = heurPattern_pa( text, validation_token_flatten, validation_pos_flatten, spans, picos='I' )
 
     # Fuzzy ontology LFs
-    p_DO_fzont_matches, p_DO_fzont_labels  = OntologyLabelingFunction( text, validation_token_flatten, spans, p_DO, picos='P', expand_term=True, fuzzy_match = True )
-    p_DO_syn_fzont_matches, p_DO_syn_fzont_labels  = OntologyLabelingFunction( text, validation_token_flatten, spans, p_DO_syn, picos='P', expand_term=True, fuzzy_match = True )
+    p_DO_fz_labels  = OntologyLabelingFunction( text, validation_token_flatten, spans, start_spans, p_DO, picos='P', expand_term=True, fuzzy_match = True )
+    p_DO_syn_fz_labels  = OntologyLabelingFunction( text, validation_token_flatten, spans, start_spans, p_DO_syn, picos='P', expand_term=True, fuzzy_match = True )
 
-    p_ctd_fzmatches, p_ctd_fzlabels  = OntologyLabelingFunction( text, validation_token_flatten, spans, p_ctd, picos='P', expand_term=True , fuzzy_match = True)
-    p_ctd_syn_fzmatches, p_ctd_syn_fzlabels  = OntologyLabelingFunction( text, validation_token_flatten, spans, p_ctd_syn, picos='P', expand_term=True, fuzzy_match = True )
+    p_ctd_fz_labels  = OntologyLabelingFunction( text, validation_token_flatten, spans, start_spans, p_ctd, picos='P', expand_term=True , fuzzy_match = True)
+    p_ctd_syn_fz_labels  = OntologyLabelingFunction( text, validation_token_flatten, spans, start_spans, p_ctd_syn, picos='P', expand_term=True, fuzzy_match = True )
 
-    i_ctd_fzmatches, i_ctd_fzlabels  = OntologyLabelingFunction( text, validation_token_flatten, spans, i_ctd, picos='I', expand_term=True, fuzzy_match = True )
-    i_ctd_syn_fzmatches, i_ctd_syn_fzlabels  = OntologyLabelingFunction( text, validation_token_flatten, spans, i_ctd_syn, picos='I', expand_term=True, fuzzy_match = True )
+    i_ctd_fz_labels  = OntologyLabelingFunction( text, validation_token_flatten, spans, start_spans, i_ctd, picos='I', expand_term=True, fuzzy_match = True )
+    i_ctd_syn_fz_labels  = OntologyLabelingFunction( text, validation_token_flatten, spans, start_spans, i_ctd_syn, picos='I', expand_term=True, fuzzy_match = True )
 
-    i_chebi_fzmatches, i_chebi_fzlabels  = OntologyLabelingFunction( text, validation_token_flatten, spans, i_chebi, picos='I', expand_term=True , fuzzy_match = True )
-    i_chebi_syn_fzmatches, i_chebi_syn_fzlabels  = OntologyLabelingFunction( text, validation_token_flatten, spans, i_chebi_syn, picos='I', expand_term=True, fuzzy_match = True )
+    i_chebi_fz_labels  = OntologyLabelingFunction( text, validation_token_flatten, spans, start_spans, i_chebi, picos='I', expand_term=True , fuzzy_match = True )
+    i_chebi_syn_fz_labels  = OntologyLabelingFunction( text, validation_token_flatten, spans, start_spans, i_chebi_syn, picos='I', expand_term=True, fuzzy_match = True )
 
-    o_oae_fzmatches, o_oae_fzlabels = OntologyLabelingFunction( text, validation_token_flatten, spans, o_oae, picos='O', expand_term=True , fuzzy_match = True )
-    o_oae_syn_fzmatches, o_oae_syn_fzlabels = OntologyLabelingFunction( text, validation_token_flatten, spans, o_oae_syn, picos='O', expand_term=True, fuzzy_match = True )
+    o_oae_fz_labels = OntologyLabelingFunction( text, validation_token_flatten, spans, start_spans, o_oae, picos='O', expand_term=True , fuzzy_match = True )
+    o_oae_syn_fz_labels = OntologyLabelingFunction( text, validation_token_flatten, spans, start_spans, o_oae_syn, picos='O', expand_term=True, fuzzy_match = True )
 
-    p_DS_fzmatches, p_DS_fzlabels  = OntologyLabelingFunction( text, validation_token_flatten, spans, ds_participant, picos='P', expand_term=True, fuzzy_match = True )
-    i_ds_fzmatches, i_ds_fzlabels  = OntologyLabelingFunction( text, validation_token_flatten, spans, ds_intervention, picos='I', expand_term=True, fuzzy_match = True )
-    i_syn_ds_fzmatches, i_syn_ds_fzlabels  = OntologyLabelingFunction( text, validation_token_flatten, spans, ds_intervention_syn, picos='I', expand_term=True, fuzzy_match = True )
-    o_ds_fzmatches, o_ds_fzlabels  = OntologyLabelingFunction( text, validation_token_flatten, spans, ds_outcome, picos='O', expand_term=True, fuzzy_match = True )
+    p_DS_fz_labels  = OntologyLabelingFunction( text, validation_token_flatten, spans, start_spans, ds_participant, picos='P', expand_term=True, fuzzy_match = True )
+    i_ds_fz_labels  = OntologyLabelingFunction( text, validation_token_flatten, spans, start_spans, ds_intervention, picos='I', expand_term=True, fuzzy_match = True )
+    i_syn_ds_fz_labels  = OntologyLabelingFunction( text, validation_token_flatten, spans, start_spans, ds_intervention_syn, picos='I', expand_term=True, fuzzy_match = True )
+    o_ds_fz_labels  = OntologyLabelingFunction( text, validation_token_flatten, spans, start_spans, ds_outcome, picos='O', expand_term=True, fuzzy_match = True )
 
 
     #########################################################################################
@@ -267,7 +277,6 @@ try:
     #########################################################################################
     ExternalModelLabelingFunction()
     '''
-
     
 
 
