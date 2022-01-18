@@ -72,7 +72,6 @@ def spansToLabels(matches, labels, terms, start_spans, generated_labels, text_to
                         if len( match_temp.strip() ) == len(t.strip()):
                             #print( match_temp.strip() , ' ----- ',  t.strip())
                             generated_labels[x] = l
-
                 else:
                     pass
                     #print(start , ' : ', end , ' - ', t)
@@ -80,10 +79,25 @@ def spansToLabels(matches, labels, terms, start_spans, generated_labels, text_to
     return generated_labels
 
 
-def heurspansToLabels(matches, spans, labels, terms, start_spans, generated_labels, text_tokenized):
+def heurspansToLabels(matches, spans, labels, start_spans, generated_labels, text_tokenized):
 
-    for m, s, t, l in zip(matches, spans, terms, labels):  
-        print( m, s )
+    for m, s, l in zip(matches, spans, labels):
 
+        joined_m = ' '.join(m)
+        if len( s ) == 1:
+            joined_s = s[0]
+        else:
+            joined_s = ( s[0][0] , s[-1][-1] )
 
-    return None
+        start, end = get_word_index_span(
+            (s[0][0], s[-1][-1] - 1), start_spans
+        )
+        if end and start:
+
+            match_temp = ' '.join( [text_tokenized[x]  for x in range( start, end+1 )] )
+            for x in range( start, end+1 ):
+                if len( match_temp.strip() ) == len(joined_m.strip()):
+                    #print( match_temp.strip() , ' ----- ',  joined_m.strip())
+                    generated_labels[x] = l
+
+    return generated_labels

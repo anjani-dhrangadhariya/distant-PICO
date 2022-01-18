@@ -1,5 +1,7 @@
 import re
 
+from LabelingFunctions.LFutils import heurspansToLabels
+
 '''
 Description:
     Labeling function labels input data (str) with "Intervention" label using a heuristic combining ReGeX and part-of-speech (POS) tags
@@ -14,7 +16,7 @@ Args:
 Returns:
     regex_pos_matches, regex_pos_spans, labels (lists): returns 3 lists each containing free text matches, spans and the span labels
 '''
-def posPattern_i( text, text_tokenized, text_pos_flatten, spans, picos: str ):
+def posPattern_i( text, text_tokenized, text_pos_flatten, spans, start_spans, picos: str ):
 
     regex_matches = []
 
@@ -47,14 +49,10 @@ def posPattern_i( text, text_tokenized, text_pos_flatten, spans, picos: str ):
                 regex_pos_spans.append( longest_match_span ) 
                 labels.append( picos )
 
-    for m, s in zip(regex_pos_matches, regex_pos_spans):
+    generated_labels = len( text_tokenized ) * [0]
+    generated_labels = heurspansToLabels(regex_pos_matches, regex_pos_spans, labels, start_spans, generated_labels, text_tokenized)
 
-        joined_m = ' '.join(m)
-        if len( s ) == 1:
-            joined_s = s[0]
-        else:
-            joined_s = ( s[0][0] , s[-1][-1] )
-
+    assert len(generated_labels) == len(text_tokenized)
     
     return regex_pos_matches, regex_pos_spans, labels
 
