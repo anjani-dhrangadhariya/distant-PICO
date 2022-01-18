@@ -98,7 +98,7 @@ Returns:
     ChEBI terms (list): A list containing all the terms corresponding and their synonyms from the Chemical Entities of Biological Interest (ChEBI)
     DO terms (list): A list containing all the terms and their synonyms from the Disease Ontology (DO)
 '''
-def loadOnt(fpath, delim, term_index, term_syn_index):
+def loadOnt(fpath, delim, term_index, term_syn_index, char_threshold:int = 2):
 
     term = []
     term_syn = []
@@ -107,10 +107,12 @@ def loadOnt(fpath, delim, term_index, term_syn_index):
         rd = csv.reader(fd, delimiter = delim)
         next(rd, None)
         for counter, row in enumerate(rd):
-            term.append( row[term_index] )
+            if len( row[term_index] ) > char_threshold:
+                term.append( row[term_index] )
             if row[term_syn_index]:
                 synonyms = row[term_syn_index]
                 synonyms = synonyms.split('|')
+                synonyms = [s for s in synonyms if len(s) > char_threshold]
                 term_syn.extend( synonyms )
     
     term_prepro = list(map(preprocessOntology, term))
@@ -152,7 +154,7 @@ def loadAbbreviations(fpath):
 
     return terms
 
-def loadDS(fpath, picos):
+def loadDS(fpath, picos, char_threshold:int = 2):
 
     ds_source = []
 
@@ -162,7 +164,8 @@ def loadDS(fpath, picos):
             sourceJSON = json.loads(sourceLine)
 
             for k,v in sourceJSON.items():
-                ds_source.append( v['text'] )
+                if len( v['text'] ) > char_threshold:
+                    ds_source.append( v['text'] )
 
     ds_source = list( set( ds_source ) )
     ds_source_prepro = list(map(preprocessOntology, ds_source))
