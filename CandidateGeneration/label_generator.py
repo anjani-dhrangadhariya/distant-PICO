@@ -245,8 +245,8 @@ try:
     '''
 
     # Heutistic Labeling Function
-    i_posregMatches, i_posregSpans, i_posregLabels = posPattern_i( text, validation_token_flatten, validation_pos_flatten, spans, picos='I' )
-    # pa_regex_heur_matches, pa_regex_heur_labels = heurPattern_pa( text, validation_token_flatten, validation_pos_flatten, spans, picos='I' )
+    # i_posreg_labels = posPattern_i( text, validation_token_flatten, validation_pos_flatten, spans, start_spans, picos='I' )
+    pa_regex_heur_labels = heurPattern_pa( text, validation_token_flatten, validation_pos_flatten, spans, start_spans, picos='I' )
 
     '''
     # Fuzzy ontology LFs

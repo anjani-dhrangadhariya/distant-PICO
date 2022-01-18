@@ -101,3 +101,23 @@ def heurspansToLabels(matches, spans, labels, start_spans, generated_labels, tex
                     generated_labels[x] = l
 
     return generated_labels
+
+def heurspansToLabels2(matches, labels, start_spans, generated_labels, text_tokenized):
+    
+    for m, l in zip(matches, labels):
+
+        if len(m.group()) > 2:
+
+            start, end = get_word_index_span(
+                (m.span()[0], m.span()[1] - 1), start_spans
+            )
+
+            match_temp = ' '.join( [text_tokenized[x]  for x in range( start, end+1 )] )
+            for x in range( start, end+1 ):
+                if len( match_temp.strip() ) == len(m.group().strip()):
+                    # print( match_temp.strip() , ' ----- ',  joined_m.strip())
+                    generated_labels[x] = l
+                # else:
+                    # print( match_temp.strip() , ' ----- ',  m.group().strip())
+
+    return generated_labels

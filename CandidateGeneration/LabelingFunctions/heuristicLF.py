@@ -1,6 +1,6 @@
 import re
 
-from LabelingFunctions.LFutils import heurspansToLabels
+from LabelingFunctions.LFutils import heurspansToLabels, heurspansToLabels2
 
 '''
 Description:
@@ -54,7 +54,7 @@ def posPattern_i( text, text_tokenized, text_pos_flatten, spans, start_spans, pi
 
     assert len(generated_labels) == len(text_tokenized)
     
-    return regex_pos_matches, regex_pos_spans, labels
+    return generated_labels
 
 
 '''
@@ -71,13 +71,13 @@ Args:
 Returns:
     regex_heur_matches, regex_heur_labels (lists): returns 2 lists each containing free text matches (matching text and span) and the span labels
 '''
-def heurPattern_pa( text, text_flatten, text_pos_flatten, spans, picos: str ):
+def heurPattern_pa( text, text_tokenized, text_pos_flatten, spans, start_spans, picos: str ):
 
     regex_heur_matches = []
     regex_heur_labels = []
 
 
-    eg_pattern = 'age.(.*?)(years|months)'
+    eg_pattern = '\bage.(.*?)(years|months)'
 
     compiled_pattern = re.compile( eg_pattern )
 
@@ -90,4 +90,7 @@ def heurPattern_pa( text, text_flatten, text_pos_flatten, spans, picos: str ):
                 regex_heur_matches.append( m )
                 regex_heur_labels.append( picos )
 
-    return regex_heur_matches, regex_heur_labels
+    generated_labels = len(text_tokenized) * [0]
+    generated_labels = heurspansToLabels2(regex_heur_matches, regex_heur_labels, start_spans, generated_labels, text_tokenized)
+
+    return generated_labels
