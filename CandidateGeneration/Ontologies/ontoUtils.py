@@ -78,7 +78,7 @@ def partitionRankedSAB(umls_d):
 
         if i == 0 or i == len(keys):
             if i == 0:
-                partitioned_lfs.append( keys )
+                partitioned_lfs.append( [keys] )
             if i ==len(keys):
                 temp3 = list2Nested(keys, 1)
                 partitioned_lfs.append( temp3 )
@@ -107,9 +107,9 @@ def rankSAB(umls_d, picos):
         ranked_umls = eval(ranks_o)
 
     for i, l in enumerate(ranked_umls):
-        ranked_dict[i+1] = l[0]
+        ranked_dict[ l[0] ] = umls_d[l[0]]
 
-    partitioned_umls = partitionRankedSAB(umls_d)
+    partitioned_umls = partitionRankedSAB(ranked_dict)
 
     return ranked_dict, partitioned_umls
 
