@@ -46,28 +46,24 @@ def loadEBMPICO(train_dir):
             pos.append( v['pos'] )
             if 'participants' in v:
                 vp = v['participants']
-                vp = [-1 if x==0 else x for x in vp]
                 p.append( vp )
             else:
-                p.append( [ -1 ] * len( v['tokens'] ) )
+                p.append( [ '0' ] * len( v['tokens'] ) )
 
             if 'interventions' in v:
                 vi = v['interventions']
-                vi = [-1 if x==0 else x for x in vi]
                 i.append( vi )
             else:
-                i.append( [ -1 ] * len( v['tokens'] ) )
+                i.append( [ '0' ] * len( v['tokens'] ) )
 
             if 'outcomes' in v:
                 vo = v['outcomes']
-                vo = [-1 if x==0 else x for x in vo]
                 o.append( vo  )
             else:
-                o.append( [ -1 ] * len( v['tokens'] ) )
+                o.append( [ '0' ] * len( v['tokens'] ) )
     
 
     df = pd.DataFrame( {'pmid': pmid, 'tokens': tokens, 'pos': pos, 'p': p, 'i': i, 'o': o } )
-
     train, validation = train_test_split(df, test_size=0.20)
 
     return train, validation
