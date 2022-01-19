@@ -55,19 +55,12 @@ from load_data import loadEBMPICO
 # Initialize and set seed
 ################################################################################
 # Get the experiment arguments
-#args = getArguments()
+args = getArguments()
 
-# Initialize LabelModel with correct cardinality
-label_model = LabelModel(cardinality=4, verbose=True)
+# XXX Initialize LabelModel with correct cardinality
+label_model = LabelModel(cardinality=2, verbose=True)
 
-# Get the mappings between sources and their relevant targets
-mapping = generateMapping()
-
-# Get the mappings between PICOS entity and their labels and vice versa
-PICOS = generateLabels()
-PICOS_reverse = generateAntiLabels(PICOS)
-abstain_options = abstainOption()
-
+# Set seed
 seed = 0
 seed_everything(seed)
 print('The random seed is set to: ', seed)
@@ -296,12 +289,12 @@ try:
     #########################################################################################
     # Combine LF's into a single LF
     #########################################################################################
-    L_p = [umls_p_labels, p_DO_labels, p_DO_syn_labels, p_ctd_labels, p_ctd_syn_labels, p_DS_labels, gender_labels, p_abb_labels, samplesize_labels, agerange_labels, agemax_labels, pa_regex_heur_labels, umls_p_fz_labels, p_DO_fz_labels, p_DO_syn_fz_labels, p_ctd_fz_labels, p_ctd_syn_fz_labels, p_DS_fz_labels ]
-    # L_p = [umls_p_labels, p_DO_labels, p_DO_syn_labels ]
-    L_i = [umls_i_labels, i_ctd_labels, i_ctd_syn_labels, i_chebi_labels, i_chebi_syn_labels, i_ds_labels, i_syn_ds_labels, comparator_labels, i_posreg_labels, umls_i_fz_labels, i_ctd_fz_labels, i_ctd_syn_fz_labels, i_chebi_fz_labels, i_chebi_syn_fz_labels, i_ds_fz_labels, i_syn_ds_fz_labels ]
-    # L_i = [umls_i_labels, i_ctd_labels, i_ctd_syn_labels ]
-    L_o = [umls_o_labels, o_oae_labels, o_oae_syn_labels, o_ds_labels, umls_o_fz_labels, o_oae_fz_labels, o_oae_syn_fz_labels, o_ds_fz_labels ]
-    # L_o = [umls_o_labels, o_oae_labels, o_oae_syn_labels ]
+    # L_p = [umls_p_labels, p_DO_labels, p_DO_syn_labels, p_ctd_labels, p_ctd_syn_labels, p_DS_labels, gender_labels, p_abb_labels, samplesize_labels, agerange_labels, agemax_labels, pa_regex_heur_labels, umls_p_fz_labels, p_DO_fz_labels, p_DO_syn_fz_labels, p_ctd_fz_labels, p_ctd_syn_fz_labels, p_DS_fz_labels ]
+    L_p = [umls_p_labels, p_DO_labels ]
+    # L_i = [umls_i_labels, i_ctd_labels, i_ctd_syn_labels, i_chebi_labels, i_chebi_syn_labels, i_ds_labels, i_syn_ds_labels, comparator_labels, i_posreg_labels, umls_i_fz_labels, i_ctd_fz_labels, i_ctd_syn_fz_labels, i_chebi_fz_labels, i_chebi_syn_fz_labels, i_ds_fz_labels, i_syn_ds_fz_labels ]
+    L_i = [umls_i_labels, i_ctd_labels ]
+    # L_o = [umls_o_labels, o_oae_labels, o_oae_syn_labels, o_ds_labels, umls_o_fz_labels, o_oae_fz_labels, o_oae_syn_fz_labels, o_ds_fz_labels ]
+    L_o = [umls_o_labels, o_oae_labels ]
 
     # L_p = scipy.sparse.csr_matrix( L_p )
     # participant_LF_summary = lf_summary(L_p, Y=validation_p_labels_flatten)

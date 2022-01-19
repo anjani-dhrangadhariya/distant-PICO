@@ -64,6 +64,6 @@ def loadEBMPICO(train_dir):
     
 
     df = pd.DataFrame( {'pmid': pmid, 'tokens': tokens, 'pos': pos, 'p': p, 'i': i, 'o': o } )
-    train, validation = train_test_split(df, test_size=0.20)
+    train, validation = train_test_split(df, test_size=0.02)
 
     return train, validation
