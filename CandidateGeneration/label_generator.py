@@ -25,8 +25,10 @@ import operator
 from itertools import chain
 
 import matplotlib
+from metrics.analysis import lf_coverages, lf_summary
 import numpy as np
 import pandas as pd
+import scipy
 from elasticsearch import Elasticsearch, helpers
 from elasticsearch_dsl import Q, Search
 from nltk.tokenize import WhitespaceTokenizer
@@ -53,7 +55,7 @@ from load_data import loadEBMPICO
 # Initialize and set seed
 ################################################################################
 # Get the experiment arguments
-args = getArguments()
+#args = getArguments()
 
 # Initialize LabelModel with correct cardinality
 label_model = LabelModel(cardinality=4, verbose=True)
@@ -162,8 +164,16 @@ try:
     validation_pos_flatten = [item for sublist in list(validation['pos']) for item in sublist]
 
     validation_p_labels_flatten = [item for sublist in list(validation['p']) for item in sublist]
+    validation_p_labels_flatten = list(map(int, validation_p_labels_flatten))
+    validation_p_labels_flatten = [-1 if x==0 else x for x in validation_p_labels_flatten]
+
     validation_i_labels_flatten = [item for sublist in list(validation['i']) for item in sublist]
+    validation_i_labels_flatten = list(map(int, validation_i_labels_flatten))
+    validation_i_labels_flatten = [-1 if x==0 else x for x in validation_i_labels_flatten]
+
     validation_o_labels_flatten = [item for sublist in list(validation['o']) for item in sublist]
+    validation_o_labels_flatten = list(map(int, validation_o_labels_flatten))
+    validation_o_labels_flatten = [-1 if x==0 else x for x in validation_o_labels_flatten]
 
     text = ' '.join(validation_token_flatten)
     assert len(re.split(' ', text)) == len(validation_token_flatten) == len( list(WhitespaceTokenizer().span_tokenize(text)) )
@@ -278,20 +288,32 @@ try:
     i_syn_ds_fz_labels  = OntologyLabelingFunction( text, validation_token_flatten, spans, start_spans, ds_intervention_syn, picos='I', expand_term=True, fuzzy_match = True )
     o_ds_fz_labels  = OntologyLabelingFunction( text, validation_token_flatten, spans, start_spans, ds_outcome, picos='O', expand_term=True, fuzzy_match = True )
 
-
     #########################################################################################
     # TODO  Level 5 - External Model Labeling function
     #########################################################################################
     ExternalModelLabelingFunction()
 
     #########################################################################################
-    # Combine LF's into a LF
+    # Combine LF's into a single LF
     #########################################################################################
-    lfs = [ umls_p_labels, umls_i_labels, umls_o_labels, p_DO_labels, p_DO_syn_labels, p_ctd_labels, p_ctd_syn_labels, i_ctd_labels, i_ctd_syn_labels, i_chebi_labels, i_chebi_syn_labels, o_oae_labels, o_oae_syn_labels, p_DS_labels, i_ds_labels, i_syn_ds_labels, o_ds_labels, gender_labels, comparator_labels, p_abb_labels, samplesize_labels, agerange_labels, agemax_labels ]
-    applier = PandasLFApplier(lfs=lfs)
+    L_p = [umls_p_labels, p_DO_labels, p_DO_syn_labels, p_ctd_labels, p_ctd_syn_labels, p_DS_labels, gender_labels, p_abb_labels, samplesize_labels, agerange_labels, agemax_labels, pa_regex_heur_labels, umls_p_fz_labels, p_DO_fz_labels, p_DO_syn_fz_labels, p_ctd_fz_labels, p_ctd_syn_fz_labels, p_DS_fz_labels ]
+    # L_p = [umls_p_labels, p_DO_labels, p_DO_syn_labels ]
+    L_i = [umls_i_labels, i_ctd_labels, i_ctd_syn_labels, i_chebi_labels, i_chebi_syn_labels, i_ds_labels, i_syn_ds_labels, comparator_labels, i_posreg_labels, umls_i_fz_labels, i_ctd_fz_labels, i_ctd_syn_fz_labels, i_chebi_fz_labels, i_chebi_syn_fz_labels, i_ds_fz_labels, i_syn_ds_fz_labels ]
+    # L_i = [umls_i_labels, i_ctd_labels, i_ctd_syn_labels ]
+    L_o = [umls_o_labels, o_oae_labels, o_oae_syn_labels, o_ds_labels, umls_o_fz_labels, o_oae_fz_labels, o_oae_syn_fz_labels, o_ds_fz_labels ]
+    # L_o = [umls_o_labels, o_oae_labels, o_oae_syn_labels ]
 
-    print( applier )
-    print( type(applier) )
+    # L_p = scipy.sparse.csr_matrix( L_p )
+    # participant_LF_summary = lf_summary(L_p, Y=validation_p_labels_flatten)
+    # print( participant_LF_summary )
+
+    print('Training Label Model...')
+    L = np.array(L_p)
+    label_model.fit(L, seed=seed, n_epochs=3)
+    Y_hat = label_model.predict_proba(L)
+
+    print( type(Y_hat) )
+
 
 except Exception as ex:
     
