@@ -5,6 +5,7 @@ from nltk import ngrams
 from nltk.tokenize import WhitespaceTokenizer, sent_tokenize, word_tokenize
 
 from LabelingFunctions.LFutils import expandTerm, pico2label, spansToLabels
+from snorkel.labeling import labeling_function
 
 '''
 Takes a labeling source (terms belonging to either one or more ontologies under a single LF arm).
@@ -56,7 +57,7 @@ def OntologyLabelingFunction(text,
                     terms.append( t_i )
                     label.append( l )
 
-        if i == 3000:
+        if i == 300:
             break
 
     assert len(ontology_matches) == len(label)

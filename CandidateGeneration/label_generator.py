@@ -34,7 +34,10 @@ from nltk.tokenize import WhitespaceTokenizer
 matplotlib.use('agg')
 import matplotlib.pyplot as plt
 from pylab import *
+
 from snorkel.labeling.model import LabelModel
+from snorkel.labeling import PandasLFApplier
+
 
 from CandGenUtilities.experiment_arguments import *
 from CandGenUtilities.labeler_utilities import *
@@ -193,7 +196,6 @@ try:
     # Combine the ontologies into labeling functions
     partitioned_umls_i = partitionRankedSAB( ranked_umls_i ) # Once best UMLS combination is obtained, use them as individual LF arms
 
-    '''
     #########################################################################################
     # Level 1 - UMLS LF's
     #########################################################################################
@@ -238,7 +240,6 @@ try:
     # Abbreviation dictionary Labeling function
     p_abb_labels  = OntologyLabelingFunction( text, validation_token_flatten, spans, start_spans, p_abb, picos='P', expand_term=False, fuzzy_match = False )
 
-
     #########################################################################################
     # Level 4 - Rule based LF's (ReGeX, Heuristics, Ontology based fuzzy bigram match)
     #########################################################################################
@@ -252,6 +253,11 @@ try:
     pa_regex_heur_labels = heurPattern_pa( text, validation_token_flatten, validation_pos_flatten, spans, start_spans, picos='I' )
 
     # Fuzzy ontology LFs
+
+    umls_p_fz_labels = OntologyLabelingFunction( text, validation_token_flatten, spans, start_spans, umls_p[key_p], picos=None, expand_term=True, fuzzy_match=True )
+    umls_i_fz_labels = OntologyLabelingFunction( text, validation_token_flatten, spans, start_spans, umls_i[key_i], picos=None, expand_term=True, fuzzy_match=True )
+    umls_o_fz_labels = OntologyLabelingFunction( text, validation_token_flatten, spans, start_spans, umls_o[key_o], picos=None, expand_term=True, fuzzy_match=True )
+
     p_DO_fz_labels  = OntologyLabelingFunction( text, validation_token_flatten, spans, start_spans, p_DO, picos='P', expand_term=True, fuzzy_match = True )
     p_DO_syn_fz_labels  = OntologyLabelingFunction( text, validation_token_flatten, spans, start_spans, p_DO_syn, picos='P', expand_term=True, fuzzy_match = True )
 
@@ -276,8 +282,16 @@ try:
     #########################################################################################
     # TODO  Level 5 - External Model Labeling function
     #########################################################################################
-    ExternalModelLabelingFunction() '''
+    ExternalModelLabelingFunction()
 
+    #########################################################################################
+    # Combine LF's into a LF
+    #########################################################################################
+    lfs = [ umls_p_labels, umls_i_labels, umls_o_labels, p_DO_labels, p_DO_syn_labels, p_ctd_labels, p_ctd_syn_labels, i_ctd_labels, i_ctd_syn_labels, i_chebi_labels, i_chebi_syn_labels, o_oae_labels, o_oae_syn_labels, p_DS_labels, i_ds_labels, i_syn_ds_labels, o_ds_labels, gender_labels, comparator_labels, p_abb_labels, samplesize_labels, agerange_labels, agemax_labels ]
+    applier = PandasLFApplier(lfs=lfs)
+
+    print( applier )
+    print( type(applier) )
 
 except Exception as ex:
     

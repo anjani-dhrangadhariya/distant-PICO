@@ -1,6 +1,7 @@
 import re
 
 from LabelingFunctions.LFutils import heurspansToLabels, heurspansToLabels2, pico2label
+from snorkel.labeling import labeling_function
 
 '''
 Description:
