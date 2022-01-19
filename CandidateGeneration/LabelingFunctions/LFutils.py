@@ -1,5 +1,6 @@
 from nltk.tokenize import WhitespaceTokenizer, sent_tokenize, word_tokenize
 from nltk import ngrams
+import re
 
 pico2labelMap = dict()
 pico2labelMap = { 'P' : 1, 'I' : 2, 'O' : 3, '-P' : 0, '-I' : 0, '-O' : 0, 'IO' : 0, 'OI' : 0, 'PO' : 0, 'OP' : 0, 'IP': 0, 'PI': 0, '-IO' : 0, '-OI' : 0, '-PO' : 0, '-OP' : 0, '-IP': 0, '-PI': 0, '-PIO' : 0, 'PIO' : 0 }
@@ -68,13 +69,18 @@ def spansToLabels(matches, labels, terms, start_spans, generated_labels, text_to
                 start, end = get_word_index_span(
                     (m_i.span()[0], m_i.span()[1] - 1), start_spans
                 )
-                if end and start:
 
+                if end and start:
                     match_temp = ' '.join( [text_tokenized[x]  for x in range( start, end+1 )] )
                     for x in range( start, end+1 ):
-                        if len( match_temp.strip() ) == len(t.strip()):
-                            #print( match_temp.strip() , ' ----- ',  t.strip())
-                            generated_labels[x] = l
+                        if isinstance( t , re._pattern_type ):
+                            if len( match_temp.strip() ) == len(m_i.group().strip()):
+                                # print( match_temp.strip() , ' ----- ',  len(m_i.group().strip()) )
+                                generated_labels[x] = l
+                        else:
+                            if len( match_temp.strip() ) == len(t.strip()):
+                                #print( match_temp.strip() , ' ----- ',  t.strip())
+                                generated_labels[x] = l
                 else:
                     pass
                     #print(start , ' : ', end , ' - ', t)
@@ -129,11 +135,5 @@ def heurspansToLabels2(matches, labels, start_spans, generated_labels, text_toke
 def pico2label(l):
 
     l = [ pico2labelMap[ l_i ] if l_i != -1 else l_i for l_i in l ]
-
-    #print(l)
-
-    temp = [ l_i for l_i in l if l_i != -1 ]
-    print(temp)
-            
 
     return l
