@@ -24,7 +24,6 @@ from random import shuffle
 import operator
 from itertools import chain
 
-import matplotlib
 from metrics.analysis import lf_coverages, lf_summary
 import numpy as np
 import pandas as pd
@@ -33,19 +32,17 @@ from elasticsearch import Elasticsearch, helpers
 from elasticsearch_dsl import Q, Search
 from nltk.tokenize import WhitespaceTokenizer
 
-matplotlib.use('agg')
-import matplotlib.pyplot as plt
 from pylab import *
 
 from snorkel.labeling.model import LabelModel
 from snorkel.labeling import PandasLFApplier
-
 
 from CandGenUtilities.experiment_arguments import *
 from CandGenUtilities.labeler_utilities import *
 from CandGenUtilities.source_target_mapping import *
 from LabelingFunctions.ontologyLF import *
 from Ontologies.ontologyLoader import *
+from Ontologies.ontoUtils import *
 from LabelingFunctions.LFutils import spansToLabels
 from LabelingFunctions.externalmodelLF import ExternalModelLabelingFunction
 from LabelingFunctions.heuristicLF import heurPattern_pa, posPattern_i
@@ -68,44 +65,6 @@ print('The random seed is set to: ', seed)
 ################################################################################
 # Initialize Labeling function sources
 ################################################################################
-
-def rankSAB(umls_d):
-
-    keys = [k for k in umls_d.keys()] 
-
-    shuffle(keys)
-
-    umls_d_new = dict()
-
-    for k in keys:
-        umls_d_new[k] = umls_d[k]
-
-    return umls_d_new
-
-def list2Nested(l, nested_length):
-    return [l[i:i+nested_length] for i in range(0, len(l), nested_length)]
-
-def partitionRankedSAB(umls_d):
-
-    keys = list(umls_d.keys())
-
-    partitioned_lfs = [ ]
-
-    for i in range( 0, len(keys) ):
-
-        if i == 0 or i == len(keys):
-            if i == 0:
-                partitioned_lfs.append( keys )
-            if i ==len(keys):
-                temp3 = list2Nested(keys, 1)
-                partitioned_lfs.append( temp3 )
-        else:
-            temp1, temp2 = keys[:i] , keys[i:]
-            temp3 = list2Nested( keys[:i], 1)
-            temp3.append( keys[i:] )
-            partitioned_lfs.append( temp3 )
-
-    return partitioned_lfs
 
 hit_tokens = []
 hit_l1l2_labels = []
@@ -147,7 +106,6 @@ try:
     p_agemax = loadPattern( 'age2' )
 
     # TODO: Retrieve external models
-
 
     # Load validation data
     ebm_nlp = '/mnt/nas2/data/systematicReview/PICO_datasets/EBM_parsed'
@@ -191,13 +149,10 @@ try:
     key_o = ontology_SAB_o[4]
 
     # Rank the ontology based on coverage on the validation set
-    ranked_umls_p = rankSAB( umls_p )
-    ranked_umls_i = rankSAB( umls_i )
-    ranked_umls_o = rankSAB( umls_o )
-
-
     # Combine the ontologies into labeling functions
-    partitioned_umls_i = partitionRankedSAB( ranked_umls_i ) # Once best UMLS combination is obtained, use them as individual LF arms
+    ranked_umls_p, partitioned_umls_i = rankSAB( umls_p, 'p' )
+    ranked_umls_i, partitioned_umls_i = rankSAB( umls_i, 'i' )
+    ranked_umls_o, partitioned_umls_i = rankSAB( umls_o, 'o' )
 
     #########################################################################################
     # Level 1 - UMLS LF's
@@ -291,8 +246,8 @@ try:
     #########################################################################################
     # L_p = [umls_p_labels, p_DO_labels, p_DO_syn_labels, p_ctd_labels, p_ctd_syn_labels, p_DS_labels, gender_labels, p_abb_labels, samplesize_labels, agerange_labels, agemax_labels, pa_regex_heur_labels, umls_p_fz_labels, p_DO_fz_labels, p_DO_syn_fz_labels, p_ctd_fz_labels, p_ctd_syn_fz_labels, p_DS_fz_labels ]
     L_p = [umls_p_labels, p_DO_labels ]
-    # L_i = [umls_i_labels, i_ctd_labels, i_ctd_syn_labels, i_chebi_labels, i_chebi_syn_labels, i_ds_labels, i_syn_ds_labels, comparator_labels, i_posreg_labels, umls_i_fz_labels, i_ctd_fz_labels, i_ctd_syn_fz_labels, i_chebi_fz_labels, i_chebi_syn_fz_labels, i_ds_fz_labels, i_syn_ds_fz_labels ]
-    L_i = [umls_i_labels, i_ctd_labels ]
+    L_i = [umls_i_labels, i_ctd_labels, i_ctd_syn_labels, i_chebi_labels, i_chebi_syn_labels, i_ds_labels, i_syn_ds_labels, comparator_labels, i_posreg_labels, umls_i_fz_labels, i_ctd_fz_labels, i_ctd_syn_fz_labels, i_chebi_fz_labels, i_chebi_syn_fz_labels, i_ds_fz_labels, i_syn_ds_fz_labels ]
+    # L_i = [umls_i_labels, i_ctd_labels ]
     # L_o = [umls_o_labels, o_oae_labels, o_oae_syn_labels, o_ds_labels, umls_o_fz_labels, o_oae_fz_labels, o_oae_syn_fz_labels, o_ds_fz_labels ]
     L_o = [umls_o_labels, o_oae_labels ]
 
@@ -300,16 +255,18 @@ try:
     # participant_LF_summary = lf_summary(L_p, Y=validation_p_labels_flatten)
     # print( participant_LF_summary )
 
+    start_time = time.time()
     print('Training Label Model...')
-    L = np.array(L_p)
-    label_model.fit(L, seed=seed, n_epochs=3)
+    L = np.array(L_i)
+    label_model.fit(L, seed=seed, n_epochs=100)
+    print("--- %s seconds ---" % (time.time() - start_time))
+
     Y_hat = label_model.predict_proba(L)
 
     print( type(Y_hat) )
 
-
 except Exception as ex:
-    
+
     template = "An exception of type {0} occurred. Arguments:{1!r}"
     message = template.format(type(ex).__name__, ex.args)
     print( message )
