@@ -65,25 +65,12 @@ def termCountThreshold(umls_d):
 
     return umls_d
 
-def rankSAB(umls_d):
-
-    keys = [k for k in umls_d.keys()] 
-
-    shuffle(keys)
-
-    umls_d_new = dict()
-
-    for k in keys:
-        umls_d_new[k] = umls_d[k]
-
-    return umls_d_new
-
 def list2Nested(l, nested_length):
     return [l[i:i+nested_length] for i in range(0, len(l), nested_length)]
 
 def partitionRankedSAB(umls_d):
 
-    keys = list(umls_d.keys())
+    keys = list(umls_d.values())
 
     partitioned_lfs = [ ]
 
@@ -102,6 +89,29 @@ def partitionRankedSAB(umls_d):
             partitioned_lfs.append( temp3 )
 
     return partitioned_lfs
+
+
+def rankSAB(umls_d, picos):
+
+    ranked_umls = []
+    ranked_dict = dict()
+
+    if picos == 'p':
+        ranks_p = open('/home/anjani/distant-PICO/CandidateGeneration/Ontologies/umls_p_rank.txt','r').read()
+        ranked_umls = eval(ranks_p)
+    if picos == 'i':
+        ranks_i = open('/home/anjani/distant-PICO/CandidateGeneration/Ontologies/umls_i_rank.txt','r').read()
+        ranked_umls = eval(ranks_i)
+    if picos == 'o':
+        ranks_o = open('/home/anjani/distant-PICO/CandidateGeneration/Ontologies/umls_o_rank.txt','r').read()
+        ranked_umls = eval(ranks_o)
+
+    for i, l in enumerate(ranked_umls):
+        ranked_dict[i+1] = l[0]
+
+    partitioned_umls = partitionRankedSAB(umls_d)
+
+    return ranked_dict, partitioned_umls
 
 def removeTerms( umls_d, char_threshold ):
 
