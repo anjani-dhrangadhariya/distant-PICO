@@ -150,9 +150,10 @@ try:
 
     # Rank the ontology based on coverage on the validation set
     # Combine the ontologies into labeling functions
-    ranked_umls_p, partitioned_umls_i = rankSAB( umls_p, 'p' )
+    ranked_umls_p, partitioned_umls_p = rankSAB( umls_p, 'p' )
     ranked_umls_i, partitioned_umls_i = rankSAB( umls_i, 'i' )
-    ranked_umls_o, partitioned_umls_i = rankSAB( umls_o, 'o' )
+    ranked_umls_o, partitioned_umls_o = rankSAB( umls_o, 'o' )
+
 
     #########################################################################################
     # Level 1 - UMLS LF's
