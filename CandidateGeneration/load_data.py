@@ -13,9 +13,6 @@ from Ontologies.ontologyLoader import *
 ################################################################################
 # Initialize and set seed
 ################################################################################
-# Get the experiment arguments
-args = getArguments()
-
 seed = 0
 seed_everything(seed)
 print('The random seed is set to: ', seed)
@@ -48,19 +45,25 @@ def loadEBMPICO(train_dir):
             tokens.append( [x.strip() for x in v['tokens'] ] )
             pos.append( v['pos'] )
             if 'participants' in v:
-                p.append( v['participants'] )
+                vp = v['participants']
+                vp = [-1 if x==0 else x for x in vp]
+                p.append( vp )
             else:
-                p.append( [ 0 ] * len( v['tokens'] ) )
+                p.append( [ -1 ] * len( v['tokens'] ) )
 
             if 'interventions' in v:
-                i.append( v['interventions']  )
+                vi = v['interventions']
+                vi = [-1 if x==0 else x for x in vi]
+                i.append( vi )
             else:
-                i.append( [ 0 ] * len( v['tokens'] ) )
+                i.append( [ -1 ] * len( v['tokens'] ) )
 
             if 'outcomes' in v:
-                o.append( v['outcomes']  )
+                vo = v['outcomes']
+                vo = [-1 if x==0 else x for x in vo]
+                o.append( vo  )
             else:
-                o.append( [ 0 ] * len( v['tokens'] ) )
+                o.append( [ -1 ] * len( v['tokens'] ) )
     
 
     df = pd.DataFrame( {'pmid': pmid, 'tokens': tokens, 'pos': pos, 'p': p, 'i': i, 'o': o } )
