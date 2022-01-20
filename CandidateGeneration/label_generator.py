@@ -43,7 +43,7 @@ from CandGenUtilities.source_target_mapping import *
 from LabelingFunctions.ontologyLF import *
 from Ontologies.ontologyLoader import *
 from Ontologies.ontoUtils import *
-from LabelingFunctions.LFutils import spansToLabels
+from LabelingFunctions.LFutils import label_lf_partitions, label_umls_and_write, spansToLabels
 from LabelingFunctions.externalmodelLF import ExternalModelLabelingFunction
 from LabelingFunctions.heuristicLF import heurPattern_pa, posPattern_i
 from load_data import loadEBMPICO
@@ -154,7 +154,18 @@ try:
     ranked_umls_i, partitioned_umls_i = rankSAB( umls_i, 'i' )
     ranked_umls_o, partitioned_umls_o = rankSAB( umls_o, 'o' )
 
+    # Label validation set using the partitions and write them to files
+    # label_lf_partitions( partitioned_umls_p, umls_p, picos='p', text=text, token_flatten=validation_token_flatten, spans=spans, start_spans=start_spans)
+    # label_lf_partitions( partitioned_umls_i, umls_i, picos='i', text=text, token_flatten=validation_token_flatten, spans=spans, start_spans=start_spans)
+    # label_lf_partitions( partitioned_umls_o, umls_o, picos='o', text=text, token_flatten=validation_token_flatten, spans=spans, start_spans=start_spans)
 
+    # Label using each individual UMLS SAB for PIO
+    # label_umls_and_write(umls_p, picos='p', text=text, token_flatten=validation_token_flatten, spans=spans, start_spans=start_spans)
+    # label_umls_and_write(umls_i, picos='i', text=text, token_flatten=validation_token_flatten, spans=spans, start_spans=start_spans)
+    label_umls_and_write(umls_o, picos='o', text=text, token_flatten=validation_token_flatten, spans=spans, start_spans=start_spans)
+
+
+    '''
     #########################################################################################
     # Level 1 - UMLS LF's
     #########################################################################################
@@ -242,6 +253,7 @@ try:
     #########################################################################################
     ExternalModelLabelingFunction()
 
+
     #########################################################################################
     # Combine LF's into a single LF
     #########################################################################################
@@ -251,20 +263,21 @@ try:
     # L_i = [umls_i_labels, i_ctd_labels ]
     # L_o = [umls_o_labels, o_oae_labels, o_oae_syn_labels, o_ds_labels, umls_o_fz_labels, o_oae_fz_labels, o_oae_syn_fz_labels, o_ds_fz_labels ]
     L_o = [umls_o_labels, o_oae_labels ]
+    '''
 
     # L_p = scipy.sparse.csr_matrix( L_p )
     # participant_LF_summary = lf_summary(L_p, Y=validation_p_labels_flatten)
     # print( participant_LF_summary )
 
-    start_time = time.time()
-    print('Training Label Model...')
-    L = np.array(L_i)
-    label_model.fit(L, seed=seed, n_epochs=100)
-    print("--- %s seconds ---" % (time.time() - start_time))
+    # start_time = time.time()
+    # print('Training Label Model...')
+    # L = np.array(L_i)
+    # label_model.fit(L, seed=seed, n_epochs=100)
+    # print("--- %s seconds ---" % (time.time() - start_time))
 
-    Y_hat = label_model.predict_proba(L)
+    # Y_hat = label_model.predict_proba(L)
 
-    print( type(Y_hat) )
+    # print( type(Y_hat) )
 
 except Exception as ex:
 
