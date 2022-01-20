@@ -4,7 +4,7 @@ import time
 from nltk import ngrams
 from nltk.tokenize import WhitespaceTokenizer, sent_tokenize, word_tokenize
 
-from LabelingFunctions.LFutils import expandTerm, pico2label, spansToLabels
+from LabelingFunctions import LFutils
 from snorkel.labeling import labeling_function
 
 '''
@@ -36,7 +36,7 @@ def OntologyLabelingFunction(text,
         t = term[0] if isinstance( term , tuple ) else term
         l = term[1] if isinstance( term , tuple ) else picos
 
-        expandedTerms = expandTerm( t , max_ngram, fuzzy_match) if expand_term else [t]      
+        expandedTerms = LFutils.expandTerm( t , max_ngram, fuzzy_match) if expand_term else [t]      
 
         for t_i in expandedTerms:
 
@@ -63,8 +63,8 @@ def OntologyLabelingFunction(text,
     assert len(ontology_matches) == len(label)
 
     generated_labels = len( text_tokenized ) * [-1]
-    generated_labels = spansToLabels( ontology_matches, label, terms, tokenized_start_spans, generated_labels, text_tokenized )
-    generated_labels = pico2label( generated_labels )
+    generated_labels = LFutils.spansToLabels( ontology_matches, label, terms, tokenized_start_spans, generated_labels, text_tokenized )
+    generated_labels = LFutils.pico2label( generated_labels )
 
     assert len( generated_labels ) == len( text_tokenized )
 
