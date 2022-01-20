@@ -41,7 +41,7 @@ def OntologyLabelingFunction(text,
         for t_i in expandedTerms:
 
             if isinstance( t_i , re._pattern_type ):
-                if t_i.search(text):
+                if t_i.search(text.lower()):
 
                     matches = [m for m in t_i.finditer(text)]
                     term_set.add( t_i )
@@ -49,7 +49,7 @@ def OntologyLabelingFunction(text,
                     terms.append( t_i )
                     label.append( l )
             else:
-                if t_i in text:
+                if t_i in text.lower():
 
                     r = re.compile(t_i)
                     matches = [m for m in r.finditer(text)]
@@ -57,8 +57,8 @@ def OntologyLabelingFunction(text,
                     terms.append( t_i )
                     label.append( l )
 
-        if i == 300:
-            break
+        # if i == 200:
+        #     break
 
     assert len(ontology_matches) == len(label)
 
