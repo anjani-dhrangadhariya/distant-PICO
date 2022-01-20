@@ -1,10 +1,17 @@
+from LabelingFunctions import ontologyLF
 from nltk.tokenize import WhitespaceTokenizer, sent_tokenize, word_tokenize
 from nltk import ngrams
 import re
+import sys
+import os
+import pandas as pd
+
 
 pico2labelMap = dict()
 pico2labelMap = { 'P' : 1, 'I' : 1, 'O' : 1, '-P' : 0, '-I' : 0, '-O' : 0, 'IO' : 0, 'OI' : 0, 'PO' : 0, 'OP' : 0, 'IP': 0, 'PI': 0, '-IO' : 0, '-OI' : 0, '-PO' : 0, '-OP' : 0, '-IP': 0, '-PI': 0, '-PIO' : 0, 'PIO' : 0 }
 
+def flatten(t):
+    return [item for sublist in t for item in sublist]
 
 def expandTerm( term , max_ngram, fuzzy_match):
     
@@ -12,17 +19,17 @@ def expandTerm( term , max_ngram, fuzzy_match):
     termVariations = []
 
     if len( term.split() ) > max_ngram:
-        fivegrams = ngrams(term.split(), max_ngram)
+        fivegrams = ngrams(term.lower().split(), max_ngram)
         expandedTerm.extend( [' '.join(x)  for x in list(fivegrams)] )
     else:
-        expandedTerm.extend( [term] )
+        expandedTerm.extend( [term.lower()] )
 
     if fuzzy_match == True:
-        bigrams = ngrams(term.split(), 2)
+        bigrams = ngrams(term.lower().split(), 2)
         expandedTerm.extend( [' '.join(x)  for x in list(bigrams)] )
 
     for eT in expandedTerm:
-        termVariations.extend( [eT, eT.lower(), eT.rstrip('s'), eT + 's'] )
+        termVariations.extend( [eT.lower().rstrip('s'), eT.lower() + 's'] )
 
     return termVariations
 
@@ -137,3 +144,53 @@ def pico2label(l):
     l = [ pico2labelMap[ l_i ] if l_i != -1 else l_i for l_i in l ]
 
     return l
+
+def write2File(labels_, tokens_, number_lfs, picos):
+    
+    indir = '/mnt/nas2/results/Results/systematicReview/distant_pico/candidate_generation'
+    
+    df = pd.DataFrame( tokens_, columns=['tokens'] )
+    
+    for i in number_lfs:
+        column_name = 'lf_' + str(i+1)
+        df = df.merge( pd.DataFrame( labels_[i], columns=[column_name] ) , left_index=True, right_index=True )
+    
+    filename = 'lf_' + str(len(number_lfs)) + '.csv'
+    with open(f'{indir}/{picos}/{filename}', 'w+') as wf:
+        df.to_csv(f'{indir}/{picos}/{filename}', sep='\t')
+
+def label_lf_partitions( partitioned_uml, umls_d, picos, text, token_flatten, spans, start_spans):
+
+    accumulated_labels = []
+
+    for i, lf in enumerate(partitioned_uml):
+
+        print( 'Number of labeling functions: ', len(lf) )
+        accumulated_lf = []
+        number_lfs = []
+
+        for number in range(0, len(lf)):
+
+            sab_for_lf = lf[ number ]
+            terms = flatten([ umls_d[ sab ]  for sab in  sab_for_lf])
+            umls_labels = ontologyLF.OntologyLabelingFunction( text, token_flatten, spans, start_spans, terms, picos=None, expand_term=True, fuzzy_match=False )
+            accumulated_lf.append( umls_labels )
+            number_lfs.append( number )
+
+        accumulated_labels.append( accumulated_lf )
+        write2File(accumulated_lf, token_flatten, number_lfs, picos)
+
+        #if i == 1:
+        #    break
+
+def label_umls_and_write(umls_d, picos, text, token_flatten, spans, start_spans):
+
+    indir = '/mnt/nas2/results/Results/systematicReview/distant_pico/candidate_generation/UMLS/fuzzy'
+
+    for k, v in umls_d.items():
+        print( 'Fetching the labels for ', str(k) )
+        umls_labels = ontologyLF.OntologyLabelingFunction( text, token_flatten, spans, start_spans, v, picos=None, expand_term=True, fuzzy_match=False )
+
+        df = pd.DataFrame( {'tokens': token_flatten, str(k): umls_labels, })
+        filename = 'lf_' + str(k) + '.tsv'
+        df.to_csv(f'{indir}/{picos}/{filename}', sep='\t')
