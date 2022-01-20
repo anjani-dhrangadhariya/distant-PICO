@@ -70,7 +70,7 @@ def list2Nested(l, nested_length):
 
 def partitionRankedSAB(umls_d):
 
-    keys = list(umls_d.values())
+    keys = list(umls_d.keys())
 
     partitioned_lfs = [ ]
 
