@@ -27,32 +27,51 @@ for file in pathlist:
 print( 'Total number of tokens in validation set: ', len(tokens) )
 print( 'Total number of LFs in the dictionary', len(lfs) )
 
-def lf_levels(umls_d, picos):
+def lf_levels(umls_d:dict, pattern:str, picos:str):
 
     umls_level = dict()
 
     for key, value in umls_d.items():   # iter on both keys and values
-        search_pattern = 'UMLS_fuzzy_' + picos
+        search_pattern = pattern + picos
         if key.startswith(search_pattern):
             k = str(key).split('_')[-1]
             umls_level[ k ] = value
 
     return umls_level
 
-umls_p = lf_levels(lfs, 'p')
-umls_i = lf_levels(lfs, 'i')
-umls_o = lf_levels(lfs, 'o')
+# Level 1: UMLS
+umls_p = lf_levels(lfs, 'UMLS_fuzzy_', 'p')
+umls_i = lf_levels(lfs, 'UMLS_fuzzy_', 'i')
+umls_o = lf_levels(lfs, 'UMLS_fuzzy_', 'o')
 
-# Combine UMLS candidate labels into partitions
-# Rank the ontology based on coverage on the validation set
-# Combine the ontologies into labeling functions
+# Level 2: non UMLS
+nonumls_p = lf_levels(lfs, 'nonUMLS_direct_', 'P')
+nonumls_i = lf_levels(lfs, 'nonUMLS_direct_', 'I')
+nonumls_o = lf_levels(lfs, 'nonUMLS_direct_', 'O')
+
+# Level 3: DS
+ds_p = lf_levels(lfs, 'DS_fuzzy_', 'P')
+ds_i = lf_levels(lfs, 'DS_fuzzy_', 'I')
+ds_o = lf_levels(lfs, 'DS_fuzzy_', 'O')
+
+# Level 4: dictionary, rules, heuristics
+heur_p = lf_levels(lfs, 'heuristics_direct_', 'P')
+heur_i = lf_levels(lfs, 'heuristics_direct_', 'I')
+heur_o = lf_levels(lfs, 'heuristics_direct_', 'O')
+
+heur_p = lf_levels(lfs, 'dictionary_direct_', 'P')
+heur_i = lf_levels(lfs, 'dictionary_direct_', 'I')
+heur_o = lf_levels(lfs, 'dictionary_direct_', 'O')
+
+
+# Rank and partition UMLS SAB's
 ranked_umls_p, partitioned_umls_p = rankSAB( umls_p, 'p' )
 ranked_umls_i, partitioned_umls_i = rankSAB( umls_i, 'i' )
 ranked_umls_o, partitioned_umls_o = rankSAB( umls_o, 'o' )
 
-for i, partition in enumerate(partitioned_umls_p):
-    print('Labeling function number: ', len(partition) )
-    print(partition)
+# for i, partition in enumerate(partitioned_umls_p):
+#     print('Labeling function number: ', len(partition) )
+#     print(partition)
 
 # for i, partition in enumerate(partitioned_umls_i):
 #     print('Labeling function number: ', len(partition) )
@@ -61,5 +80,4 @@ for i, partition in enumerate(partitioned_umls_p):
 #     print('Labeling function number: ', len(partition) )
 
 # Keep the rest stagnant and change UMLS for training PIO * (partition functions) label models
-
 # build the full pipeline before executing it....
