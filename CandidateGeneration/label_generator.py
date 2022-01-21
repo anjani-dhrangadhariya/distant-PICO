@@ -44,7 +44,6 @@ from LabelingFunctions.LFutils import (label_lf_partitions,
                                        label_umls_and_write, spansToLabels)
 from LabelingFunctions.ontologyLF import *
 from load_data import loadEBMPICO
-from metrics.analysis import lf_coverages, lf_summary
 from Ontologies.ontologyLoader import *
 from Ontologies.ontoUtils import *
 
@@ -67,9 +66,9 @@ try:
     umls_db = '/mnt/nas2/data/systematicReview/UMLS/english_subset/umls_preprocessed/umls_meta.db'
     
     print('Retrieving UMLS ontology arm (Preprocessing applied)')
-    umls_p  = loadUMLSdb(umls_db, 'P')    
-    umls_i = loadUMLSdb(umls_db, 'I')
-    umls_o = loadUMLSdb(umls_db, 'O')
+    # umls_p  = loadUMLSdb(umls_db, 'P')    
+    # umls_i = loadUMLSdb(umls_db, 'I')
+    # umls_o = loadUMLSdb(umls_db, 'O')
  
     print('Retrieving non-UMLS Ontologies  (Preprocessing applied)')
     p_DO, p_DO_syn = loadOnt( '/mnt/nas2/data/systematicReview/Ontologies/participant/DOID.csv', delim = ',', term_index = 1, term_syn_index = 2  )
@@ -161,13 +160,13 @@ try:
 
         indir_non_umls = f'/mnt/nas2/results/Results/systematicReview/distant_pico/candidate_generation/nonUMLS/{m}'
         # for ontology, ont_name in zip([p_DO, p_DO_syn, p_ctd, p_ctd_syn], ['DO', 'DO_syn', 'CTD', 'CTD_syn'] ) :
-        #     label_ont_and_write( indir_non_umls, ontology, picos='P', text=text, token_flatten=validation_token_flatten, spans=spans, start_spans=start_spans, ontology_name=ont_name  )
+        #     label_ont_and_write( indir_non_umls, ontology, picos='P', text=text, token_flatten=validation_token_flatten, spans=spans, start_spans=start_spans, ontology_name=ont_name, expand_term=True )
 
         # for ontology, ont_name in zip([i_ctd, i_ctd_syn, i_chebi, i_chebi_syn], ['CTD', 'CTD_syn', 'chebi', 'chebi_syn'] ) :
-        #     label_ont_and_write( indir_non_umls, ontology, picos='I', text=text, token_flatten=validation_token_flatten, spans=spans, start_spans=start_spans, ontology_name=ont_name  )
+        #     label_ont_and_write( indir_non_umls, ontology, picos='I', text=text, token_flatten=validation_token_flatten, spans=spans, start_spans=start_spans, ontology_name=ont_name, expand_term=True )
 
         # for ontology, ont_name in zip([o_oae, o_oae_syn ], ['oae', 'oae_syn'] ) :
-        #     label_ont_and_write( indir_non_umls, ontology, picos='O', text=text, token_flatten=validation_token_flatten, spans=spans, start_spans=start_spans, ontology_name=ont_name  )
+        #     label_ont_and_write( indir_non_umls, ontology, picos='O', text=text, token_flatten=validation_token_flatten, spans=spans, start_spans=start_spans, ontology_name=ont_name, expand_term=True )
 
     '''#########################################################################################
     # Level 3 - Distant Supervision and hand-crafted dictionary LF's
@@ -175,12 +174,12 @@ try:
     for m in ['fuzzy', 'direct']:
         indir_ds = f'/mnt/nas2/results/Results/systematicReview/distant_pico/candidate_generation/DS/{m}'
         # for ontology, entity, ont_name in zip([ds_participant, ds_intervention, ds_intervention_syn, ds_outcome], ['P', 'I', 'I', 'O'], ['ds_participant', 'ds_intervetion', 'ds_intervention_syn', 'ds_outcome'] ) :
-            # label_ont_and_write( indir_ds, ontology, picos=entity, text=text, token_flatten=validation_token_flatten, spans=spans, start_spans=start_spans, ontology_name=ont_name  )
+            # label_ont_and_write( indir_ds, ontology, picos=entity, text=text, token_flatten=validation_token_flatten, spans=spans, start_spans=start_spans, ontology_name=ont_name, expand_term=True  )
     
     # Dictionary Labeling Function and Abbreviation dictionary Labeling function
     for ontology, entity, ont_name in zip([p_genders, i_comparator, p_abb], ['P', 'I', 'P'], ['dict_gender', 'dict_comparator', 'dict_p_abb'] ) : 
         indir_dict = '/mnt/nas2/results/Results/systematicReview/distant_pico/candidate_generation/dictionary/direct'
-        # label_ont_and_write( indir_dict, ontology, picos=entity, text=text, token_flatten=validation_token_flatten, spans=spans, start_spans=start_spans, ontology_name=ont_name  )
+        # label_ont_and_write( indir_dict, ontology, picos=entity, text=text, token_flatten=validation_token_flatten, spans=spans, start_spans=start_spans, ontology_name=ont_name, expand_term=False  )
     
 
     '''#########################################################################################
@@ -189,7 +188,7 @@ try:
     # ReGeX Labeling Function
     for ontology, entity, ont_name in zip([p_sampsize, p_agerange, p_agemax], ['P', 'P', 'P'], ['regex_sampsize', 'regex_agerange', 'regex_agemax'] ) : 
         indir_reg = '/mnt/nas2/results/Results/systematicReview/distant_pico/candidate_generation/heuristics/direct'
-        # label_ont_and_write( indir_reg, [ontology], picos=entity, text=text, token_flatten=validation_token_flatten, spans=spans, start_spans=start_spans, ontology_name=ont_name  )
+        # label_ont_and_write( indir_reg, [ontology], picos=entity, text=text, token_flatten=validation_token_flatten, spans=spans, start_spans=start_spans, ontology_name=ont_name , expand_term=False )
     
 
     # Heutistic Labeling Function
@@ -197,28 +196,27 @@ try:
     indir_posreg = '/mnt/nas2/results/Results/systematicReview/distant_pico/candidate_generation/heuristics/direct'
     df = pd.DataFrame( {'tokens': validation_token_flatten, str('i_posreg'): i_posreg_labels })
     filename = 'lf_' + str('i_posreg') + '.tsv'
-    # df.to_csv(f'{indir_posreg}/I/{filename}', sep='\t')
+    df.to_csv(f'{indir_posreg}/I/{filename}', sep='\t')
 
     pa_regex_heur_labels = heurPattern_pa( text, validation_token_flatten, validation_pos_flatten, spans, start_spans, picos='I' )
     indir_heur = '/mnt/nas2/results/Results/systematicReview/distant_pico/candidate_generation/heuristics/direct'
     df = pd.DataFrame( {'tokens': validation_token_flatten, str('pa_regex_heur'): pa_regex_heur_labels })
     filename = 'lf_' + str('pa_regex_heur') + '.tsv'
-    # df.to_csv(f'{indir_heur}/P/{filename}', sep='\t')
+    df.to_csv(f'{indir_heur}/P/{filename}', sep='\t')
 
     '''#########################################################################################
     # TODO  Level 5 - External Model Labeling function
     #########################################################################################'''
     ExternalModelLabelingFunction()
 
-    '''
+    
     #########################################################################################
     # Combine LF's into a single LF
     #########################################################################################
     # L_p = [umls_p_labels, p_DO_labels, p_DO_syn_labels, p_ctd_labels, p_ctd_syn_labels, p_DS_labels, gender_labels, p_abb_labels, samplesize_labels, agerange_labels, agemax_labels, pa_regex_heur_labels, umls_p_fz_labels, p_DO_fz_labels, p_DO_syn_fz_labels, p_ctd_fz_labels, p_ctd_syn_fz_labels, p_DS_fz_labels ]
-    L_i = [umls_i_labels, i_ctd_labels, i_ctd_syn_labels, i_chebi_labels, i_chebi_syn_labels, i_ds_labels, i_syn_ds_labels, comparator_labels, i_posreg_labels, umls_i_fz_labels, i_ctd_fz_labels, i_ctd_syn_fz_labels, i_chebi_fz_labels, i_chebi_syn_fz_labels, i_ds_fz_labels, i_syn_ds_fz_labels ]
+    # L_i = [umls_i_labels, i_ctd_labels, i_ctd_syn_labels, i_chebi_labels, i_chebi_syn_labels, i_ds_labels, i_syn_ds_labels, comparator_labels, i_posreg_labels, umls_i_fz_labels, i_ctd_fz_labels, i_ctd_syn_fz_labels, i_chebi_fz_labels, i_chebi_syn_fz_labels, i_ds_fz_labels, i_syn_ds_fz_labels ]
     # L_o = [umls_o_labels, o_oae_labels, o_oae_syn_labels, o_ds_labels, umls_o_fz_labels, o_oae_fz_labels, o_oae_syn_fz_labels, o_ds_fz_labels ]
-    '''
-
+    
     # L_p = scipy.sparse.csr_matrix( L_p )
     # participant_LF_summary = lf_summary(L_p, Y=validation_p_labels_flatten)
     # print( participant_LF_summary )
