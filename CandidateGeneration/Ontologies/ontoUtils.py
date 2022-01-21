@@ -107,7 +107,8 @@ def rankSAB(umls_d, picos):
         ranked_umls = eval(ranks_o)
 
     for i, l in enumerate(ranked_umls):
-        ranked_dict[ l[0] ] = umls_d[l[0]]
+        if l[0] in umls_d:
+            ranked_dict[ l[0] ] = umls_d[l[0]]
 
     partitioned_umls = partitionRankedSAB(ranked_dict)
 
