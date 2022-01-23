@@ -79,7 +79,7 @@ def heurPattern_pa( text, text_tokenized, text_pos_flatten, spans, start_spans, 
     regex_heur_labels = []
 
 
-    eg_pattern = '\bage.(.*?)(years|months)'
+    eg_pattern = 'age.(.*?)(years|months)'
 
     compiled_pattern = re.compile( eg_pattern )
 
@@ -88,7 +88,7 @@ def heurPattern_pa( text, text_tokenized, text_pos_flatten, spans, start_spans, 
         matches = [m for m in compiled_pattern.finditer(text)]
 
         for m in matches:
-            if len(m[0]) < 20:
+            if len(m[0]) < 30:
                 regex_heur_matches.append( m )
                 regex_heur_labels.append( picos )
 
