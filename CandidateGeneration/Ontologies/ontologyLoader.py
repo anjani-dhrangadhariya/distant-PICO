@@ -176,7 +176,7 @@ def loadPattern( pattern_name ):
 
     if pattern_name == 'samplesize':
 
-        samp_size_pattern =  r'([0-9]+ ?(patients?|subjects?|participants?|people?|individuals?|persons?|healthy individuals?)+)'
+        samp_size_pattern =  r'([0-9]+ ?(patients?|subjects?|participants?|people?|individuals?|persons?|healthy individuals?|healthy adults?|children?|toddlers?adult?adults?|healthy volunteers?|families?|men?|women?|teenagers?|families?|parturients?)+)'
         compiled_pattern = re.compile(samp_size_pattern)
         return compiled_pattern
 
