@@ -38,7 +38,7 @@ from CandGenUtilities.experiment_arguments import *
 from CandGenUtilities.labeler_utilities import *
 from CandGenUtilities.source_target_mapping import *
 from LabelingFunctions.externalmodelLF import ExternalModelLabelingFunction
-from LabelingFunctions.heuristicLF import heurPattern_pa, posPattern_i
+from LabelingFunctions.heuristicLF import heurPattern_p_sampsize, heurPattern_pa, posPattern_i
 from LabelingFunctions.LFutils import (label_lf_partitions,
                                        label_ont_and_write,
                                        label_umls_and_write, spansToLabels)
@@ -50,9 +50,6 @@ from Ontologies.ontoUtils import *
 ################################################################################
 # Initialize and set seed
 ################################################################################
-# Get the experiment arguments
-args = getArguments()
-
 # XXX Initialize LabelModel with correct cardinality
 label_model = LabelModel(cardinality=2, verbose=True)
 
@@ -62,13 +59,12 @@ seed_everything(seed)
 print('The random seed is set to: ', seed)
 
 try:
-
+    '''
     umls_db = '/mnt/nas2/data/systematicReview/UMLS/english_subset/umls_preprocessed/umls_meta.db'
-    
     print('Retrieving UMLS ontology arm (Preprocessing applied)')
-    # umls_p  = loadUMLSdb(umls_db, 'P')    
-    # umls_i = loadUMLSdb(umls_db, 'I')
-    # umls_o = loadUMLSdb(umls_db, 'O')
+    umls_p  = loadUMLSdb(umls_db, 'P')    
+    umls_i = loadUMLSdb(umls_db, 'I')
+    umls_o = loadUMLSdb(umls_db, 'O')
  
     print('Retrieving non-UMLS Ontologies  (Preprocessing applied)')
     p_DO, p_DO_syn = loadOnt( '/mnt/nas2/data/systematicReview/Ontologies/participant/DOID.csv', delim = ',', term_index = 1, term_syn_index = 2  )
@@ -90,11 +86,13 @@ try:
 
     print('Retrieving abbreviations dictionaries')
     p_abb = loadAbbreviations('/mnt/nas2/data/systematicReview/Ontologies/participant/diseaseabbreviations.tsv')
-
+    '''
     print('Retrieving ReGeX patterns')
     p_sampsize = loadPattern( 'samplesize' )
+    p_sampsize2 = loadPattern( 'samplesize2' )
     p_agerange = loadPattern( 'age1' )
     p_agemax = loadPattern( 'age2' )
+    p_meanage = loadPattern( 'meanage' )
 
     # TODO: Retrieve external models
 
@@ -117,6 +115,14 @@ try:
     validation_o_labels_flatten = list(map(int, validation_o_labels_flatten))
     validation_o_labels_flatten = [-1 if x==0 else x for x in validation_o_labels_flatten]
 
+    write_df = pd.DataFrame(
+    {'tokens': validation_token_flatten,
+     'p': validation_p_labels_flatten,
+     'i': validation_i_labels_flatten,
+     'o': validation_o_labels_flatten,
+    })
+    # write_df.to_csv('/mnt/nas2/results/Results/systematicReview/distant_pico/candidate_generation/validation_labels.tsv', sep='\t')
+
     text = ' '.join(validation_token_flatten)
     assert len(re.split(' ', text)) == len(validation_token_flatten) == len( list(WhitespaceTokenizer().span_tokenize(text)) )
     spans = list(WhitespaceTokenizer().span_tokenize(text))
@@ -128,20 +134,6 @@ try:
 
         for value in range( ss, es+1 ):
             start_spans[value] = i
-
-    # Rank the ontology based on coverage on the validation set
-    # Combine the ontologies into labeling functions
-    # ranked_umls_p, partitioned_umls_p = rankSAB( umls_p, 'p' )
-    # ranked_umls_i, partitioned_umls_i = rankSAB( umls_i, 'i' )
-    # ranked_umls_o, partitioned_umls_o = rankSAB( umls_o, 'o' )
-
-    '''#########################################################################################
-    # Level 1 - UMLS LF's - Partition function
-    #########################################################################################'''
-    # Label validation set using the partitions and write them to files
-    # label_lf_partitions( partitioned_umls_p, umls_p, picos='p', text=text, token_flatten=validation_token_flatten, spans=spans, start_spans=start_spans)
-    # label_lf_partitions( partitioned_umls_i, umls_i, picos='i', text=text, token_flatten=validation_token_flatten, spans=spans, start_spans=start_spans)
-    # label_lf_partitions( partitioned_umls_o, umls_o, picos='o', text=text, token_flatten=validation_token_flatten, spans=spans, start_spans=start_spans)
 
     '''#########################################################################################
     # Level 1 - UMLS LF's - No partition, individual SAB LF's
@@ -177,8 +169,8 @@ try:
             # label_ont_and_write( indir_ds, ontology, picos=entity, text=text, token_flatten=validation_token_flatten, spans=spans, start_spans=start_spans, ontology_name=ont_name, expand_term=True  )
     
     # Dictionary Labeling Function and Abbreviation dictionary Labeling function
-    for ontology, entity, ont_name in zip([p_genders, i_comparator, p_abb], ['P', 'I', 'P'], ['dict_gender', 'dict_comparator', 'dict_p_abb'] ) : 
-        indir_dict = '/mnt/nas2/results/Results/systematicReview/distant_pico/candidate_generation/dictionary/direct'
+    # for ontology, entity, ont_name in zip([p_genders, i_comparator, p_abb], ['P', 'I', 'P'], ['dict_gender', 'dict_comparator', 'dict_p_abb'] ) : 
+        # indir_dict = '/mnt/nas2/results/Results/systematicReview/distant_pico/candidate_generation/dictionary/direct'
         # label_ont_and_write( indir_dict, ontology, picos=entity, text=text, token_flatten=validation_token_flatten, spans=spans, start_spans=start_spans, ontology_name=ont_name, expand_term=False  )
     
 
@@ -186,50 +178,31 @@ try:
     # Level 4 - Rule based LF's (ReGeX, Heuristics, Ontology based fuzzy bigram match)
     #########################################################################################'''
     # ReGeX Labeling Function
-    for ontology, entity, ont_name in zip([p_sampsize, p_agerange, p_agemax], ['P', 'P', 'P'], ['regex_sampsize', 'regex_agerange', 'regex_agemax'] ) : 
+    for ontology, entity, ont_name in zip([p_sampsize, p_sampsize2, p_agerange, p_agemax, p_meanage], ['P', 'P', 'P', 'P', 'P'], ['regex_sampsize', 'regex_sampsize2', 'regex_agerange', 'regex_agemax', 'regex_meanage'] ) : 
         indir_reg = '/mnt/nas2/results/Results/systematicReview/distant_pico/candidate_generation/heuristics/direct'
-        # label_ont_and_write( indir_reg, [ontology], picos=entity, text=text, token_flatten=validation_token_flatten, spans=spans, start_spans=start_spans, ontology_name=ont_name , expand_term=False )
-    
+        label_ont_and_write( indir_reg, [ontology], picos=entity, text=text, token_flatten=validation_token_flatten, spans=spans, start_spans=start_spans, ontology_name=ont_name , expand_term=False )
+
 
     # Heutistic Labeling Function
-    i_posreg_labels = posPattern_i( text, validation_token_flatten, validation_pos_flatten, spans, start_spans, picos='I' )
-    indir_posreg = '/mnt/nas2/results/Results/systematicReview/distant_pico/candidate_generation/heuristics/direct'
-    df = pd.DataFrame( {'tokens': validation_token_flatten, str('i_posreg'): i_posreg_labels })
-    filename = 'lf_' + str('i_posreg') + '.tsv'
-    df.to_csv(f'{indir_posreg}/I/{filename}', sep='\t')
+    # i_posreg_labels = posPattern_i( text, validation_token_flatten, validation_pos_flatten, spans, start_spans, picos='I' )
+    # indir_posreg = '/mnt/nas2/results/Results/systematicReview/distant_pico/candidate_generation/heuristics/direct'
+    # df = pd.DataFrame( {'tokens': validation_token_flatten, str('i_posreg'): i_posreg_labels })
+    # filename = 'lf_' + str('i_posreg') + '.tsv'
+    # df.to_csv(f'{indir_posreg}/I/{filename}', sep='\t')
 
-    pa_regex_heur_labels = heurPattern_pa( text, validation_token_flatten, validation_pos_flatten, spans, start_spans, picos='I' )
-    indir_heur = '/mnt/nas2/results/Results/systematicReview/distant_pico/candidate_generation/heuristics/direct'
-    df = pd.DataFrame( {'tokens': validation_token_flatten, str('pa_regex_heur'): pa_regex_heur_labels })
-    filename = 'lf_' + str('pa_regex_heur') + '.tsv'
-    df.to_csv(f'{indir_heur}/P/{filename}', sep='\t')
+    # pa_regex_heur_labels = heurPattern_pa( text, validation_token_flatten, validation_pos_flatten, spans, start_spans, picos='P' )
+    # indir_heur = '/mnt/nas2/results/Results/systematicReview/distant_pico/candidate_generation/heuristics/direct'
+    # df = pd.DataFrame( {'tokens': validation_token_flatten, str('pa_regex_heur'): pa_regex_heur_labels })
+    # filename = 'lf_' + str('pa_regex_heur') + '.tsv'
+    # df.to_csv(f'{indir_heur}/P/{filename}', sep='\t')
+
+    # TODO: Development remains
+    # p_sampsize_regex_heur_labels = heurPattern_p_sampsize( text, validation_token_flatten, validation_pos_flatten, spans, start_spans, picos='I' )
 
     '''#########################################################################################
     # TODO  Level 5 - External Model Labeling function
     #########################################################################################'''
     ExternalModelLabelingFunction()
-
-    
-    #########################################################################################
-    # Combine LF's into a single LF
-    #########################################################################################
-    # L_p = [umls_p_labels, p_DO_labels, p_DO_syn_labels, p_ctd_labels, p_ctd_syn_labels, p_DS_labels, gender_labels, p_abb_labels, samplesize_labels, agerange_labels, agemax_labels, pa_regex_heur_labels, umls_p_fz_labels, p_DO_fz_labels, p_DO_syn_fz_labels, p_ctd_fz_labels, p_ctd_syn_fz_labels, p_DS_fz_labels ]
-    # L_i = [umls_i_labels, i_ctd_labels, i_ctd_syn_labels, i_chebi_labels, i_chebi_syn_labels, i_ds_labels, i_syn_ds_labels, comparator_labels, i_posreg_labels, umls_i_fz_labels, i_ctd_fz_labels, i_ctd_syn_fz_labels, i_chebi_fz_labels, i_chebi_syn_fz_labels, i_ds_fz_labels, i_syn_ds_fz_labels ]
-    # L_o = [umls_o_labels, o_oae_labels, o_oae_syn_labels, o_ds_labels, umls_o_fz_labels, o_oae_fz_labels, o_oae_syn_fz_labels, o_ds_fz_labels ]
-    
-    # L_p = scipy.sparse.csr_matrix( L_p )
-    # participant_LF_summary = lf_summary(L_p, Y=validation_p_labels_flatten)
-    # print( participant_LF_summary )
-
-    # start_time = time.time()
-    # print('Training Label Model...')
-    # L = np.array(L_i)
-    # label_model.fit(L, seed=seed, n_epochs=100)
-    # print("--- %s seconds ---" % (time.time() - start_time))
-
-    # Y_hat = label_model.predict_proba(L)
-
-    # print( type(Y_hat) )
 
 except Exception as ex:
 
