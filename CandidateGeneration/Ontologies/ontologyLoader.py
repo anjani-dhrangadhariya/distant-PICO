@@ -181,6 +181,12 @@ def loadPattern( pattern_name ):
         compiled_pattern = re.compile(samp_size_pattern)
         return compiled_pattern
 
+    if pattern_name == 'samplesize2': # Sample size in ReGeX expression (n=XXXX)
+
+        samp_size_pattern =  r'\( n = [0-9,]+ \)'
+        compiled_pattern = re.compile(samp_size_pattern)
+        return compiled_pattern
+
     if pattern_name == 'age1':
 
         age_range_pattern =  r'(([Aa]ge[ds]? )?\b([0-9]{1,2})\b(\s+years?|\s+months?)?(\s+old|-old)?\s?(-|to)\s?\b([0-9]{1,2})\b(\s+years?|\s+months?)+(\s+old|-old)?)'
