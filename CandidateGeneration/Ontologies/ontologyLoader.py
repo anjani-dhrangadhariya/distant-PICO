@@ -201,7 +201,7 @@ def loadPattern( pattern_name ):
 
     if pattern_name == 'meanage':
 
-        mean_age_pattern = r'(([Mm]ean|[Aa]verage) ?(age) ?(=|was|of|,|:|) ?[0-9.± ()+-\/]+(years?|months?|yr)?)'
+        mean_age_pattern = r'(([Mm]ean|[Aa]verage) ?(age) ?(=|was|of|,|:|) ?[0-9.± ()+-\/]+(years?|months?|yr?s?)?)'
         compiled_pattern = re.compile(mean_age_pattern)
         return compiled_pattern
 
