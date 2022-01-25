@@ -97,3 +97,23 @@ def heurPattern_pa( text, text_tokenized, text_pos_flatten, spans, start_spans, 
     generated_labels = pico2label( generated_labels )
 
     return generated_labels
+
+
+def heurPattern_p_sampsize( text, text_tokenized, text_pos_flatten, spans, start_spans, picos: str ):
+
+    pattern = r' ?(patients?|subjects?|participants?|people?|individuals?|persons?|healthy individuals?|healthy adults?|children|toddlers?|adults?|healthy volunteers?|families?|men|women|teenagers?|families|parturients?|females?|males?)+'
+    compiled_pattern = re.compile(pattern)
+
+    for i, p in enumerate(text_pos_flatten):
+        if i != len(text_pos_flatten)-2: # do not go to the last index
+            if p == 'CD' and compiled_pattern.search( ' '.join(text_tokenized[i+1:i+3] ) ):
+                
+                matches = compiled_pattern.match( ' '.join(text_tokenized[i+1:i+3]) )
+                
+                if not matches:
+                    #print( text_tokenized[i], ' '.join(text_tokenized[i+1:i+3]) )
+                    continue
+                else:
+                    print( text_tokenized[i], matches.group() )
+
+    return None
