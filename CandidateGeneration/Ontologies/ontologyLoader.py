@@ -177,13 +177,13 @@ def loadPattern( pattern_name ):
     if pattern_name == 'samplesize':
 
         # samp_size_pattern =  r'([0-9]+ ?(patients?|subjects?|participants?|people?|individuals?|persons?|healthy individuals?|healthy adults?|children?|toddlers?|adult?adults?|healthy volunteers?|families?|men?|women?|teenagers?|families?|parturients?)+)'
-        samp_size_pattern =  r'([0-9]+ ?((?!year-old$)[a-zA-Z0-9]+)? ?(patients?|subjects?|participants?|people?|individuals?|persons?|healthy individuals?|healthy adults?|children|toddlers?|adults?|healthy volunteers?|families?|men|women|teenagers?|families|parturients?|females?|males?)+)'
+        samp_size_pattern =  r'([0-9]+ ?([a-zA-Z0-9]+)? ?(patients?|subjects?|participants?|people?|individuals?|persons?|healthy individuals?|healthy adults?|children|toddlers?|adults?|healthy volunteers?|families?|men|women|teenagers?|families|parturients?|females?|males?)+)'
         compiled_pattern = re.compile(samp_size_pattern)
         return compiled_pattern
 
     if pattern_name == 'samplesize2': # Sample size in ReGeX expression (n=XXXX)
 
-        samp_size_pattern =  r'\( n = [0-9,]+ \)'
+        samp_size_pattern =  r'\( n = [0-9,]+ \)?'
         compiled_pattern = re.compile(samp_size_pattern)
         return compiled_pattern
 
@@ -199,9 +199,14 @@ def loadPattern( pattern_name ):
         compiled_pattern = re.compile(age_range_pattern)
         return compiled_pattern
 
+    if pattern_name == 'meanage':
+
+        mean_age_pattern = r'(([Mm]ean|[Aa]verage) ?(age) ?(=|was|of|,|:|) ?[0-9.± ()+-\/]+(years?|months?|yr)?)'
+        compiled_pattern = re.compile(mean_age_pattern)
+        return compiled_pattern
+
 def loadExternalModel(fpath):
 
-    # Loads a model from a path onto CUDA
-    
+    # TODO: Loads a model from a path onto CUDA
 
     return None
