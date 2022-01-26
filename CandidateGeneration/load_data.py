@@ -2,8 +2,6 @@ import pandas as pd
 import json
 import argparse
 
-from sklearn.model_selection import train_test_split
-
 from CandGenUtilities.experiment_arguments import *
 from CandGenUtilities.labeler_utilities import *
 from CandGenUtilities.source_target_mapping import *
@@ -64,6 +62,6 @@ def loadEBMPICO(train_dir):
     
 
     df = pd.DataFrame( {'pmid': pmid, 'tokens': tokens, 'pos': pos, 'p': p, 'i': i, 'o': o } )
-    train, validation = train_test_split(df, test_size=0.20)
+    #train, validation = train_test_split(df, test_size=0.20)
 
-    return train, validation
+    return df
