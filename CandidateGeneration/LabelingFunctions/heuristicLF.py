@@ -50,7 +50,7 @@ def posPattern_i( text, text_tokenized, text_pos_flatten, spans, start_spans, pi
                 regex_pos_spans.append( longest_match_span ) 
                 labels.append( picos )
 
-    generated_labels = len( text_tokenized ) * [-1]
+    generated_labels = len( text_tokenized ) * [0]
     generated_labels = heurspansToLabels(regex_pos_matches, regex_pos_spans, labels, start_spans, generated_labels, text_tokenized)
     generated_labels = pico2label( generated_labels )
 
@@ -92,7 +92,7 @@ def heurPattern_pa( text, text_tokenized, text_pos_flatten, spans, start_spans, 
                 regex_heur_matches.append( m )
                 regex_heur_labels.append( picos )
 
-    generated_labels = len(text_tokenized) * [-1]
+    generated_labels = len(text_tokenized) * [0]
     generated_labels = heurspansToLabels2(regex_heur_matches, regex_heur_labels, start_spans, generated_labels, text_tokenized)
     generated_labels = pico2label( generated_labels )
 

@@ -62,7 +62,7 @@ def OntologyLabelingFunction(text,
 
     assert len(ontology_matches) == len(label)
 
-    generated_labels = len( text_tokenized ) * [-1]
+    generated_labels = len( text_tokenized ) * [0]
     generated_labels = LFutils.spansToLabels( ontology_matches, label, terms, tokenized_start_spans, generated_labels, text_tokenized )
     generated_labels = LFutils.pico2label( generated_labels )
 

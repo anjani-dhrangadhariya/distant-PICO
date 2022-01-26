@@ -8,7 +8,7 @@ import pandas as pd
 
 
 pico2labelMap = dict()
-pico2labelMap = { 'P' : 1, 'I' : 1, 'O' : 1, '-P' : 0, '-I' : 0, '-O' : 0, 'IO' : 0, 'OI' : 0, 'PO' : 0, 'OP' : 0, 'IP': 0, 'PI': 0, '-IO' : 0, '-OI' : 0, '-PO' : 0, '-OP' : 0, '-IP': 0, '-PI': 0, '-PIO' : 0, 'PIO' : 0 }
+pico2labelMap = { 'P' : 1, 'I' : 1, 'O' : 1, '-P' : -1, '-I' : -1, '-O' : -1, 'IO' : -1, 'OI' : -1, 'PO' : -1, 'OP' : -1, 'IP': -1, 'PI': -1, '-IO' : -1, '-OI' : -1, '-PO' : -1, '-OP' : -1, '-IP': -1, '-PI': -1, '-PIO' : -1, 'PIO' : -1 }
 
 def flatten(t):
     return [item for sublist in t for item in sublist]
@@ -138,10 +138,10 @@ def heurspansToLabels2(matches, labels, start_spans, generated_labels, text_toke
 
     return generated_labels
 
-
+# Fetch the labels and replace the letters P, I, O with corresponding numerical label
 def pico2label(l):
 
-    l = [ pico2labelMap[ l_i ] if l_i != -1 else l_i for l_i in l ]
+    l = [ pico2labelMap[ l_i ] if l_i != 0 else l_i for l_i in l ]
 
     return l
 
