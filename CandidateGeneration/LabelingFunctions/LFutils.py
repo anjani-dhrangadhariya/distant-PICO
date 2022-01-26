@@ -8,7 +8,7 @@ import pandas as pd
 
 
 pico2labelMap = dict()
-pico2labelMap = { 'P' : 1, 'I' : 1, 'O' : 1, '-P' : -1, '-I' : -1, '-O' : -1, 'IO' : -1, 'OI' : -1, 'PO' : -1, 'OP' : -1, 'IP': -1, 'PI': -1, '-IO' : -1, '-OI' : -1, '-PO' : -1, '-OP' : -1, '-IP': -1, '-PI': -1, '-PIO' : -1, 'PIO' : -1 }
+pico2labelMap = { 'P' : 1, 'I' : 1, 'O' : 1, '-P' : -1, '-I' : -1, '-O' : -1, 'IO' : 1, 'OI' : 1, 'PO' : 1, 'OP' : 1, 'IP': 1, 'PI': 1, 'PIO':1, '-IO' : -1, '-OI' : -1, '-PO' : -1, '-OP' : -1, '-IP': -1, '-PI': -1, '-PIO' : -1WW }
 
 def flatten(t):
     return [item for sublist in t for item in sublist]
