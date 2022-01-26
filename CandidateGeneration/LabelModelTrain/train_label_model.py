@@ -9,12 +9,15 @@ import scipy
 
 import LMutils
 from flyingsquid.label_model import LabelModel as LMsquid
+from snorkel.labeling.model import LabelModel as LMsnorkel
 
-file = '/mnt/nas2/results/Results/systematicReview/distant_pico/candidate_generation/validation_labels.tsv'
-validation_data = pd.read_csv(file, sep='\t', header=0)
-Y_p = validation_data['p']
+from sklearn.model_selection import train_test_split
 
-#
+
+file = '/mnt/nas2/results/Results/systematicReview/distant_pico/EBM_PICO_GT/validation_labels.tsv'
+df_data = pd.read_csv(file, sep='\t', header=0)
+train, validation = train_test_split(df_data, test_size=0.20, shuffle = False, stratify = None)
+
 
 indir = '/mnt/nas2/results/Results/systematicReview/distant_pico/candidate_generation'
 pathlist = Path(indir).glob('**/*.tsv')
