@@ -121,7 +121,7 @@ try:
      'i': df_data_i_labels_flatten,
      'o': df_data_o_labels_flatten,
     })
-    write_df.to_csv('/mnt/nas2/results/Results/systematicReview/distant_pico/candidate_generation/validation_labels.tsv', sep='\t')
+    write_df.to_csv('/mnt/nas2/results/Results/systematicReview/distant_pico/EBM_PICO_GT/validation_labels.tsv', sep='\t')
 
     text = ' '.join(df_data_token_flatten)
     assert len(re.split(' ', text)) == len(df_data_token_flatten) == len( list(WhitespaceTokenizer().span_tokenize(text)) )
