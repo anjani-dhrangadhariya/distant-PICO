@@ -8,7 +8,22 @@ from LabelingFunctions import LFutils
 from snorkel.labeling import labeling_function
 
 '''
-Takes a labeling source (terms belonging to either one or more ontologies under a single LF arm).
+Description:
+    Labeling function labels input data (str) with "Intervention" label using direct and fuzzy string matching
+Args:
+    text (str): input to be labeled
+    text_tokenized (list): tokenized text
+    tokenized_spans (list): list of start and end positions for each token in text    
+    tokenized_start_spans (dict): dictionary where key is the start position of a span and value is the end position
+    source_terms (?): 
+    picos (str): label to release for the input spans
+    expand_term (bool): whether to expand the source term (plural, singular, lower)
+    fuzzy_match (bool): switch for fuzzy bigram matching 
+    max_ngram (int)
+    abstain_decision (bool): switch to abstain or not
+    case_sensitive (bool): switch for case sensitive matching
+Returns:
+    generated labels (?): 
 '''
 def OntologyLabelingFunction(text, 
                              text_tokenized,
