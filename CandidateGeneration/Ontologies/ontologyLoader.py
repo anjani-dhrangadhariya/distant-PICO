@@ -66,7 +66,7 @@ def loadUMLSdb(fpath, label, remove_vet: bool = True, min_terms: int = 500, char
 
     # df['TERM_PRE'] = df.TERM.apply(preprocessOntology)
 
-    df_new = df.groupby(['SAB']).apply(lambda x: list(zip( x.TERM_PRE , x.PICOS))).to_dict()
+    df_new = df.groupby(['SAB']).apply(lambda x: list(zip( x.TERM_PRE , x.PICOS))).to_dict() #loads terms with one of the PICO labels
 
     if remove_vet == True:
         df_new = removeNonHuman(df_new)
@@ -202,6 +202,12 @@ def loadPattern( pattern_name ):
     if pattern_name == 'meanage':
 
         mean_age_pattern = r'(([Mm]ean|[Aa]verage) ?(age) ?(=|was|of|,|:|) ?[0-9.± ()+-\/]+(years?|months?|yr?s?)?)'
+        compiled_pattern = re.compile(mean_age_pattern)
+        return compiled_pattern
+
+    if pattern_name == 'studytype':
+
+        mean_age_pattern = r'(([Nn]o[nt] )?([rR]andom(i[sz]ed|ly|i[sz]ation)?)+(,? controlled| clinical)?( trials?)?)'
         compiled_pattern = re.compile(mean_age_pattern)
         return compiled_pattern
 
