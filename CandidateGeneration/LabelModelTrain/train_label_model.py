@@ -1,24 +1,24 @@
 import enum
-from hashlib import new
-import os
 import glob
+import os
+from hashlib import new
 from pathlib import Path
-import pandas as pd
+
 import numpy as np
+import pandas as pd
 import scipy
+from flyingsquid.label_model import LabelModel as LMsquid
+from sklearn.model_selection import train_test_split
+from snorkel.labeling.model import LabelModel as LMsnorkel
+from snorkel.labeling.model import MajorityLabelVoter
 
 import LMutils
-from flyingsquid.label_model import LabelModel as LMsquid
-from snorkel.labeling.model import LabelModel as LMsnorkel
-
-from sklearn.model_selection import train_test_split
-
 
 file = '/mnt/nas2/results/Results/systematicReview/distant_pico/EBM_PICO_GT/validation_labels.tsv'
 df_data = pd.read_csv(file, sep='\t', header=0)
 train, validation = train_test_split(df_data, test_size=0.20, shuffle = False, stratify = None)
 
-
+# Read Candidate labels from multiple LFs
 indir = '/mnt/nas2/results/Results/systematicReview/distant_pico/candidate_generation'
 pathlist = Path(indir).glob('**/*.tsv')
 
@@ -117,16 +117,18 @@ for i, partition in enumerate(partitioned_umls_p):
     combined_lf.extend( list(heur_p.values()) ) # Combine with level 4
     combined_lf.extend( list(dict_p.values()) ) # combine with level 4
 
+    print( len(combined_lf[0]) )
+
 
     # train model
-    L_train = np.array( combined_lf )
-    print(L_train.shape)
-    n = L_train.shape[1]
-    label_model = LMsquid(n)
-    label_model.fit(L_train)
-    preds = label_model.predict(L_train)
+    # L_train = np.array( combined_lf )
+    # print(L_train.shape)
+    # n = L_train.shape[1]
+    # label_model = LMsquid(n)
+    # label_model.fit(L_train)
+    # preds = label_model.predict(L_train)
 
-    print( preds.shape )
+    # print( preds.shape )
 
     # pickle model
     # validate model
