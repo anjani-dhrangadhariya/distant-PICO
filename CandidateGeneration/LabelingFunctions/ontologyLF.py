@@ -12,7 +12,7 @@ Description:
     Labeling function labels input data (str) with "Intervention" label using direct and fuzzy string matching
 Args:
     text (str): input to be labeled
-    text_tokenized (list): tokenized text
+    text_tokenized (list): tokenized training text
     tokenized_spans (list): list of start and end positions for each token in text    
     tokenized_start_spans (dict): dictionary where key is the start position of a span and value is the end position
     source_terms (?): 
@@ -23,7 +23,7 @@ Args:
     abstain_decision (bool): switch to abstain or not
     case_sensitive (bool): switch for case sensitive matching
 Returns:
-    generated labels (?): 
+    generated labels (list): 
 '''
 def OntologyLabelingFunction(text, 
                              text_tokenized,
