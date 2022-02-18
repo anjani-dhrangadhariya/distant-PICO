@@ -17,13 +17,14 @@ print('The random seed is set to: ', seed)
 
 '''
 Description:
-    Loads EBM-NLP training set with PICO annotations, splits it into training and validation sets, and returns validation set
+    Loads EBM-NLP training set with PICO annotations and returns 
 
 Args:
     train_dir (str): String containing path to the EBM-NLP directory
+    write_to_file (bool): switch to write training set to file
 
 Returns:
-    pandas data frame: a pandas dataframe for EBM-NLP training and validation sets
+    Formatted training text, tokens and token labels (str, df, df, df, ,df, df): 
 '''
 def loadEBMPICO(train_dir, write_to_file):
 
@@ -39,7 +40,6 @@ def loadEBMPICO(train_dir, write_to_file):
         data = json.load(rf)
         for k,v in data.items():
             pmid.append( k )
-            #text.extend( [x.strip() for x in v['tokens'] ] )
             tokens.append( [x.strip() for x in v['tokens'] ] )
             pos.append( v['pos'] )
             if 'participants' in v:
