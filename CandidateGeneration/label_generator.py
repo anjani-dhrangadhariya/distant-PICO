@@ -62,7 +62,7 @@ print('The random seed is set to: ', seed)
 # Parse arguments for experiment flow
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-level1', type=bool, default=False)
+parser.add_argument('-level1', type=bool, default=False) # Level1 
 parser.add_argument('-level2', type=bool, default=False)
 parser.add_argument('-level3', type=bool, default=False)
 parser.add_argument('-level4', type=bool, default=False)
@@ -83,10 +83,7 @@ try:
     # Load validation data
     ################################################################################
     ebm_nlp = '/mnt/nas2/data/systematicReview/PICO_datasets/EBM_parsed'
-    df_data_token_flatten, df_data_pos_flatten, df_data_p_labels_flatten, df_data_i_labels_flatten, df_data_o_labels_flatten = loadEBMPICO( ebm_nlp, write_to_file = False )
-
-    text = ' '.join(df_data_token_flatten)
-    assert len(re.split(' ', text)) == len(df_data_token_flatten) == len( list(WhitespaceTokenizer().span_tokenize(text)) )
+    text, df_data_token_flatten, df_data_pos_flatten, df_data_p_labels_flatten, df_data_i_labels_flatten, df_data_o_labels_flatten = loadEBMPICO( ebm_nlp, write_to_file = False )
     spans = list(WhitespaceTokenizer().span_tokenize(text))
 
     start_spans = dict()

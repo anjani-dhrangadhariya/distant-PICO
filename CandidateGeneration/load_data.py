@@ -78,6 +78,9 @@ def loadEBMPICO(train_dir, write_to_file):
     df_data_o_labels_flatten = list(map(int, df_data_o_labels_flatten))
     df_data_0_labels_flatten = [-1 if x==0 else x for x in df_data_o_labels_flatten]
 
+    text = ' '.join(df_data_token_flatten)
+    assert len(re.split(' ', text)) == len(df_data_token_flatten) == len( list(WhitespaceTokenizer().span_tokenize(text)) )
+
     if write_to_file == True:
         write_df = pd.DataFrame(
         {'tokens': df_data_token_flatten,
@@ -89,4 +92,4 @@ def loadEBMPICO(train_dir, write_to_file):
 
         write_df.to_csv('/mnt/nas2/results/Results/systematicReview/distant_pico/EBM_PICO_GT/validation_labels_tui_pio2.tsv', sep='\t')
 
-    return df_data_token_flatten, df_data_pos_flatten, df_data_p_labels_flatten, df_data_i_labels_flatten, df_data_o_labels_flatten
+    return text, df_data_token_flatten, df_data_pos_flatten, df_data_p_labels_flatten, df_data_i_labels_flatten, df_data_o_labels_flatten
