@@ -142,7 +142,7 @@ Description:
               https://www.healthline.com/health/different-genders#takeaway]
 
 Args:
-    None 
+    fpath (str): path to the input hand-crafted dictionary file
 
 Returns:
     Gender and sexual orientation terms (list): A list containing all the terms corresponding to gender identities and sexual orientations
