@@ -99,7 +99,9 @@ def heurPattern_pa( text, text_tokenized, text_pos_flatten, spans, start_spans, 
 
     return generated_labels
 
-
+'''
+TODO: Development remains
+'''
 def heurPattern_p_sampsize( text, text_tokenized, text_pos_flatten, spans, start_spans, picos: str ):
 
     pattern = r' ?(patients?|subjects?|participants?|people?|individuals?|persons?|healthy individuals?|healthy adults?|children|toddlers?|adults?|healthy volunteers?|families?|men|women|teenagers?|families|parturients?|females?|males?)+'
