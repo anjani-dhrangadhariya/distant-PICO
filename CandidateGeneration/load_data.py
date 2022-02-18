@@ -62,6 +62,7 @@ def loadEBMPICO(train_dir, write_to_file):
     
 
     df_data = pd.DataFrame( {'pmid': pmid, 'tokens': tokens, 'pos': pos, 'p': p, 'i': i, 'o': o } )
+    # df_data = df_data[0:10]
 
     df_data_token_flatten = [item for sublist in list(df_data['tokens']) for item in sublist]
     df_data_pos_flatten = [item for sublist in list(df_data['pos']) for item in sublist]
