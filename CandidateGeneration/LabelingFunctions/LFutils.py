@@ -137,13 +137,20 @@ def heurspansToLabels2(matches, labels, start_spans, generated_labels, text_toke
                     # print( match_temp.strip() , ' ----- ',  m.group().strip())
 
     return generated_labels
-
-# Fetch the labels and replace the letters P, I, O with corresponding numerical label
+ 
+'''
+Description:
+    Fetch the label list and replace the labels P, I, O, S with corresponding numerical label
+Args:
+    l (list): input list with PIO labels
+Returns:
+    l_modified (list):  modified list with P, I, O, S replaced with corresponding numerical label
+'''
 def pico2label(l):
 
-    l = [ pico2labelMap[ l_i ] if l_i != 0 else l_i for l_i in l ]
+    l_modified = [ pico2labelMap[ l_i ] if l_i != 0 else l_i for l_i in l ]
 
-    return l
+    return l_modified
 
 def write2File(labels_, tokens_, number_lfs, picos):
     
@@ -180,9 +187,24 @@ def label_lf_partitions( partitioned_uml, umls_d, picos, text, token_flatten, sp
         accumulated_labels.append( accumulated_lf )
         write2File(accumulated_lf, token_flatten, number_lfs, picos)
 
-def label_umls_and_write(indir, umls_d, picos, text, token_flatten, spans, start_spans, write):
+'''
+Description:
+    Labels unlabeled training data with UMLS concepts
+Args:
+    outdir (str): directory path to store the weakly labeled candidates
+    umls_d (dict): dictionary with SAB (ontology) as key and (concepts, label or abstain) as value tuple
+    picos (str): PICOS entity label
+    text (str): training text
+    token_flatten (list): flattened training tokens
+    spans (list):  list of start and end positions for each token in text
+    start_spans (dict): dictionary where keys are start positions and values are end positions of tokens in training text
+    write (bool): switch to write training set to file
+Returns:
+    generated labels (?): 
+'''
+def label_umls_and_write(outdir, umls_d, picos, text, token_flatten, spans, start_spans, write):
 
-    if str(indir).split('/')[-1] == 'fuzzy':
+    if str(outdir).split('/')[-1] == 'fuzzy':
         fuzzy_match = True
     else:
         fuzzy_match = False
@@ -195,7 +217,7 @@ def label_umls_and_write(indir, umls_d, picos, text, token_flatten, spans, start
 
         if write == True:
             filename = 'lf_' + str(k) + '.tsv'
-            df.to_csv(f'{indir}/{picos}/{filename}', sep='\t')
+            df.to_csv(f'{outdir}/{picos}/{filename}', sep='\t')
         else:
             return df
 
