@@ -24,7 +24,7 @@ Args:
     write_to_file (bool): switch to write training set to file
 
 Returns:
-    Formatted training text, tokens and token labels (str, df, df, df, ,df, df): 
+    Formatted training text, tokens and token labels (str, df, df, df, ,df, df)
 '''
 def loadEBMPICO(train_dir, write_to_file):
 
