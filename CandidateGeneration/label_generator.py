@@ -62,7 +62,7 @@ print('The random seed is set to: ', seed)
 # Parse arguments for experiment flow
 parser = argparse.ArgumentParser()
 parser.add_argument('-level1', type=bool, default=False) # Level1 = UMLS LF's
-parser.add_argument('-level2', type=bool, default=True) # Level2: Non-UMLS LF's (non-UMLS Ontology labeling)
+parser.add_argument('-level2', type=bool, default=False) # Level2: Non-UMLS LF's (non-UMLS Ontology labeling)
 parser.add_argument('-level3', type=bool, default=False) # Level 3 = Distant Supervision LF's
 parser.add_argument('-level4', type=bool, default=False) # Level 4 = Rule based LF's (ReGeX, Heuristics and handcrafted dictionaries)
 parser.add_argument('-level5', type=bool, default=False) # Level 5 = External Model LF's
@@ -106,9 +106,9 @@ try:
 
         for m in ['fuzzy', 'direct']:
             outdir_umls = f'{args.outdir}/distant_pico/candidate_generation/UMLS2/{m}'
-            umls_p_labels = label_umls_and_write(outdir_umls, umls_p, picos='p', text=text, token_flatten=df_data_token_flatten, spans=spans, start_spans=start_spans, write = False)
-            umls_i_labels = label_umls_and_write(outdir_umls, umls_i, picos='i', text=text, token_flatten=df_data_token_flatten, spans=spans, start_spans=start_spans, write = False)
-            umls_o_labels = label_umls_and_write(outdir_umls, umls_o, picos='o', text=text, token_flatten=df_data_token_flatten, spans=spans, start_spans=start_spans, write = False)
+            label_umls_and_write(outdir_umls, umls_p, picos='p', text=text, token_flatten=df_data_token_flatten, spans=spans, start_spans=start_spans, write = False)
+            label_umls_and_write(outdir_umls, umls_i, picos='i', text=text, token_flatten=df_data_token_flatten, spans=spans, start_spans=start_spans, write = False)
+            label_umls_and_write(outdir_umls, umls_o, picos='o', text=text, token_flatten=df_data_token_flatten, spans=spans, start_spans=start_spans, write = False)
 
 
     '''#########################################################################################
@@ -126,9 +126,8 @@ try:
 
         for m in ['fuzzy', 'direct']:
             outdir_non_umls = f'{args.outdir}/distant_pico/candidate_generation/nonUMLS/{m}'
-            # for ontology, ont_name in zip([p_HPO, p_HPO_syn, p_DO, p_DO_syn, p_ctd, p_ctd_syn], ['HPO', 'HPO_syn', 'DO', 'DO_syn', 'CTD', 'CTD_syn'] ) :
-            for ontology, ont_name in zip([p_HPO, p_HPO_syn], ['HPO', 'HPO_syn'] ) :
-               nonUMLS_p_labels = label_ont_and_write( outdir_non_umls, ontology, picos='P', text=text, token_flatten=df_data_token_flatten, spans=spans, start_spans=start_spans, write = True, ontology_name=ont_name, expand_term=True)
+            for ontology, ont_name in zip([p_HPO, p_HPO_syn, p_DO, p_DO_syn, p_ctd, p_ctd_syn], ['HPO', 'HPO_syn', 'DO', 'DO_syn', 'CTD', 'CTD_syn'] ) :
+               nonUMLS_p_labels = label_ont_and_write( outdir_non_umls, ontology, picos='P', text=text, token_flatten=df_data_token_flatten, spans=spans, start_spans=start_spans, write = False, ontology_name=ont_name, expand_term=True)
 
             for ontology, ont_name in zip([i_ctd, i_ctd_syn, i_chebi, i_chebi_syn], ['CTD', 'CTD_syn', 'chebi', 'chebi_syn'] ) :
                 nonUMLS_i_labels = label_ont_and_write( outdir_non_umls, ontology, picos='I', text=text, token_flatten=df_data_token_flatten, spans=spans, start_spans=start_spans, write = False, ontology_name=ont_name, expand_term=True )
@@ -150,13 +149,13 @@ try:
         for m in ['fuzzy', 'direct']:
             outdir_ds = f'{args.outdir}/distant_pico/candidate_generation/DS/{m}'
             for ontology, entity, ont_name in zip([ds_participant], ['P'], ['ds_participant'] ) :
-                ds_p_labels = label_ont_and_write( outdir_ds, ontology, picos=entity, text=text, token_flatten=df_data_token_flatten, spans=spans, start_spans=start_spans, ontology_name=ont_name, expand_term=True  )
+                ds_p_labels = label_ont_and_write( outdir_ds, ontology, picos=entity, text=text, token_flatten=df_data_token_flatten, spans=spans, start_spans=start_spans, write=False, ontology_name=ont_name, expand_term=True  )
 
             for ontology, entity, ont_name in zip([ds_intervention, ds_intervention_syn], ['I', 'I'], ['ds_intervetion', 'ds_intervention_syn'] ) :
-                ds_i_labels = label_ont_and_write( outdir_ds, ontology, picos=entity, text=text, token_flatten=df_data_token_flatten, spans=spans, start_spans=start_spans, ontology_name=ont_name, expand_term=True  )
+                ds_i_labels = label_ont_and_write( outdir_ds, ontology, picos=entity, text=text, token_flatten=df_data_token_flatten, spans=spans, start_spans=start_spans, write=False, ontology_name=ont_name, expand_term=True  )
         
             for ontology, entity, ont_name in zip([ds_outcome], ['O'], ['ds_outcome'] ) :
-                ds_o_labels = label_ont_and_write( outdir_ds, ontology, picos=entity, text=text, token_flatten=df_data_token_flatten, spans=spans, start_spans=start_spans, ontology_name=ont_name, expand_term=True  )
+                ds_o_labels = label_ont_and_write( outdir_ds, ontology, picos=entity, text=text, token_flatten=df_data_token_flatten, spans=spans, start_spans=start_spans, write=False, ontology_name=ont_name, expand_term=True  )
     
 
     '''##############################################################################################################
@@ -175,7 +174,7 @@ try:
         # ReGeX Labeling Function
         for reg_lf_i, entity, reg_lf_name in zip([p_sampsize, p_sampsize2, p_agerange, p_agemax, p_meanage, s_study_type], ['P', 'P', 'P', 'P', 'P', 'S'], ['regex_sampsize', 'regex_sampsize2', 'regex_agerange', 'regex_agemax', 'regex_meanage', 'regex_stdtype'] ) : 
             outdir_reg = f'{args.outdir}/distant_pico/candidate_generation/heuristics/direct'
-            regex_labels = label_ont_and_write( outdir_reg, [reg_lf_i], picos=entity, text=text, token_flatten=df_data_token_flatten, spans=spans, start_spans=start_spans, ontology_name=reg_lf_name, expand_term=False )
+            regex_labels = label_ont_and_write( outdir_reg, [reg_lf_i], picos=entity, text=text, token_flatten=df_data_token_flatten, spans=spans, start_spans=start_spans, write=False, ontology_name=reg_lf_name, expand_term=False )
 
     
         # Heutistic Labeling Functions
@@ -204,7 +203,7 @@ try:
         # Dictionary Labeling Function and Abbreviation dictionary Labeling function
         for ontology, entity, ont_name in zip([p_genders, i_comparator, p_abb], ['P', 'I', 'P'], ['dict_gender', 'dict_comparator', 'dict_p_abb'] ) : 
             outdir_dict = f'{args.outdir}/distant_pico/candidate_generation/dictionary/direct'
-            label_ont_and_write( outdir_dict, ontology, picos=entity, text=text, token_flatten=df_data_token_flatten, spans=spans, start_spans=start_spans, ontology_name=ont_name, expand_term=False  )
+            label_ont_and_write( outdir_dict, ontology, picos=entity, text=text, token_flatten=df_data_token_flatten, spans=spans, start_spans=start_spans, write=False, ontology_name=ont_name, expand_term=False  )
 
 
 
