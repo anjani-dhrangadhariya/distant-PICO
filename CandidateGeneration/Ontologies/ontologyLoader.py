@@ -167,7 +167,6 @@ Args:
 
 Returns:
     ds_source_prepro (list): The list containing all the preprocessed distant supervision terms from clinicaltrials.org
-
 '''
 def loadDS(fpath, picos, char_threshold:int = 2):
 
@@ -187,6 +186,15 @@ def loadDS(fpath, picos, char_threshold:int = 2):
 
     return ds_source_prepro
 
+'''
+Description:
+    Loads chosen ReGeX pattern 
+Args:
+    pattern_name (str): pattern name 
+
+Returns:
+    compiled_pattern (re): compiled ReGeX pattern for the chosen pattern_name
+'''
 def loadPattern( pattern_name ):
 
     if pattern_name == 'samplesize':
