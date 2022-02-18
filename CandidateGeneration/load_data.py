@@ -68,15 +68,15 @@ def loadEBMPICO(train_dir, write_to_file):
 
     df_data_p_labels_flatten = [item for sublist in list(df_data['p']) for item in sublist]
     df_data_p_labels_flatten = list(map(int, df_data_p_labels_flatten))
-    df_data_p_labels_flatten = [-1 if x==0 else x for x in df_data_p_labels_flatten]
+    # df_data_p_labels_flatten = [-1 if x==0 else x for x in df_data_p_labels_flatten] # -1 == Abstain, 0 = negative
 
     df_data_i_labels_flatten = [item for sublist in list(df_data['i']) for item in sublist]
     df_data_i_labels_flatten = list(map(int, df_data_i_labels_flatten))
-    df_data_i_labels_flatten = [-1 if x==0 else x for x in df_data_i_labels_flatten]
+    # df_data_i_labels_flatten = [-1 if x==0 else x for x in df_data_i_labels_flatten] # -1 == Abstain, 0 = negative
 
     df_data_o_labels_flatten = [item for sublist in list(df_data['o']) for item in sublist]
     df_data_o_labels_flatten = list(map(int, df_data_o_labels_flatten))
-    df_data_0_labels_flatten = [-1 if x==0 else x for x in df_data_o_labels_flatten]
+    # df_data_0_labels_flatten = [-1 if x==0 else x for x in df_data_o_labels_flatten] # -1 == Abstain, 0 = negative
 
     text = ' '.join(df_data_token_flatten)
     assert len(re.split(' ', text)) == len(df_data_token_flatten) == len( list(WhitespaceTokenizer().span_tokenize(text)) )
