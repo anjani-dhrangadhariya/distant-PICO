@@ -88,19 +88,18 @@ def loadUMLSdb(fpath, entity: str, remove_vet: bool = True, min_terms: int = 500
 
 '''
 Description:
-    This function loads Comparative Toxicogenomics Database (CTD) disease terms and their synonyms
-    This function loads Comparative Toxicogenomics Database (CTD) chemical terms and their synonyms
-    This function loads Chemical Entities of Biological Interest (ChEBI) terms and their synonyms
-    This function loads Disease Ontolgoy DO terms and their synonyms
-
+    Loads ontology files from local directory. 
 Args:
-    fpath, delim, term_index, term_syn_index
+    fpath (str): path to the input ontology file
+    delim (str): delimiter for the input ontology file (tab for TSV and comma for CSV)
+    term_index (int): csv/tsv file index to retrieve term
+    term_syn_index (int): csv/tsv file index to retrieve term synonym
+    char_threshold (int): setting it will remove all concepts from SAB shoter than char_threshold
 
 Returns:
-    CTD terms (list): A list containing all the terms corresponding to Disease set and their synonyms from the Comparative Toxicogenomics Database (CTD)
-    CTD terms (list): A list containing all the terms corresponding to Chemical set and their synonyms from the Comparative Toxicogenomics Database (CTD)
-    ChEBI terms (list): A list containing all the terms corresponding and their synonyms from the Chemical Entities of Biological Interest (ChEBI)
-    DO terms (list): A list containing all the terms and their synonyms from the Disease Ontology (DO)
+    term_prepro (list): The list containing all the preprocessed terms for the input ontology
+    term_syn_prepro (list): The list containing all the preprocessed term synonym for the input ontology
+
 '''
 def loadOnt(fpath, delim, term_index, term_syn_index, char_threshold:int = 2):
 
