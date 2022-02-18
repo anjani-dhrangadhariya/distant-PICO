@@ -192,7 +192,7 @@ Description:
     Labels unlabeled training data with UMLS concepts
 Args:
     outdir (str): directory path to store the weakly labeled candidates
-    umls_d (dict): dictionary with SAB (ontology) as key and (concepts, label or abstain) as value tuple
+    umls_d (dict): dictionary source with SAB (ontology) as key and (concepts, label or abstain) as value tuple
     picos (str): PICOS entity label
     text (str): training text
     token_flatten (list): flattened training tokens
@@ -200,7 +200,7 @@ Args:
     start_spans (dict): dictionary where keys are start positions and values are end positions of tokens in training text
     write (bool): switch to write training set to file
 Returns:
-    generated labels (?): 
+    df (df): Dataframe with flattened tokens and corresponding weak labels
 '''
 def label_umls_and_write(outdir, umls_d, picos, text, token_flatten, spans, start_spans, write):
 
@@ -213,7 +213,7 @@ def label_umls_and_write(outdir, umls_d, picos, text, token_flatten, spans, star
         print( 'Fetching the labels for ', str(k) )
         umls_labels = ontologyLF.OntologyLabelingFunction( text, token_flatten, spans, start_spans, v, picos=None, expand_term=True, fuzzy_match=fuzzy_match )
 
-        df = pd.DataFrame( {'tokens': token_flatten, str(k): umls_labels, })
+        df = pd.DataFrame( {'tokens': token_flatten, str(k): umls_labels })
 
         if write == True:
             filename = 'lf_' + str(k) + '.tsv'
@@ -221,7 +221,23 @@ def label_umls_and_write(outdir, umls_d, picos, text, token_flatten, spans, star
         else:
             return df
 
-
+'''
+Description:
+    Labels unlabeled training data with input source. Input source could be non-UMLS concepts, ReGeX, DS source, hand-crafted dictionaries.
+Args:
+    outdir (str): directory path to store the weakly labeled candidates
+    terms (list): list with either concepts/terms or regex for labeling 
+    picos (str): PICOS entity label
+    text (str): training text
+    token_flatten (list): flattened training tokens
+    spans (list):  list of start and end positions for each token in text
+    start_spans (dict): dictionary where keys are start positions and values are end positions of tokens in training text
+    write (bool): switch to write training set to file
+    ontology_name (str): String with ontology name for file writing
+    expand_term (bool): switch to expand term to include singulars, plurals and lower-case (False for ReGeX sources) 
+Returns:
+    df (df): Dataframe with flattened tokens and corresponding weak labels
+'''
 def label_ont_and_write(outdir, terms, picos, text, token_flatten, spans, start_spans, write: bool, ontology_name:str, expand_term:bool = True):
 
     expand_term = expand_term
