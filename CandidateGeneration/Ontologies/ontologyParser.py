@@ -233,10 +233,10 @@ def cui2tuiMapper(indir, outdir, tui2pio):
     # df = df.merge( df.TERM_PRE.apply(getPOStags) , left_index=True, right_index=True )
 
     # Open the written file and load it into MySQL
-    init_sqlite_tables(f'{outdir}/umls_v2.db', df)
+    init_sqlite_tables(f'{outdir}/umls_tui_pio2.db', df)
 
 indir = '/mnt/nas2/data/systematicReview/UMLS/english_subset/2021AB/META'
 outdir = '/mnt/nas2/data/systematicReview/UMLS/english_subset/umls_preprocessed'
-f_tui2pio = '/mnt/nas2/data/systematicReview/UMLS/english_subset/umls_preprocessed/tui_pio.tsv'
+f_tui2pio = '/mnt/nas2/data/systematicReview/UMLS/english_subset/umls_preprocessed/tui_pio2.tsv'
 
-# cui2tuiMapper(indir, outdir, f_tui2pio)
+#cui2tuiMapper(indir, outdir, f_tui2pio)

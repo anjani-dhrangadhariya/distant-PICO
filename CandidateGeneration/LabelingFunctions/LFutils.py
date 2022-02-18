@@ -8,7 +8,7 @@ import pandas as pd
 
 
 pico2labelMap = dict()
-pico2labelMap = { 'S': 1, 'P' : 1, 'I' : 1, 'O' : 1, '-P' : -1, '-I' : -1, '-O' : -1, 'IO' : 1, 'OI' : 1, 'PO' : 1, 'OP' : 1, 'IP': 1, 'PI': 1, 'PIO':1, '-IO' : -1, '-OI' : -1, '-PO' : -1, '-OP' : -1, '-IP': -1, '-PI': -1, '-PIO' : -1 }
+pico2labelMap = { 'P' : 1, 'I' : 1, 'O' : 1, '-P' : -1, '-I' : -1, '-O' : -1, 'IO' : 1, 'OI' : 1, 'PO' : 1, 'OP' : 1, 'IP': 1, 'PI': 1, 'PIO':1, '-IO' : -1, '-OI' : -1, '-PO' : -1, '-OP' : -1, '-IP': -1, '-PI': -1, '-PIO' : -1, 'S': 1 }
 
 def flatten(t):
     return [item for sublist in t for item in sublist]
@@ -180,10 +180,7 @@ def label_lf_partitions( partitioned_uml, umls_d, picos, text, token_flatten, sp
         accumulated_labels.append( accumulated_lf )
         write2File(accumulated_lf, token_flatten, number_lfs, picos)
 
-        #if i == 1:
-        #    break
-
-def label_umls_and_write(indir, umls_d, picos, text, token_flatten, spans, start_spans):
+def label_umls_and_write(indir, umls_d, picos, text, token_flatten, spans, start_spans, write):
 
     if str(indir).split('/')[-1] == 'fuzzy':
         fuzzy_match = True
@@ -195,8 +192,12 @@ def label_umls_and_write(indir, umls_d, picos, text, token_flatten, spans, start
         umls_labels = ontologyLF.OntologyLabelingFunction( text, token_flatten, spans, start_spans, v, picos=None, expand_term=True, fuzzy_match=fuzzy_match )
 
         df = pd.DataFrame( {'tokens': token_flatten, str(k): umls_labels, })
-        filename = 'lf_' + str(k) + '.tsv'
-        df.to_csv(f'{indir}/{picos}/{filename}', sep='\t')
+
+        if write == True:
+            filename = 'lf_' + str(k) + '.tsv'
+            df.to_csv(f'{indir}/{picos}/{filename}', sep='\t')
+        else:
+            return df
 
 
 def label_ont_and_write(indir, terms, picos, text, token_flatten, spans, start_spans, ontology_name:str, expand_term:bool = True):
@@ -216,4 +217,3 @@ def label_ont_and_write(indir, terms, picos, text, token_flatten, spans, start_s
     df = pd.DataFrame( {'tokens': token_flatten, str(ontology_name): nonumls_labels })
     filename = 'lf_' + str(ontology_name) + '.tsv'
     df.to_csv(f'{indir}/{picos}/{filename}', sep='\t')
-

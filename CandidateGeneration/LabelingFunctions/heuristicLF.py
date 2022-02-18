@@ -46,6 +46,7 @@ def posPattern_i( text, text_tokenized, text_pos_flatten, spans, start_spans, pi
                     break
 
             if len( longest_match ) > 1:
+                print( longest_match )
                 regex_pos_matches.append( longest_match )
                 regex_pos_spans.append( longest_match_span ) 
                 labels.append( picos )

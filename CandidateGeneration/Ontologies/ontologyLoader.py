@@ -46,27 +46,31 @@ def selectTerminology(conn, pico_category):
 
 '''
 Description:
-    This function loads the terms from the UMLS ontologies and groups them by Ontology and PICOS
+    This function loads and returns concepts from the preprocessed local dump of UMLS database and groups them by Ontology (SAB) and entity type
 
 Args:
-    None 
+    fPath : File path to the preprocessed UMLS.db 
+    entity: choice for the entitiy type to retrieve appropriate UMLS concepts from
+    remove_vet : setting it True will remove the concepts from veterinary terminologies. 
+    min_terms : setting it will remove a terminology (SAB) if #concepts in an SAB < min_terms
+    char_threshold: setting it will remove all concepts from SAB shoter than char_threshold
 
 Returns:
-    UMLS ontologies (dict, dict, dict): three dictionaries (each corresponding to P, I/C and O) containing ontology terms grouped by Ontology 
+    UMLS ontologies (dict): the dictionary containing concepts grouped by Ontology (SAB) for chosen entity
 '''
-def loadUMLSdb(fpath, label, remove_vet: bool = True, min_terms: int = 500, char_threshold:int = 3):
+def loadUMLSdb(fpath, entity: str, remove_vet: bool = True, min_terms: int = 500, char_threshold:int = 3):
 
     umls = dict()
 
     conn = createMySQLConn( fpath )
 
-    rows = selectTerminology(conn, label)
+    rows = selectTerminology(conn, entity)
 
     df = pd.DataFrame(rows, columns=['idx', 'SAB', 'TUI', 'CUI', 'TERM', 'STY', 'PICOS', 'TERM_PRE'])
 
     # df['TERM_PRE'] = df.TERM.apply(preprocessOntology)
 
-    df_new = df.groupby(['SAB']).apply(lambda x: list(zip( x.TERM_PRE , x.PICOS))).to_dict() #loads terms with one of the PICO labels
+    df_new = df.groupby(['SAB']).apply(lambda x: list(zip( x.TERM_PRE , x.PICOS))).to_dict()
 
     if remove_vet == True:
         df_new = removeNonHuman(df_new)

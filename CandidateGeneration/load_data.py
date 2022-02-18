@@ -25,7 +25,7 @@ Args:
 Returns:
     pandas data frame: a pandas dataframe for EBM-NLP training and validation sets
 '''
-def loadEBMPICO(train_dir):
+def loadEBMPICO(train_dir, write_to_file):
 
     pmid = []
     text = []
@@ -61,7 +61,32 @@ def loadEBMPICO(train_dir):
                 o.append( [ '0' ] * len( v['tokens'] ) )
     
 
-    df = pd.DataFrame( {'pmid': pmid, 'tokens': tokens, 'pos': pos, 'p': p, 'i': i, 'o': o } )
-    #train, validation = train_test_split(df, test_size=0.20)
+    df_data = pd.DataFrame( {'pmid': pmid, 'tokens': tokens, 'pos': pos, 'p': p, 'i': i, 'o': o } )
 
-    return df
+    df_data_token_flatten = [item for sublist in list(df_data['tokens']) for item in sublist]
+    df_data_pos_flatten = [item for sublist in list(df_data['pos']) for item in sublist]
+
+    df_data_p_labels_flatten = [item for sublist in list(df_data['p']) for item in sublist]
+    df_data_p_labels_flatten = list(map(int, df_data_p_labels_flatten))
+    df_data_p_labels_flatten = [-1 if x==0 else x for x in df_data_p_labels_flatten]
+
+    df_data_i_labels_flatten = [item for sublist in list(df_data['i']) for item in sublist]
+    df_data_i_labels_flatten = list(map(int, df_data_i_labels_flatten))
+    df_data_i_labels_flatten = [-1 if x==0 else x for x in df_data_i_labels_flatten]
+
+    df_data_o_labels_flatten = [item for sublist in list(df_data['o']) for item in sublist]
+    df_data_o_labels_flatten = list(map(int, df_data_o_labels_flatten))
+    df_data_0_labels_flatten = [-1 if x==0 else x for x in df_data_o_labels_flatten]
+
+    if write_to_file == True:
+        write_df = pd.DataFrame(
+        {'tokens': df_data_token_flatten,
+        'pos': df_data_pos_flatten,
+        'p': df_data_p_labels_flatten,
+        'i': df_data_i_labels_flatten,
+        'o': df_data_o_labels_flatten,
+        })
+
+        write_df.to_csv('/mnt/nas2/results/Results/systematicReview/distant_pico/EBM_PICO_GT/validation_labels_tui_pio2.tsv', sep='\t')
+
+    return df_data_token_flatten, df_data_pos_flatten, df_data_p_labels_flatten, df_data_i_labels_flatten, df_data_o_labels_flatten
