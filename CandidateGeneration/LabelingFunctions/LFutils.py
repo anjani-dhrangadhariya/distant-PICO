@@ -200,13 +200,13 @@ def label_umls_and_write(indir, umls_d, picos, text, token_flatten, spans, start
             return df
 
 
-def label_ont_and_write(indir, terms, picos, text, token_flatten, spans, start_spans, ontology_name:str, expand_term:bool = True):
+def label_ont_and_write(outdir, terms, picos, text, token_flatten, spans, start_spans, write: bool, ontology_name:str, expand_term:bool = True):
 
     expand_term = expand_term
 
     print('Do we expand terms: ', expand_term)
 
-    if str(indir).split('/')[-1] == 'fuzzy':
+    if str(outdir).split('/')[-1] == 'fuzzy':
         fuzzy_match = True
     else:
         fuzzy_match = False
@@ -215,5 +215,10 @@ def label_ont_and_write(indir, terms, picos, text, token_flatten, spans, start_s
     nonumls_labels = ontologyLF.OntologyLabelingFunction( text, token_flatten, spans, start_spans, terms, picos=picos, expand_term = expand_term, fuzzy_match=fuzzy_match )
 
     df = pd.DataFrame( {'tokens': token_flatten, str(ontology_name): nonumls_labels })
-    filename = 'lf_' + str(ontology_name) + '.tsv'
-    df.to_csv(f'{indir}/{picos}/{filename}', sep='\t')
+
+    if write == True:
+        filename = 'lf_' + str(ontology_name) + '.tsv'
+        df.to_csv(f'{outdir}/{picos}/{filename}', sep='\t')
+    
+    else:
+        return df
