@@ -157,6 +157,18 @@ def loadAbbreviations(fpath):
 
     return terms
 
+'''
+Description:
+    Loads distant supervision source files from local directory. 
+Args:
+    fpath (str): path to the distant supervision directory
+    picos (str): part of file path for a particular (P/IC/O) distant supervision source
+    char_threshold (int): setting it will remove all concepts from SAB shoter than char_threshold
+
+Returns:
+    ds_source_prepro (list): The list containing all the preprocessed distant supervision terms from clinicaltrials.org
+
+'''
 def loadDS(fpath, picos, char_threshold:int = 2):
 
     ds_source = []
