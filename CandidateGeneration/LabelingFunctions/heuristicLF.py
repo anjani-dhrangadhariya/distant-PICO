@@ -1,7 +1,7 @@
 import re
 
-from LabelingFunctions.LFutils import heurspansToLabels, heurspansToLabels2, pico2label
-from snorkel.labeling import labeling_function
+from LabelingFunctions.LFutils import pico2label, posPattern_i_to_labels, heurPattern_pa_to_labels
+
 
 '''
 Description:
@@ -46,13 +46,12 @@ def posPattern_i( text, text_tokenized, text_pos_flatten, spans, start_spans, pi
                     break
 
             if len( longest_match ) > 1:
-                print( longest_match )
                 regex_pos_matches.append( longest_match )
                 regex_pos_spans.append( longest_match_span ) 
                 labels.append( picos )
 
     generated_labels = len( text_tokenized ) * [0]
-    generated_labels = heurspansToLabels(regex_pos_matches, regex_pos_spans, labels, start_spans, generated_labels, text_tokenized)
+    generated_labels = posPattern_i_to_labels(regex_pos_matches, regex_pos_spans, labels, start_spans, generated_labels, text_tokenized)
     generated_labels = pico2label( generated_labels )
 
     assert len(generated_labels) == len(text_tokenized)
@@ -94,7 +93,7 @@ def heurPattern_pa( text, text_tokenized, text_pos_flatten, spans, start_spans, 
                 regex_heur_labels.append( picos )
 
     generated_labels = len(text_tokenized) * [0]
-    generated_labels = heurspansToLabels2(regex_heur_matches, regex_heur_labels, start_spans, generated_labels, text_tokenized)
+    generated_labels = heurPattern_pa_to_labels(regex_heur_matches, regex_heur_labels, start_spans, generated_labels, text_tokenized)
     generated_labels = pico2label( generated_labels )
 
     return generated_labels
