@@ -29,6 +29,17 @@ from Ontologies.ontoUtils import (allowedTermLength, countTerm, filterSAB,
 from Ontologies.ontologyParser import createMySQLConn
 
 
+'''
+Description:
+    This function selects all rows from UMLS.db for the chosen pico_category.
+
+Args:
+    conn (Connection) : MySQL connection to the preprocessed UMLS.db 
+    pico_category (str): choice for the entitiy type to retrieve appropriate UMLS concepts from UMLS.db
+
+Returns:
+    rows (list): Selected terms (and their SAB label) for  pico_category
+'''
 def selectTerminology(conn, pico_category):
     """
     Query all rows in the tasks table
@@ -146,16 +157,25 @@ def loadDict(fpath):
 
     return terms
 
+'''
+Description:
+    Loads abbreviation source files from local directory into a list 
+Args:
+    fpath (str): path to the input abbreviation file
+
+Returns:
+    abbs (list): The list containing abbreviations from the input file
+'''
 def loadAbbreviations(fpath):
 
-    terms = []
+    abbs = []
 
     with open(fpath, 'r') as fd:
         for line in fd:
             abb = line.split('\t')[0]
-            terms.append( abb.strip() )
+            abbs.append( abb.strip() )
 
-    return terms
+    return abbs
 
 '''
 Description:
