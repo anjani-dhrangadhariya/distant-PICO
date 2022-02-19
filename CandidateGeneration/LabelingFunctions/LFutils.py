@@ -167,7 +167,6 @@ def heurPattern_pa_to_labels(matches, labels, start_spans, generated_labels, tex
             match_temp = ' '.join( [text_tokenized[x]  for x in range( start, end+1 )] )
             for x in range( start, end+1 ):
                 if len( match_temp.strip() ) == len(m.group().strip()):
-                    # print( match_temp.strip() , ' ----- ',  joined_m.strip())
                     generated_labels[x] = l
                 # else:
                 #     print( match_temp.strip() , ' ----- ',  m.group().strip())
