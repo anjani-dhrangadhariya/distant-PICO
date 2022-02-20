@@ -259,6 +259,6 @@ def loadPattern( pattern_name:str ):
 
 def loadExternalModel(fpath:str ):
 
-    # TODO: Loads a model from a path onto CUDA
+    # TODO: Loads an external model (.pth) from a path onto CUDA
 
     return None
