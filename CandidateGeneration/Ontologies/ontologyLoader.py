@@ -9,7 +9,7 @@ import json
 import sqlite3
 import string
 from pathlib import Path
-
+import string
 import pandas as pd
 import spacy
 
@@ -22,6 +22,8 @@ stopwords = en.Defaults.stop_words
 
 additional_stopwords = ['of']
 stopwords.update(additional_stopwords)
+
+translator = str.maketrans(' ', ' ', string.punctuation)
 
 from Ontologies.ontoUtils import (allowedTermLength, countTerm, filterSAB,
                                   preprocessOntology, removeNonHuman,
@@ -153,7 +155,9 @@ def loadDict(fpath):
 
     with open(fpath, 'r') as fd:
         for line in fd:
-            terms.append( line.strip() )
+            # preprocessing
+            line_preprocessed = line.translate( translator )
+            terms.append( line_preprocessed.strip() )
 
     return terms
 
