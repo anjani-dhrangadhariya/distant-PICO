@@ -62,11 +62,11 @@ print('The random seed is set to: ', seed)
 # Parse arguments for experiment flow
 parser = argparse.ArgumentParser()
 parser.add_argument('-level1', type=bool, default=False) # Level1 = UMLS LF's
-parser.add_argument('-level2', type=bool, default=False) # Level2: Non-UMLS LF's (non-UMLS Ontology labeling)
+parser.add_argument('-level2', type=bool, default=False) # Level2: Non-UMLS LF's
 parser.add_argument('-level3', type=bool, default=False) # Level 3 = Distant Supervision LF's
 parser.add_argument('-level4', type=bool, default=False) # Level 4 = Rule based LF's (ReGeX, Heuristics and handcrafted dictionaries)
 parser.add_argument('-level5', type=bool, default=False) # Level 5 = External Model LF's
-parser.add_argument('-levels', type=bool, default=False) # execute all levels
+parser.add_argument('-levels', type=bool, default=False) # execute data labeling using all levels
 parser.add_argument('-umls_fpath', type=Path, default= 'UMLS/english_subset/umls_preprocessed/umls_tui_pio2.db')
 parser.add_argument('-ds_fpath', type=Path, default='/mnt/nas2/data/systematicReview/ds_cto_dict' )
 parser.add_argument('-indir', type=Path, default='/mnt/nas2/data/systematicReview' ) # directory with labeling function sources
@@ -93,10 +93,10 @@ try:
     '''#########################################################################################
     # Level 1 - UMLS LF's
     #########################################################################################'''
-    if args.level1 == True:
+    if args.level1 == True or args.levels == True:
 
-        ''' umls_tui_pio2 is used to generate UMLS2 candidate annotations: /mnt/nas2/results/Results/systematicReview/distant_pico/candidate_generation/UMLS2
-        # umls_v2.db is used to generate UMLS candidate annotations: /mnt/nas2/results/Results/systematicReview/distant_pico/candidate_generation/UMLS
+        ''' umls_tui_pio2 is used to generate UMLS2 candidate annotations: /systematicReview/distant_pico/candidate_generation/UMLS2
+        # umls_v2.db is used to generate UMLS candidate annotations: /systematicReview/distant_pico/candidate_generation/UMLS
         '''
         umls_db = f'{args.indir}/{args.umls_fpath}'
         print('Retrieving UMLS ontology arm (Preprocessing applied)')
@@ -104,17 +104,16 @@ try:
         umls_i = loadUMLSdb(umls_db, entity='I')
         umls_o = loadUMLSdb(umls_db, entity='O')
 
-        for m in ['fuzzy', 'direct']:
+        for m in ['fuzzy', 'direct']: # fuzzy = fuzzy bigram match, direct = no fuzzy bigram match
             outdir_umls = f'{args.outdir}/distant_pico/candidate_generation/UMLS2/{m}'
-            label_umls_and_write(outdir_umls, umls_p, picos='p', text=text, token_flatten=df_data_token_flatten, spans=spans, start_spans=start_spans, write = False)
-            label_umls_and_write(outdir_umls, umls_i, picos='i', text=text, token_flatten=df_data_token_flatten, spans=spans, start_spans=start_spans, write = False)
-            label_umls_and_write(outdir_umls, umls_o, picos='o', text=text, token_flatten=df_data_token_flatten, spans=spans, start_spans=start_spans, write = False)
+            for entity in ['p', 'i', 'o']:
+                label_umls_and_write(outdir_umls, umls_p, picos=entity, text=text, token_flatten=df_data_token_flatten, spans=spans, start_spans=start_spans, write = False)
 
 
     '''#########################################################################################
     # Level 2 - Non-UMLS LF's (non-UMLS Ontology labeling)
     #########################################################################################'''
-    if args.level2 == True:
+    if args.level2 == True or args.levels == True:
 
         print('Retrieving non-UMLS Ontologies  (Preprocessing applied)')
         p_DO, p_DO_syn = loadOnt( f'{args.indir}/Ontologies/participant/DOID.csv', delim = ',', term_index = 1, term_syn_index = 2  )
@@ -138,7 +137,7 @@ try:
     '''#########################################################################################
     # Level 3 - Distant Supervision LF's
     #########################################################################################'''
-    if args.level3 == True:
+    if args.level3 == True or args.levels == True:
 
         print('Retrieving distant supervision dictionaries')
         ds_participant = loadDS(args.ds_fpath, 'participant')
@@ -161,7 +160,7 @@ try:
     '''##############################################################################################################
     # Level 4 - Rule based LF's (ReGeX, Heuristics and handcrafted dictionaries)
     ##############################################################################################################'''
-    if args.level4 == True:
+    if args.level4 == True or args.levels == True:
 
         print('Retrieving ReGeX patterns')
         p_sampsize = loadPattern( 'samplesize' )
@@ -210,7 +209,7 @@ try:
     '''#########################################################################################
     # TODO  Level 5 - External Model Labeling function
     #########################################################################################'''
-    if args.level5 == True:
+    if args.level5 == True or args.levels == True:
         # TODO: Retrieve external models
         ExternalModelLabelingFunction()
 
