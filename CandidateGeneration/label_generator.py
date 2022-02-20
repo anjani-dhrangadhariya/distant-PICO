@@ -174,38 +174,38 @@ try:
         # ReGeX Labeling Function
         for reg_lf_i, entity, reg_lf_name in zip([p_sampsize, p_sampsize2, p_agerange, p_agemax, p_meanage, s_study_type], ['P', 'P', 'P', 'P', 'P', 'S'], ['regex_sampsize', 'regex_sampsize2', 'regex_agerange', 'regex_agemax', 'regex_meanage', 'regex_stdtype'] ) : 
             outdir_reg = f'{args.outdir}/distant_pico/candidate_generation/heuristics/direct'
-            regex_labels = label_ont_and_write( outdir_reg, [reg_lf_i], picos=entity, text=text, token_flatten=df_data_token_flatten, spans=spans, start_spans=start_spans, write=False, ontology_name=reg_lf_name, expand_term=False )
+            # regex_labels = label_ont_and_write( outdir_reg, [reg_lf_i], picos=entity, text=text, token_flatten=df_data_token_flatten, spans=spans, start_spans=start_spans, write=False, ontology_name=reg_lf_name, expand_term=False )
 
-    
+        outdir_heurPattern = f'{args.outdir}/distant_pico/candidate_generation/heuristics/direct'
+        
         # Heutistic Labeling Functions
         i_posreg_labels = posPattern_i( text, df_data_token_flatten, df_data_pos_flatten, spans, start_spans, picos='I' )
-        outdir_posreg = f'{args.outdir}/distant_pico/candidate_generation/heuristics/direct'
         df = pd.DataFrame( {'tokens': df_data_token_flatten, str('i_posreg'): i_posreg_labels })
         filename = 'lf_' + str('i_posreg') + '.tsv'
-        # df.to_csv(f'{outdir_posreg}/I/{filename}', sep='\t')
+        # df.to_csv(f'{outdir_heurPattern}/I/{filename}', sep='\t')
 
         pa_regex_heur_labels = heurPattern_pa( text, df_data_token_flatten, df_data_pos_flatten, spans, start_spans, picos='P' )
-        outdir_heur = f'{args.outdir}/distant_pico/candidate_generation/heuristics/direct'
         df = pd.DataFrame( {'tokens': df_data_token_flatten, str('pa_regex_heur'): pa_regex_heur_labels })
         filename = 'lf_' + str('pa_regex_heur') + '.tsv'
-        # df.to_csv(f'{outdir_heur}/P/{filename}', sep='\t')
+        # df.to_csv(f'{outdir_heurPattern}/P/{filename}', sep='\t')
 
-        # TODO: Development remains
-        #p_sampsize_regex_heur_labels = heurPattern_p_sampsize( text, validation_token_flatten, validation_pos_flatten, spans, start_spans, picos='I' )
-
+        ps_heurPattern_labels = heurPattern_p_sampsize( text, df_data_token_flatten, df_data_pos_flatten, spans, start_spans, picos='P' )
+        df = pd.DataFrame( {'tokens': df_data_token_flatten, str('ps_heurPattern_labels'): ps_heurPattern_labels })
+        filename = 'lf_' + str('ps_heurPattern_labels') + '.tsv'
+        # df.to_csv(f'{outdir_heurPattern}/P/{filename}', sep='\t')
+        
         print('Retrieving hand-crafted dictionaries')
         p_genders = loadDict(f'{args.indir}/Ontologies/participant/gender_sexuality.txt')
         i_comparator = loadDict(f'{args.indir}/Ontologies/intervention/comparator_dict.txt')
+        o_endpoints = loadDict(f'{args.indir}/Ontologies/outcome/endpoints_dict.txt')
 
-        print('Retrieving abbreviations dictionaries')
+        print('Retrieving abbreviations dictionaries')  
         p_abb = loadAbbreviations(f'{args.indir}/Ontologies/participant/diseaseabbreviations.tsv')
 
         # Dictionary Labeling Function and Abbreviation dictionary Labeling function
-        for ontology, entity, ont_name in zip([p_genders, i_comparator, p_abb], ['P', 'I', 'P'], ['dict_gender', 'dict_comparator', 'dict_p_abb'] ) : 
+        for ontology, entity, ont_name in zip([p_genders, i_comparator, p_abb, o_endpoints], ['P', 'I', 'P', 'O'], ['dict_gender', 'dict_comparator', 'dict_p_abb', 'dict_o_terms'] ) : 
             outdir_dict = f'{args.outdir}/distant_pico/candidate_generation/dictionary/direct'
-            label_ont_and_write( outdir_dict, ontology, picos=entity, text=text, token_flatten=df_data_token_flatten, spans=spans, start_spans=start_spans, write=False, ontology_name=ont_name, expand_term=False  )
-
-
+            # label_ont_and_write( outdir_dict, ontology, picos=entity, text=text, token_flatten=df_data_token_flatten, spans=spans, start_spans=start_spans, write=False, ontology_name=ont_name, expand_term=False  )
 
     '''#########################################################################################
     # TODO  Level 5 - External Model Labeling function
