@@ -8,4 +8,6 @@ Code to generate weak PICO labels for EBM-PICO corpus. `label_generator.py` take
 `level4` labels EBM-PICO training set using several ReGeX's, heuristics and some hand-crafted dictionaries.
 `level5` uses external models to label EBM-PICO training set (TODO).
 
+The labeling functions label 1 wherever a term or pattern is found. UMLS LFs label -1 or abstain as well. There are no dedicated LF's to actually emit 0 label. For the tokens where an LF did not label 1 or -1, the label is set to 0 (out-of-the-span label). This still leads to high true negative rate (TNR) for almost all the LF's.
+
 Ignore the `SourceFetcher`, `TargetFetcher`, `SourceTargetExpander`, `SourceTargetAligner` directories.
