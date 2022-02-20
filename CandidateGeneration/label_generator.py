@@ -76,7 +76,7 @@ args = parser.parse_args()
 try:
 
     ##############################################################################################################
-    # Load validation data
+    # Load EBM-PICO training data
     ################################################################################
     ebm_nlp = '/mnt/nas2/data/systematicReview/PICO_datasets/EBM_parsed'
     text, df_data_token_flatten, df_data_pos_flatten, df_data_p_labels_flatten, df_data_i_labels_flatten, df_data_o_labels_flatten = loadEBMPICO( ebm_nlp, write_to_file = False )
