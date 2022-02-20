@@ -7,3 +7,5 @@ Code to generate weak PICO labels for EBM-PICO corpus. `label_generator.py` take
 `level3` labels EBM-PICO training set using Distant Supervision from clinicaltrials.org database.
 `level4` labels EBM-PICO training set using several ReGeX's, heuristics and some hand-crafted dictionaries.
 `level5` uses external models to label EBM-PICO training set (TODO).
+
+Ignore the `SourceFetcher`, `TargetFetcher`, `SourceTargetExpander`, `SourceTargetAligner` directories.
