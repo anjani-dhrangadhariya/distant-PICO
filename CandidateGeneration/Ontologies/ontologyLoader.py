@@ -114,7 +114,7 @@ Returns:
     term_syn_prepro (list): The list containing all the preprocessed term synonym for the input ontology
 
 '''
-def loadOnt(fpath, delim, term_index, term_syn_index, char_threshold:int = 2):
+def loadOnt(fpath:str, delim:str, term_index:int, term_syn_index:int, char_threshold:int = 2):
 
     term = []
     term_syn = []
@@ -149,7 +149,7 @@ Args:
 Returns:
     Gender and sexual orientation terms (list): A list containing all the terms corresponding to gender identities and sexual orientations
 '''
-def loadDict(fpath):
+def loadDict(fpath:str):
 
     terms = []
 
@@ -170,7 +170,7 @@ Args:
 Returns:
     abbs (list): The list containing abbreviations from the input file
 '''
-def loadAbbreviations(fpath):
+def loadAbbreviations(fpath:str):
 
     abbs = []
 
@@ -192,7 +192,7 @@ Args:
 Returns:
     ds_source_prepro (list): The list containing all the preprocessed distant supervision terms from clinicaltrials.org
 '''
-def loadDS(fpath, picos, char_threshold:int = 2):
+def loadDS(fpath:str, picos:str, char_threshold:int = 2):
 
     ds_source = []
 
@@ -219,11 +219,10 @@ Args:
 Returns:
     compiled_pattern (re): compiled ReGeX pattern for the chosen pattern_name
 '''
-def loadPattern( pattern_name ):
+def loadPattern( pattern_name:str ):
 
     if pattern_name == 'samplesize':
 
-        # samp_size_pattern =  r'([0-9]+ ?(patients?|subjects?|participants?|people?|individuals?|persons?|healthy individuals?|healthy adults?|children?|toddlers?|adult?adults?|healthy volunteers?|families?|men?|women?|teenagers?|families?|parturients?)+)'
         samp_size_pattern =  r'([0-9]+ ?([a-zA-Z0-9]+)? ?(patients?|subjects?|participants?|people?|individuals?|persons?|healthy individuals?|healthy adults?|children|toddlers?|adults?|healthy volunteers?|families?|men|women|teenagers?|families|parturients?|females?|males?)+)'
         compiled_pattern = re.compile(samp_size_pattern)
         return compiled_pattern
@@ -258,7 +257,7 @@ def loadPattern( pattern_name ):
         compiled_pattern = re.compile(mean_age_pattern)
         return compiled_pattern
 
-def loadExternalModel(fpath):
+def loadExternalModel(fpath:str ):
 
     # TODO: Loads a model from a path onto CUDA
 
