@@ -106,8 +106,8 @@ try:
 
         for m in ['fuzzy', 'direct']: # fuzzy = fuzzy bigram match, direct = no fuzzy bigram match
             outdir_umls = f'{args.outdir}/distant_pico/candidate_generation/UMLS2/{m}'
-            for entity in ['p', 'i', 'o']:
-                label_umls_and_write(outdir_umls, umls_p, picos=entity, text=text, token_flatten=df_data_token_flatten, spans=spans, start_spans=start_spans, write = False)
+            for entity, umls_d in zip(['p', 'i', 'o'], [umls_p, umls_i, umls_o]):
+                label_umls_and_write(outdir_umls, umls_d, picos=entity, text=text, token_flatten=df_data_token_flatten, spans=spans, start_spans=start_spans, write = False)
 
 
     '''#########################################################################################

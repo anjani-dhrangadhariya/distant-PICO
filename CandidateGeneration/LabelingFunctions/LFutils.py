@@ -8,7 +8,7 @@ import pandas as pd
 
 
 pico2labelMap = dict()
-pico2labelMap = { 'P' : 1, 'I' : 1, 'O' : 1, '-P' : -1, '-I' : -1, '-O' : -1, 'IO' : 1, 'OI' : 1, 'PO' : 1, 'OP' : 1, 'IP': 1, 'PI': 1, 'PIO':1, '-IO' : -1, '-OI' : -1, '-PO' : -1, '-OP' : -1, '-IP': -1, '-PI': -1, '-PIO' : -1, 'S': 1 }
+pico2labelMap = { 'P' : 1, 'I' : 1, 'O' : 1, 'S': 1, '-P' : -1, '-I' : -1, '-O' : -1, 'IO' : -1, 'OI' : -1, 'PO' : -1, 'OP' : -1, 'IP': -1, 'PI': -1, 'PIO':-1, '-IO' : -1, '-OI' : -1, '-PO' : -1, '-OP' : -1, '-IP': -1, '-PI': -1, '-PIO' : -1 }
 
 def flatten(t):
     return [item for sublist in t for item in sublist]
@@ -94,11 +94,9 @@ def spansToLabels(matches, labels, terms, start_spans, generated_labels, text_to
                     for x in range( start, end+1 ):
                         if isinstance( t , re._pattern_type ):
                             if len( match_temp.strip() ) == len(m_i.group().strip()):
-                                # print( match_temp.strip() , ' ----- ',  len(m_i.group().strip()) )
                                 generated_labels[x] = l
                         else:
                             if len( match_temp.strip() ) == len(t.strip()):
-                                #print( match_temp.strip() , ' ----- ',  t.strip())
                                 generated_labels[x] = l
                 # else:
                 #     print(start , ' : ', end , ' - ', t)
