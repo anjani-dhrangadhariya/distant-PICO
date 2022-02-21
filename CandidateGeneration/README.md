@@ -2,6 +2,7 @@
 
  PICOS stands for Participant, Intervention, Comparator, Outcomes, Study type. Participants (P) are the patients or healthy volunteers involved in a randomized controlled trial. Interventions include drugs, medical devices, procedures, vaccines, and other products that are being investigated in a randomized controlled trial. Interventions can also include noninvasive approaches, such as education or modifying diet and exercise. A comparator (C) is a treatment used to compare against the main intervention (I) and measure its effect. Outcomes are the measurable effects of interventions on the participants involved in the trial. PICOS is a mixed entity/span recognition task whereby a machine is required to identify text spans with information about participant characteristics like age, gender, ethnicity, disease condition, sample size in the trial. Intervention (and comparator) entity/span includes the intervention being administered, the mode of administration, and sometimes even the dosage and frequency of the administration. Outcome span/entity includes the outcomes (primary and secondary) being measured and the method or instrument of measurement.
 
+
 This directory has the code to generate weak PICO labels for EBM-PICO corpus. `label_generator.py` takes input EBM-PICO training set, weakly labels it using multiple labeling functions (LF) and saves the labeled candidates to local. Use `args` argument parser to set the program flow.
 
 `level1` labels EBM-PICO training set using concepts from UMLS ontologies for selected, PICOS-mapped semantic types.

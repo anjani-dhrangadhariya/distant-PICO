@@ -68,9 +68,9 @@ parser.add_argument('-level4', type=bool, default=False) # Level 4 = Rule based 
 parser.add_argument('-level5', type=bool, default=False) # Level 5 = External Model LF's
 parser.add_argument('-levels', type=bool, default=False) # execute data labeling using all levels
 parser.add_argument('-umls_fpath', type=Path, default= 'UMLS/english_subset/umls_preprocessed/umls_tui_pio2.db')
-parser.add_argument('-ds_fpath', type=Path, default='/mnt/nas2/data/systematicReview/ds_cto_dict' )
-parser.add_argument('-indir', type=Path, default='/mnt/nas2/data/systematicReview' ) # directory with labeling function sources
-parser.add_argument('-outdir', type=Path, default='/mnt/nas2/results/Results/systematicReview' ) # directory path to store the weakly labeled candidates
+parser.add_argument('-ds_fpath', type=Path, default='/data/systematicReview/ds_cto_dict' )
+parser.add_argument('-indir', type=Path, default='/data/systematicReview' ) # directory with labeling function sources
+parser.add_argument('-outdir', type=Path, default='/results/Results/systematicReview' ) # directory path to store the weakly labeled candidates
 args = parser.parse_args()
 
 try:
