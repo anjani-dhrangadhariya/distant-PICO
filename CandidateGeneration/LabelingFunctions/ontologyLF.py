@@ -33,6 +33,7 @@ def OntologyLabelingFunction(text,
                              picos: str,
                              expand_term: bool,
                              fuzzy_match: bool,
+                             stopwords_general = list,
                              max_ngram: int = 5,
                              abstain_decision: bool = True, 
                              case_sensitive: bool = False):
@@ -51,31 +52,42 @@ def OntologyLabelingFunction(text,
         t = term[0] if isinstance( term , tuple ) else term
         l = term[1] if isinstance( term , tuple ) else picos
 
-        expandedTerms = LFutils.expandTerm( t , max_ngram, fuzzy_match) if expand_term else [t]      
+        if '!' not in l: # abstain on abstain labels
 
-        for t_i in expandedTerms:
+            expandedTerms = LFutils.expandTerm( t , max_ngram, fuzzy_match) if expand_term else [t]      
 
-            if isinstance( t_i , re._pattern_type ):
-                if t_i.search(text.lower()):
+            for t_i in expandedTerms:
 
-                    matches = [m for m in t_i.finditer(text)]
-                    term_set.add( t_i )
-                    ontology_matches.append( matches )
-                    terms.append( t_i )
-                    label.append( l )
-            else:
-                if t_i in text.lower():
+                if isinstance( t_i , re.Pattern ):
+                    if t_i.search(text.lower()):
 
-                    r = re.compile(t_i)
-                    matches = [m for m in r.finditer(text)]
-                    ontology_matches.append( matches )
-                    terms.append( t_i )
-                    label.append( l )
+                        matches = [m for m in t_i.finditer(text)]
+                        term_set.add( t_i )
+                        ontology_matches.append( matches )
+                        terms.append( t_i )
+                        label.append( l )
+                else:
+                    if t_i in text.lower():
 
-        # if i == 200:
-        #     break
+                        r = re.compile(t_i)
+                        matches = [m for m in r.finditer(text)]
+                        ontology_matches.append( matches )
+                        terms.append( t_i )
+                        label.append( l )
 
     assert len(ontology_matches) == len(label)
+    print( 'Before negative LF: ', len(ontology_matches) )
+
+    # TODO: Use stopwords as Negative LF
+    for sw in stopwords_general:
+        r = re.compile(sw)
+        matches = [m for m in r.finditer(text)]
+        ontology_matches.append( matches )
+        terms.append( t_i )
+        neg_label = '-' + picos
+        label.append( neg_label )
+    assert len(ontology_matches) == len(label)
+    print( 'After negative LF: ', len(ontology_matches) )
 
     generated_labels = len( text_tokenized ) * [0]
     generated_labels = LFutils.spansToLabels( ontology_matches, label, terms, tokenized_start_spans, generated_labels, text_tokenized )
