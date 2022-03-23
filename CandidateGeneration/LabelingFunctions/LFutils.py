@@ -1,3 +1,6 @@
+import Ontologies
+from Ontologies.ontologyLoader import loadStopWords
+# from CandidateGeneration.Ontologies.ontologyLoader import loadStopWords
 from LabelingFunctions import ontologyLF
 from nltk.tokenize import WhitespaceTokenizer, sent_tokenize, word_tokenize
 from nltk import ngrams
@@ -8,7 +11,10 @@ import pandas as pd
 
 
 pico2labelMap = dict()
-pico2labelMap = { 'P' : 1, 'I' : 1, 'O' : 1, 'S': 1, '-P' : -1, '-I' : -1, '-O' : -1, 'IO' : -1, 'OI' : -1, 'PO' : -1, 'OP' : -1, 'IP': -1, 'PI': -1, 'PIO':-1, '-IO' : -1, '-OI' : -1, '-PO' : -1, '-OP' : -1, '-IP': -1, '-PI': -1, '-PIO' : -1 }
+pico2labelMap = { 'P' : 1, 'I' : 1, 'O' : 1, 'S': 1, '-P' : -1, '-I' : -1, '-O' : -1, '-S' : -1 }
+
+# Load stopwords (generic negative label LFs)
+sw_lf = loadStopWords()
 
 def flatten(t):
     return [item for sublist in t for item in sublist]
@@ -92,7 +98,7 @@ def spansToLabels(matches, labels, terms, start_spans, generated_labels, text_to
                 if end and start:
                     match_temp = ' '.join( [text_tokenized[x]  for x in range( start, end+1 )] )
                     for x in range( start, end+1 ):
-                        if isinstance( t , re._pattern_type ):
+                        if isinstance( t , re.Pattern ):
                             if len( match_temp.strip() ) == len(m_i.group().strip()):
                                 generated_labels[x] = l
                         else:
@@ -244,7 +250,7 @@ def label_umls_and_write(outdir, umls_d, picos, text, token_flatten, spans, star
 
     for k, v in umls_d.items():
         print( 'Fetching the labels for ', str(k) )
-        umls_labels = ontologyLF.OntologyLabelingFunction( text, token_flatten, spans, start_spans, v, picos=None, expand_term=True, fuzzy_match=fuzzy_match )
+        umls_labels = ontologyLF.OntologyLabelingFunction( text, token_flatten, spans, start_spans, v, picos=picos, expand_term=True, fuzzy_match=fuzzy_match, stopwords_general = sw_lf)
 
         df = pd.DataFrame( {'tokens': token_flatten, str(k): umls_labels })
 
