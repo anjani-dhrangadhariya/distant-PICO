@@ -14,6 +14,9 @@ import sqlite3
 import string
 from collections import defaultdict
 from sqlite3 import Error
+# import Ontologies
+from Ontologies import ontologyLoader 
+# from CandidateGeneration.Ontologies.ontologyLoader import loadStopWords
 
 # Data science generic libraries
 import numpy as np
@@ -42,8 +45,10 @@ Returns:
 '''
 def preprocessOntology(term):
 
+    general_stopwords = ontologyLoader.loadStopWords()
+
     # remove stopwords
-    lst = [ token for token in term.split() if token.lower() not in stopwords ]
+    lst = [ token for token in term.split() if token.lower() not in general_stopwords ]
     lst = ' '.join(lst)
 
     # remove numbers
@@ -88,6 +93,7 @@ def createMySQLConn(db_file):
     conn = None
     try:
         conn = sqlite3.connect(db_file)
+        print('This is the connection: ', conn)
     except Error as e:
         print(e)
 
@@ -238,7 +244,7 @@ def cui2tuiMapper(indir, outdir, tui2pio):
     # df = df.merge( df.TERM_PRE.apply(getPOStags) , left_index=True, right_index=True )
 
     # Open the written file and load it into MySQL
-    init_sqlite_tables(f'{outdir}/umls_tui_pio3.db', df)
+    init_sqlite_tables(f'{outdir}/umls_tui_pio3_.db', df)
 
 indir = '/mnt/nas2/data/systematicReview/UMLS/english_subset/2021AB/META'
 outdir = '/mnt/nas2/data/systematicReview/UMLS/english_subset/umls_preprocessed'
