@@ -6,30 +6,31 @@ print( OntologyLoaderDoc.__doc__ )
 
 import csv
 import json
+import re
 import sqlite3
 import string
 from pathlib import Path
-import string
+
 import pandas as pd
 import spacy
+import nltk
+from nltk.corpus import stopwords
+# nltk.download('stopwords')
+import gensim
+from gensim.parsing.preprocessing import remove_stopwords, STOPWORDS
+from sklearn.feature_extraction.text import ENGLISH_STOP_WORDS
 
-import re
 
 #loading the english language small model of spacy
 en = spacy.load('en_core_web_sm')
-stopwords = en.Defaults.stop_words
 
-
-additional_stopwords = ['of']
-stopwords.update(additional_stopwords)
 
 translator = str.maketrans(' ', ' ', string.punctuation)
 
+from Ontologies.ontologyParser import createMySQLConn
 from Ontologies.ontoUtils import (allowedTermLength, countTerm, filterSAB,
                                   preprocessOntology, removeNonHuman,
                                   removeTerms, termCountThreshold)
-from Ontologies.ontologyParser import createMySQLConn
-
 
 '''
 Description:
@@ -49,9 +50,9 @@ def selectTerminology(conn, pico_category):
     :return:
     """
 
-    pico_category =  '%'+pico_category+'%'
+    pico_category_pattern =  '%'+pico_category+'%'
     cur = conn.cursor()
-    cur.execute("SELECT * FROM terminology1 WHERE PICO LIKE ?", (pico_category,))
+    cur.execute("SELECT * FROM terminology1 WHERE ? LIKE ? LIMIT 5000", (pico_category, pico_category_pattern,))
 
     rows = cur.fetchall()
 
@@ -79,11 +80,16 @@ def loadUMLSdb(fpath, entity: str, remove_vet: bool = True, min_terms: int = 500
 
     rows = selectTerminology(conn, entity)
 
-    df = pd.DataFrame(rows, columns=['idx', 'SAB', 'TUI', 'CUI', 'TERM', 'STY', 'PICOS', 'TERM_PRE'])
+    df = pd.DataFrame(rows, columns=['idx', 'SAB', 'TUI', 'CUI', 'TERM', 'STY', 'P', 'I', 'O', 'TERM_PRE'])
 
     # df['TERM_PRE'] = df.TERM.apply(preprocessOntology)
 
-    df_new = df.groupby(['SAB']).apply(lambda x: list(zip( x.TERM_PRE , x.PICOS))).to_dict()
+    if entity == 'P':
+        df_new = df.groupby(['SAB']).apply(lambda x: list(zip( x.TERM_PRE , x.P))).to_dict()
+    if entity == 'I':
+        df_new = df.groupby(['SAB']).apply(lambda x: list(zip( x.TERM_PRE , x.I))).to_dict()
+    if entity == 'O':
+        df_new = df.groupby(['SAB']).apply(lambda x: list(zip( x.TERM_PRE , x.O))).to_dict()    
 
     if remove_vet == True:
         df_new = removeNonHuman(df_new)
@@ -262,3 +268,32 @@ def loadExternalModel(fpath:str ):
     # TODO: Loads an external model (.pth) from a path onto CUDA
 
     return None
+
+def loadStopWords():
+
+    stopwords_lf = []
+
+    # NLTK
+    nltk_stopwords = list(stopwords.words('english'))
+    # print( 'Total number of stopwords in NLTK: ', len( nltk_stopwords ) )
+    stopwords_lf.extend( nltk_stopwords )
+
+    # gensim
+    # print( 'Total number of stopwords in Gensim: ', len( STOPWORDS ) )
+    stopwords_lf.extend( STOPWORDS )
+
+    # scikit learn
+    # print( 'Total number of stopwords in scikit learn: ', len( ENGLISH_STOP_WORDS ) )
+    stopwords_lf.extend( ENGLISH_STOP_WORDS )
+
+    # spacy
+    spacy_stopwords = en.Defaults.stop_words
+    # print( 'Total number of stopwords in Spacy: ', len( spacy_stopwords ) )
+    stopwords_lf.extend( spacy_stopwords )
+
+
+    # additional stopwords
+    additional_stopwords = ['of']
+    stopwords_lf.extend(additional_stopwords)
+
+    return list( set(stopwords_lf) ) 
