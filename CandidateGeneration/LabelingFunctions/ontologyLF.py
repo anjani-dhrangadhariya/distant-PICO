@@ -1,3 +1,4 @@
+from cgitb import text
 import re
 import time
 
@@ -17,7 +18,6 @@ Args:
     tokenized_start_spans (dict): dictionary where key is the start position of a span and value is the end position
     source_terms (?): 
     picos (str): label to release for the input spans
-    expand_term (bool): whether to expand the source term (plural, singular, lower)
     fuzzy_match (bool): switch for fuzzy bigram matching 
     max_ngram (int)
     abstain_decision (bool): switch to abstain or not
@@ -25,76 +25,79 @@ Args:
 Returns:
     generated labels (list): 
 '''
-def OntologyLabelingFunction(text, 
-                             text_tokenized,
-                             tokenized_spans,
-                             tokenized_start_spans,
-                             source_terms,
+def OntologyLabelingFunctionX(corpus_text_series, 
+                             corpus_words_series,
+                             corpus_offsets_series,
+                             source_terms: dict,
                              picos: str,
-                             expand_term: bool,
                              fuzzy_match: bool,
                              stopwords_general = list,
                              max_ngram: int = 5,
                              abstain_decision: bool = True, 
-                             case_sensitive: bool = False):
+                             case_sensitive: bool = False,
+                             longest_match_only = True):
 
-    print( 'Total number of terms to check: ', len(source_terms) )
+    # Add stopwords to the dictionary if 
+    if stopwords_general:
+        for sw in stopwords_general:
+            sw_abstain = '!'+picos
+            source_terms[sw] = sw_abstain
 
-    ontology_matches = []
-    label = []
-    terms = []
+    corpus_matches = []
+    longest_matches = []
 
-    term_set = set()
+    for words_series, offsets_series, texts_series in zip(corpus_words_series, corpus_offsets_series, corpus_text_series):
 
-    start_time = time.time()
-    for i, term in enumerate(source_terms):
+        matches = []
 
-        t = term[0] if isinstance( term , tuple ) else term
-        l = term[1] if isinstance( term , tuple ) else picos
+        for i in range(0, len(words_series)):
 
-        if '!' not in l: # abstain on abstain labels
+            match = None
+            start = offsets_series[i]
 
-            expandedTerms = LFutils.expandTerm( t , max_ngram, fuzzy_match) if expand_term else [t]      
+            for j in range(i + 1, min(i + max_ngram + 1, len(words_series) + 1)):
+                end = offsets_series[j - 1] + len(words_series[j - 1])
 
-            for t_i in expandedTerms:
+                # term types: normalize whitespace & tokenized + whitespace
+                for term in [
+                    re.sub(r'''\s{2,}''', ' ', texts_series[start:end]).strip(),
+                    ' '.join([w for w in words_series[i:j] if w.strip()])
+                ]:
+                    match_result = LFutils.match_term(term, source_terms, case_sensitive)
+                    if match_result[0] == True:
+                        match = end
+                        break
 
-                if isinstance( t_i , re.Pattern ):
-                    if t_i.search(text.lower()):
+                if match:
+                    term = re.sub(r'''\s{2,}''', ' ', texts_series[start:match]).strip()
+                    matches.append(( [start, match], term, match_result[-1] ))
 
-                        matches = [m for m in t_i.finditer(text)]
-                        term_set.add( t_i )
-                        ontology_matches.append( matches )
-                        terms.append( t_i )
-                        label.append( l )
+        corpus_matches.append( matches )
+
+        if longest_match_only:
+            # sort on length then end char
+            matches = sorted(matches, key=lambda x: x[0][-1], reverse=1)
+            f_matches = []
+            curr = None
+            for m in matches:
+                if curr is None:
+                    curr = m
+                    continue
+                (i, j), _, _ = m
+                if (i >= curr[0][0] and i <= curr[0][1]) and (j >= curr[0][0] and j <= curr[0][1]):
+                    pass
                 else:
-                    if t_i in text.lower():
+                    f_matches.append(curr)
+                    curr = m
+            if curr:
+                f_matches.append(curr)
 
-                        r = re.compile(t_i)
-                        matches = [m for m in r.finditer(text)]
-                        ontology_matches.append( matches )
-                        terms.append( t_i )
-                        label.append( l )
+            # if f_matches:
+            longest_matches.append( f_matches )
 
-    assert len(ontology_matches) == len(label)
-    print( 'Before negative LF: ', len(ontology_matches) )
-
-    # TODO: Use stopwords as Negative LF
-    for sw in stopwords_general:
-        r = re.compile(sw)
-        matches = [m for m in r.finditer(text)]
-        ontology_matches.append( matches )
-        terms.append( t_i )
-        neg_label = '-' + picos
-        label.append( neg_label )
-    assert len(ontology_matches) == len(label)
-    print( 'After negative LF: ', len(ontology_matches) )
-
-    generated_labels = len( text_tokenized ) * [0]
-    generated_labels = LFutils.spansToLabels( ontology_matches, label, terms, tokenized_start_spans, generated_labels, text_tokenized )
-    generated_labels = LFutils.pico2label( generated_labels )
-
-    assert len( generated_labels ) == len( text_tokenized )
-
-    print("--- %s seconds ---" % (time.time() - start_time))
-
-    return generated_labels
+    if longest_match_only:
+        assert len( longest_matches ) == len(corpus_words_series)
+        return longest_matches
+    else:
+        assert len( corpus_matches ) == len(corpus_words_series)
+        return corpus_matches

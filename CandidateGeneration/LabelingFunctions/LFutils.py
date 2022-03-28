@@ -9,66 +9,72 @@ import sys
 import os
 import pandas as pd
 
-
-pico2labelMap = dict()
-pico2labelMap = { 'P' : 1, 'I' : 1, 'O' : 1, 'S': 1, '-P' : -1, '-I' : -1, '-O' : -1, '-S' : -1 }
+pico2labelMap = { 'P' : 1, 'I' : 1, 'O' : 1, 'S': 1, '-P' : -1, '-I' : -1, '-O' : -1, '-S' : -1, '!P' : 0, '!I' : 0, '!O' : 0, '!S' : 0 }
 
 # Load stopwords (generic negative label LFs)
 sw_lf = loadStopWords()
 
+def get_text(words, offsets):
+
+    S = []
+    for w, o in zip( words, offsets ):
+        s = ''
+        for i, term in zip(o, w):
+            if len(s) == i:
+                s += str(term)
+            elif len(s) < i:
+                s += (' ' * (i - len(s))) + str(term)
+            else:
+                raise Exception('text offset error')
+        
+        S.append( s )
+
+    return S
+
+def match_term(term, dictionary, case_sensitive, lemmatize=True):
+    """
+    Parameters
+    ----------
+    term
+    dictionary
+    case_sensitive
+    lemmatize   Including lemmas improves performance slightly
+    Returns
+    -------
+    """
+    if (not case_sensitive and term.lower() in dictionary) or term in dictionary:
+        label_produced = None
+        if (not case_sensitive and term.lower() in dictionary):
+            label_produced = dictionary[ term.lower() ]
+        if term in dictionary:
+            label_produced = dictionary[ term ]
+        return [True, label_produced]
+
+    if (case_sensitive and lemmatize) and term.rstrip('s').lower() in dictionary:
+        label_produced = dictionary[ term.rstrip('s').lower() ]
+        return [True, label_produced]
+
+    elif (not case_sensitive and lemmatize) and term.rstrip('s') in dictionary:
+        label_produced = dictionary[ term.rstrip('s') ]
+        return [True, label_produced]
+
+    return [False, None]
+
 def flatten(t):
     return [item for sublist in t for item in sublist]
 
-def expandTerm( term , max_ngram, fuzzy_match):
-    
-    expandedTerm = []
-    termVariations = []
-
-    if len( term.split() ) > max_ngram:
-        fivegrams = ngrams(term.lower().split(), max_ngram)
-        expandedTerm.extend( [' '.join(x)  for x in list(fivegrams)] )
-    else:
-        expandedTerm.extend( [term.lower()] )
-
-    if fuzzy_match == True:
-        bigrams = ngrams(term.lower().split(), 2)
-        expandedTerm.extend( [' '.join(x)  for x in list(bigrams)] )
-
-    for eT in expandedTerm:
-        termVariations.extend( [eT.lower().rstrip('s'), eT.lower() + 's'] )
-
-    return termVariations
-
-'''
-def char_to_word_index(ci, sequence):
+def char_to_word_index(ci, sequence, tokens):
     """
     Given a character-level index (offset),
     return the index of the **word this char is in**
     """
     i = None
-    for i, co in enumerate(sequence):
+    for i, co in enumerate(tokens):
         if ci == co:
             return i
         elif ci < co:
             return i - 1
     return i
-'''
-
-def char_to_word_index(ci, sequence):
-    """
-    Given a character-level index (offset),
-    return the index of the **word this char is in**
-    """
-    i = None
-    if ci in sequence:
-        i = sequence[ci]
-
-    return i
-
-def get_word_index_span(char_offsets, sequence):
-    char_start, char_end = char_offsets
-    return (char_to_word_index(char_start, sequence),
-            char_to_word_index(char_end, sequence))
 
 '''
 Description:
@@ -83,31 +89,36 @@ Args:
 Returns:
     generated_labels (list):  modified 'generated_labels' list with P, I/C, O, S labels
 '''
-def spansToLabels(matches, labels, terms, start_spans, generated_labels, text_tokenized):
+def spansToLabels(matches, df_data, picos:str):
 
-    for m, t, l in zip(matches, terms, labels):
+    df_data_labels = []
+    #Spans to labels
+    for counter, match in enumerate(matches):
+
+        abstain_lab = '!'+picos
+        L = dict.fromkeys(range( len(list(df_data['offsets'])[counter]) ), abstain_lab) # initialize with abstain labels
+        numerical_umls_labels = dict()
+
+        for (char_start, char_end), term, lab in match:
+            
+            # None labels are treated as abstains
+            if not lab:
+                continue
+
+            start, end = get_word_index_span(
+                (char_start, char_end - 1), list(df_data['text'])[counter], list(df_data['offsets'])[counter]
+            )
+
+            for i in range(start, end + 1):
+                L[i] = lab
         
-        for m_i in m:
+        # Fetch numerical labels
+        for k,v in L.items():
+            numerical_umls_labels[k] = pico2labelMap[ v ]
+        
+        df_data_labels.append( numerical_umls_labels )
 
-            if len(m_i.group()) > 2:
-
-                start, end = get_word_index_span(
-                    (m_i.span()[0], m_i.span()[1] - 1), start_spans
-                )
-
-                if end and start:
-                    match_temp = ' '.join( [text_tokenized[x]  for x in range( start, end+1 )] )
-                    for x in range( start, end+1 ):
-                        if isinstance( t , re.Pattern ):
-                            if len( match_temp.strip() ) == len(m_i.group().strip()):
-                                generated_labels[x] = l
-                        else:
-                            if len( match_temp.strip() ) == len(t.strip()):
-                                generated_labels[x] = l
-                # else:
-                #     print(start , ' : ', end , ' - ', t)
-
-    return generated_labels
+    return df_data_labels
 
 '''
 Description:
@@ -205,6 +216,7 @@ def write2File(labels_, tokens_, number_lfs, picos):
     with open(f'{indir}/{picos}/{filename}', 'w+') as wf:
         df.to_csv(f'{indir}/{picos}/{filename}', sep='\t')
 
+
 def label_lf_partitions( partitioned_uml, umls_d, picos, text, token_flatten, spans, start_spans):
 
     accumulated_labels = []
@@ -219,12 +231,31 @@ def label_lf_partitions( partitioned_uml, umls_d, picos, text, token_flatten, sp
 
             sab_for_lf = lf[ number ]
             terms = flatten([ umls_d[ sab ]  for sab in  sab_for_lf])
-            umls_labels = ontologyLF.OntologyLabelingFunction( text, token_flatten, spans, start_spans, terms, picos=None, expand_term=True, fuzzy_match=False )
+            umls_labels = ontologyLF.OntologyLabelingFunction( text, token_flatten, spans, start_spans, terms, picos=None, fuzzy_match=False )
             accumulated_lf.append( umls_labels )
             number_lfs.append( number )
 
         accumulated_labels.append( accumulated_lf )
         write2File(accumulated_lf, token_flatten, number_lfs, picos)
+
+def get_word_index_span(char_offsets, sequence, tokens):
+    char_start, char_end = char_offsets
+    return (char_to_word_index(char_start, sequence, tokens),
+            char_to_word_index(char_end, sequence, tokens))
+
+def get_label_dict(ont_list:list, picos: str) -> dict:
+
+    ont_dict = dict()
+
+    for l in ont_list:
+        
+        if l[0] not in ont_dict:
+            ont_dict[ l[0] ] = l[1]
+        elif l[0] in ont_dict and ont_dict[ l[0] ] != l[1]:
+            abstain_label = '!' + picos
+            ont_dict[ l[0] ] = abstain_label
+        
+    return ont_dict
 
 '''
 Description:
@@ -241,7 +272,7 @@ Args:
 Returns:
     df (df): Dataframe with flattened tokens and corresponding weak labels
 '''
-def label_umls_and_write(outdir, umls_d, picos, text, token_flatten, spans, start_spans, write):
+def label_umls_and_write(outdir, umls_d, df_data, picos, write):
 
     if str(outdir).split('/')[-1] == 'fuzzy':
         fuzzy_match = True
@@ -249,15 +280,26 @@ def label_umls_and_write(outdir, umls_d, picos, text, token_flatten, spans, star
         fuzzy_match = False
 
     for k, v in umls_d.items():
-        print( 'Fetching the labels for ', str(k) )
-        umls_labels = ontologyLF.OntologyLabelingFunction( text, token_flatten, spans, start_spans, v, picos=picos, expand_term=True, fuzzy_match=fuzzy_match, stopwords_general = sw_lf)
 
-        df = pd.DataFrame( {'tokens': token_flatten, str(k): umls_labels })
+        # convert ontology to dictionary
+        labels = get_label_dict( v, picos )
+
+        print( 'Fetching the labels for ', str(k) )
+        umls_labels = ontologyLF.OntologyLabelingFunctionX(  df_data['text'], df_data['tokens'], df_data['offsets'], labels, picos=picos, fuzzy_match=fuzzy_match, stopwords_general = sw_lf)
+        
+        df_data_labels = spansToLabels(matches=umls_labels, df_data=df_data, picos=picos)
+
+        assert len( df_data_labels ) == len( df_data['tokens'] ) == len( df_data['offsets'] )
+        df_data['labels'] = df_data_labels
 
         if write == True:
             filename = 'lf_' + str(k) + '.tsv'
-            df.to_csv(f'{outdir}/{picos}/{filename}', sep='\t')
+            df_data.to_csv(f'{outdir}/{picos}/{filename}', sep='\t')
 
+
+def listterms_to_dictterms(l:list, picos:str):
+
+    return { l_i:picos for l_i in l } 
 
 '''
 Description:
@@ -266,35 +308,31 @@ Args:
     outdir (str): directory path to store the weakly labeled candidates
     terms (list): list with either concepts/terms or regex for labeling 
     picos (str): PICOS entity label
-    text (str): training text
-    token_flatten (list): flattened training tokens
-    spans (list):  list of start and end positions for each token in text
-    start_spans (dict): dictionary where keys are start positions and values are end positions of tokens in training text
     write (bool): switch to write training set to file
     ontology_name (str): String with ontology name for file writing
-    expand_term (bool): switch to expand term to include singulars, plurals and lower-case (False for ReGeX sources) 
 Returns:
     df (df): Dataframe with flattened tokens and corresponding weak labels
 '''
-def label_ont_and_write(outdir, terms, picos, text, token_flatten, spans, start_spans, write: bool, ontology_name:str, expand_term:bool = True):
-
-    expand_term = expand_term
-
-    print('Do we expand terms: ', expand_term)
+def label_ont_and_write(outdir, terms, picos, df_data, write: bool, ontology_name:str):
 
     if str(outdir).split('/')[-1] == 'fuzzy':
         fuzzy_match = True
     else:
         fuzzy_match = False
 
-    print( 'Fetching the labels for ', str(ontology_name) )
-    nonumls_labels = ontologyLF.OntologyLabelingFunction( text, token_flatten, spans, start_spans, terms, picos=picos, expand_term = expand_term, fuzzy_match=fuzzy_match )
+    labels = listterms_to_dictterms(terms, picos=picos)
 
-    df = pd.DataFrame( {'tokens': token_flatten, str(ontology_name): nonumls_labels })
+    print( 'Fetching the labels for ', str(ontology_name) )
+    nonumls_labels = ontologyLF.OntologyLabelingFunctionX(  df_data['text'], df_data['tokens'], df_data['offsets'], labels, picos=picos, fuzzy_match=fuzzy_match, stopwords_general = sw_lf)
+
+    # convert labels to spans
+    df_data_labels = spansToLabels(matches=nonumls_labels, df_data=df_data, picos=picos)
+
+    assert len( df_data_labels ) == len( df_data['tokens'] ) == len( df_data['offsets'] )
+    df_data['labels'] = df_data_labels
 
     if write == True:
         filename = 'lf_' + str(ontology_name) + '.tsv'
-        df.to_csv(f'{outdir}/{picos}/{filename}', sep='\t')
-    
+        df_data.to_csv(f'{outdir}/{picos}/{filename}', sep='\t')
     else:
-        return df
+        return df_data
