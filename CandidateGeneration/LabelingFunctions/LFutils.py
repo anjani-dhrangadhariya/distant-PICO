@@ -336,3 +336,19 @@ def label_ont_and_write(outdir, terms, picos, df_data, write: bool, ontology_nam
         df_data.to_csv(f'{outdir}/{picos}/{filename}', sep='\t')
     else:
         return df_data
+
+def label_regex_and_write(outdir, terms, picos, df_data, write: bool, lf_name:str):
+
+    regex_labels = ontologyLF.ReGeXLabelingFunction( df_data['text'], df_data['tokens'], df_data['offsets'], [terms], picos=picos )
+
+    # convert labels to spans
+    df_data_labels = spansToLabels(matches=regex_labels, df_data=df_data, picos=picos)
+
+    assert len( df_data_labels ) == len( df_data['tokens'] ) == len( df_data['offsets'] )
+    df_data['labels'] = df_data_labels
+
+    if write == True:
+        filename = 'lf_' + str(lf_name) + '.tsv'
+        df_data.to_csv(f'{outdir}/{picos}/{filename}', sep='\t')
+    else:
+        return df_data 

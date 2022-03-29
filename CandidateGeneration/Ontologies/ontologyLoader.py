@@ -52,7 +52,8 @@ def selectTerminology(conn, pico_category):
 
     pico_category_pattern =  '%'+pico_category+'%'
     cur = conn.cursor()
-    cur.execute("SELECT * FROM terminology1 WHERE ? LIKE ? LIMIT 5000", (pico_category, pico_category_pattern,))
+    cur.execute("SELECT * FROM terminology1 WHERE ? LIKE ?", (pico_category, pico_category_pattern,))
+    # cur.execute("SELECT * FROM terminology1 WHERE ? LIKE ? LIMIT 50000", (pico_category, pico_category_pattern,))
 
     rows = cur.fetchall()
 
@@ -139,7 +140,7 @@ def loadOnt(fpath:str, delim:str, term_index:int, term_syn_index:int, char_thres
     
     term_prepro = list(map(preprocessOntology, term))
     term_syn_prepro = list(map(preprocessOntology, term_syn))
-
+    
     return term_prepro, term_syn_prepro
 
 '''
@@ -290,7 +291,6 @@ def loadStopWords():
     spacy_stopwords = en.Defaults.stop_words
     # print( 'Total number of stopwords in Spacy: ', len( spacy_stopwords ) )
     stopwords_lf.extend( spacy_stopwords )
-
 
     # additional stopwords
     additional_stopwords = ['of']

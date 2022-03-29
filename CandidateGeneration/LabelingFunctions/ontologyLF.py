@@ -20,7 +20,6 @@ Args:
     picos (str): label to release for the input spans
     fuzzy_match (bool): switch for fuzzy bigram matching 
     max_ngram (int)
-    abstain_decision (bool): switch to abstain or not
     case_sensitive (bool): switch for case sensitive matching
 Returns:
     generated labels (list): 
@@ -33,7 +32,6 @@ def OntologyLabelingFunctionX(corpus_text_series,
                              fuzzy_match: bool,
                              stopwords_general = list,
                              max_ngram: int = 5,
-                             abstain_decision: bool = True, 
                              case_sensitive: bool = False,
                              longest_match_only = True):
 
@@ -101,3 +99,36 @@ def OntologyLabelingFunctionX(corpus_text_series,
     else:
         assert len( corpus_matches ) == len(corpus_words_series)
         return corpus_matches
+
+
+def ReGeXLabelingFunction(corpus_text_series, 
+                          corpus_words_series,
+                          corpus_offsets_series,
+                          source_terms,
+                          picos: str
+                          ):
+
+    print( 'Total number of terms to check: ', len(source_terms) )
+
+    corpus_matches = []
+
+    start_time = time.time()
+    for i, term in enumerate(source_terms):
+
+        matches = []
+
+        for words_series, offsets_series, texts_series in zip(corpus_words_series, corpus_offsets_series, corpus_text_series):
+
+            if term.search(texts_series.lower()):
+
+                match_result = [m for m in term.finditer(texts_series)]
+
+                for matches_i in match_result:
+                    matches.append(( [ matches_i.span()[0], matches_i.span()[1] ], matches_i.group(0), picos ))
+
+            corpus_matches.append(matches)
+
+    print("--- %s seconds ---" % (time.time() - start_time))
+
+
+    return corpus_matches
