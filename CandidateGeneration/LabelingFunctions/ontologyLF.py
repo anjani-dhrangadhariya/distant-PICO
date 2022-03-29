@@ -1,4 +1,6 @@
 from cgitb import text
+from multiprocessing.sharedctypes import Value
+from nis import match
 import re
 import time
 
@@ -38,8 +40,9 @@ def OntologyLabelingFunctionX(corpus_text_series,
     # Add stopwords to the dictionary if 
     if stopwords_general:
         for sw in stopwords_general:
-            sw_abstain = '!'+picos
-            source_terms[sw] = sw_abstain
+            sw_abstain = '-'+picos
+            if sw not in source_terms:
+                source_terms[sw] = sw_abstain
 
     corpus_matches = []
     longest_matches = []
@@ -104,29 +107,39 @@ def OntologyLabelingFunctionX(corpus_text_series,
 def ReGeXLabelingFunction(corpus_text_series, 
                           corpus_words_series,
                           corpus_offsets_series,
-                          source_terms,
-                          picos: str
+                          regex_compiled,
+                          picos: str,
+                          stopwords_general:list
                           ):
 
-    print( 'Total number of terms to check: ', len(source_terms) )
+    # Add stopwords to the lf (Negative labels)
+    stop_dict = {}
+    if stopwords_general:
+        stop_dict = { sw: '-'+picos for sw in stopwords_general }
 
     corpus_matches = []
 
     start_time = time.time()
-    for i, term in enumerate(source_terms):
+    for words_series, offsets_series, texts_series in zip(corpus_words_series, corpus_offsets_series, corpus_text_series):
 
-        matches = []
+        matches = [] # append matches for a single sample
 
-        for words_series, offsets_series, texts_series in zip(corpus_words_series, corpus_offsets_series, corpus_text_series):
+        if regex_compiled[0].search(texts_series.lower()):
 
-            if term.search(texts_series.lower()):
+            match_result = [m for m in regex_compiled[0].finditer(texts_series)]
 
-                match_result = [m for m in term.finditer(texts_series)]
+            for matches_i in match_result:
+                matches.append(( [ matches_i.span()[0], matches_i.span()[1] ], matches_i.group(0), picos ))
 
-                for matches_i in match_result:
-                    matches.append(( [ matches_i.span()[0], matches_i.span()[1] ], matches_i.group(0), picos ))
+        #Find stopwrods here
+        for k,v in stop_dict.items():
+            match_indices = [i for i, x in enumerate(words_series) if x == k]
 
-            corpus_matches.append(matches)
+            for m_i in match_indices:
+                matches.append(( [ offsets_series[m_i], offsets_series[m_i+1] ], k, v ))
+
+
+        corpus_matches.append(matches)
 
     print("--- %s seconds ---" % (time.time() - start_time))
 
