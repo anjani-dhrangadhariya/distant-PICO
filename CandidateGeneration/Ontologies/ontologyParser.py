@@ -15,8 +15,6 @@ import string
 from collections import defaultdict
 from sqlite3 import Error
 # import Ontologies
-from Ontologies import ontologyLoader 
-# from CandidateGeneration.Ontologies.ontologyLoader import loadStopWords
 
 # Data science generic libraries
 import numpy as np
@@ -27,11 +25,48 @@ import msgpack
 import spacy
 from scispacy.abbreviation import AbbreviationDetector
 
+import spacy
+import nltk
+from nltk.corpus import stopwords
+# nltk.download('stopwords')
+import gensim
+from gensim.parsing.preprocessing import remove_stopwords, STOPWORDS
+from sklearn.feature_extraction.text import ENGLISH_STOP_WORDS
+
 en = spacy.load('en_core_web_sm')
 en.add_pipe("abbreviation_detector")
-stopwords = en.Defaults.stop_words
-additional_stopwords = ['of']
-stopwords.update(additional_stopwords)
+#stopwords = en.Defaults.stop_words
+
+def loadStopWords():
+
+    numbers_list = ['sixty', 'fifteen', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'first', 'second', 'third', 'fourth', 'hundred', 'twenty']
+
+    stopwords_lf = []
+
+    # NLTK
+    nltk_stopwords = list(stopwords.words('english'))
+    # print( 'Total number of stopwords in NLTK: ', len( nltk_stopwords ) )
+    stopwords_lf.extend( nltk_stopwords )
+
+    # gensim
+    # print( 'Total number of stopwords in Gensim: ', len( STOPWORDS ) )
+    stopwords_lf.extend( STOPWORDS )
+
+    # scikit learn
+    # print( 'Total number of stopwords in scikit learn: ', len( ENGLISH_STOP_WORDS ) )
+    stopwords_lf.extend( ENGLISH_STOP_WORDS )
+
+    # spacy
+    spacy_stopwords = en.Defaults.stop_words
+    # print( 'Total number of stopwords in Spacy: ', len( spacy_stopwords ) )
+    stopwords_lf.extend( spacy_stopwords )
+
+    # Remove numbers from the stopwords list
+    stopwords_lf = [ sw for sw in stopwords_lf if sw not in numbers_list]
+
+    return stopwords_lf
+
+general_stopwords = loadStopWords()
 
 '''
 Description:
@@ -44,8 +79,6 @@ Returns:
     preprocessed term (str): String variable containing the preprocessed ontology term
 '''
 def preprocessOntology(term):
-
-    general_stopwords = ontologyLoader.loadStopWords()
 
     # remove stopwords
     lst = [ token for token in term.split() if token.lower() not in general_stopwords ]
