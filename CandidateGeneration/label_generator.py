@@ -6,7 +6,7 @@ def SourceTargetsDoc(a):
 
 print( SourceTargetsDoc.__doc__ )
 
-from asyncore import write
+import argparse
 import collections
 import datetime as dt
 import difflib
@@ -17,9 +17,10 @@ import operator
 import os
 import random
 import re
-import sys, argparse
+import sys
 import time
 import traceback
+from asyncore import write
 from collections import Counter, defaultdict
 from functools import reduce
 from itertools import chain
@@ -39,9 +40,11 @@ from CandGenUtilities.experiment_arguments import *
 from CandGenUtilities.labeler_utilities import *
 from CandGenUtilities.source_target_mapping import *
 from LabelingFunctions.externalmodelLF import ExternalModelLabelingFunction
-from LabelingFunctions.heuristicLF import heurPattern_p_sampsize, heurPattern_pa, posPattern_i
-from LabelingFunctions.LFutils import (label_lf_partitions,
+from LabelingFunctions.heuristicLF import (heurPattern_p_sampsize,
+                                           heurPattern_pa, posPattern_i)
+from LabelingFunctions.LFutils import (label_heur_and_write, label_lf_partitions,
                                        label_ont_and_write,
+                                       label_regex_and_write,
                                        label_umls_and_write, spansToLabels)
 from LabelingFunctions.ontologyLF import *
 from load_data import loadEBMPICO
@@ -49,12 +52,8 @@ from Ontologies.ontologyLoader import *
 from Ontologies.ontoUtils import *
 
 ################################################################################
-# Initialize and set seed
-################################################################################
-# XXX Initialize LabelModel with correct cardinality
-label_model = LabelModel(cardinality=2, verbose=True)
-
 # Set seed
+################################################################################
 seed = 0
 seed_everything(seed)
 print('The random seed is set to: ', seed)
@@ -63,34 +62,24 @@ print('The random seed is set to: ', seed)
 parser = argparse.ArgumentParser()
 parser.add_argument('-level1', type=bool, default=False) # Level1 = UMLS LF's
 parser.add_argument('-level2', type=bool, default=False) # Level2: Non-UMLS LF's
-parser.add_argument('-level3', type=bool, default=True) # Level 3 = Distant Supervision LF's
+parser.add_argument('-level3', type=bool, default=False) # Level 3 = Distant Supervision LF's
 parser.add_argument('-level4', type=bool, default=False) # Level 4 = Rule based LF's (ReGeX, Heuristics and handcrafted dictionaries)
 parser.add_argument('-level5', type=bool, default=False) # Level 5 = External Model LF's
 parser.add_argument('-levels', type=bool, default=False) # execute data labeling using all levels
 parser.add_argument('-umls_fpath', type=Path, default= 'UMLS/english_subset/umls_preprocessed/umls_tui_pio3_.db')
 parser.add_argument('-ds_fpath', type=Path, default='/mnt/nas2/data/systematicReview/ds_cto_dict' )
 parser.add_argument('-indir', type=Path, default='/mnt/nas2/data/systematicReview' ) # directory with labeling function sources
-parser.add_argument('-outdir', type=Path, default='/mnt/nas2/results/Results/systematicReview' ) # directory path to store the weakly labeled candidates
+parser.add_argument('-outdir', type=Path, default='/mnt/nas2/results/Results/systematicReview/distant_pico/test_physio_candidate_generation/v3' ) # directory path to store the weakly labeled candidates
 args = parser.parse_args()
 
 try:
 
     ##############################################################################################################
-    # Load EBM-PICO training data
+    # Load training, validation and test datasets
+    # Datasets used - EBM-PICO, Hilfiker physio
     ##############################################################################################################
     ebm_nlp = '/mnt/nas2/data/systematicReview/PICO_datasets/EBM_parsed'
-    text, df_data, df_data_flatten = loadEBMPICO( ebm_nlp, write_to_file = False )
-    
-    # spans = list(WhitespaceTokenizer().span_tokenize(text))
-
-    # start_spans = dict()
-    # for i, y in  enumerate(spans):
-    #     ss = y[0]
-    #     es = y[1]
-
-    #     for value in range( ss, es+1 ):
-    #         start_spans[value] = i
-
+    df_data, df_data_flatten = loadEBMPICO( ebm_nlp, args.outdir, write_to_file = True )
 
     #########################################################################################
     # Level 1 - UMLS LF's
@@ -107,10 +96,9 @@ try:
         umls_o = loadUMLSdb(umls_db, entity='O')
 
         for m in ['fuzzy']: # fuzzy = fuzzy bigram match, direct = no fuzzy bigram match
-            outdir_umls = f'{args.outdir}/distant_pico/test_ebm_candidate_generation/UMLS3/{m}'
+            outdir_umls = f'{args.outdir}/UMLS/{m}'
             for entity, umls_d in zip(['P', 'I', 'O'], [ umls_p, umls_i, umls_o ]) :
-            #for entity, umls_d in zip(['o'], [umls_o]):
-                label_umls_and_write(outdir_umls, umls_d, df_data, picos=entity, write=False)
+                label_umls_and_write(outdir_umls, umls_d, df_data, picos=entity, write=True)
 
     
     #########################################################################################
@@ -127,15 +115,15 @@ try:
         o_oae, o_oae_syn = loadOnt( f'{args.indir}/Ontologies/outcome/OAE.csv', delim=',', term_index=1, term_syn_index=2 )
 
         for m in ['fuzzy', 'direct']:
-            outdir_non_umls = f'{args.outdir}/distant_pico/test_ebm_candidate_generation/nonUMLS/{m}'
+            outdir_non_umls = f'{args.outdir}/nonUMLS/{m}'
             for ontology, ont_name in zip([p_HPO, p_HPO_syn, p_DO, p_DO_syn, p_ctd, p_ctd_syn], ['HPO', 'HPO_syn', 'DO', 'DO_syn', 'CTD', 'CTD_syn'] ) :
-               nonUMLS_p_labels = label_ont_and_write( outdir_non_umls, ontology, picos='P', df_data=df_data, write=False, ontology_name=ont_name)
+               nonUMLS_p_labels = label_ont_and_write( outdir_non_umls, ontology, picos='P', df_data=df_data, write=True, ontology_name=ont_name)
 
             for ontology, ont_name in zip([i_ctd, i_ctd_syn, i_chebi, i_chebi_syn], ['CTD', 'CTD_syn', 'chebi', 'chebi_syn'] ) :
-                nonUMLS_i_labels = label_ont_and_write( outdir_non_umls, ontology, picos='I', df_data=df_data, write=False, ontology_name=ont_name)
+                nonUMLS_i_labels = label_ont_and_write( outdir_non_umls, ontology, picos='I', df_data=df_data, write=True, ontology_name=ont_name)
 
             for ontology, ont_name in zip([o_oae, o_oae_syn ], ['oae', 'oae_syn'] ) :
-                nonUMLS_o_labels = label_ont_and_write( outdir_non_umls, ontology, picos='O', df_data=df_data, write=False, ontology_name=ont_name)
+                nonUMLS_o_labels = label_ont_and_write( outdir_non_umls, ontology, picos='O', df_data=df_data, write=True, ontology_name=ont_name)
 
     #########################################################################################
     # Level 3 - Distant Supervision LF's
@@ -148,16 +136,16 @@ try:
         ds_intervention_syn = loadDS(args.ds_fpath, 'intervention_syn')
         ds_outcome = loadDS(args.ds_fpath, 'outcome')
 
-        for m in ['fuzzy', 'direct']:
-            outdir_ds = f'{args.outdir}/distant_pico/test_ebm_candidate_generation/DS/{m}'
+        for m in ['fuzzy']:
+            outdir_ds = f'{args.outdir}/ds/{m}'
             for ontology, entity, ont_name in zip([ds_participant], ['P'], ['ds_participant'] ) :
-                ds_p_labels = label_ont_and_write( outdir_ds, ontology, picos=entity, df_data=df_data, write=False, ontology_name=ont_name)
+                ds_p_labels = label_ont_and_write( outdir_ds, ontology, picos=entity, df_data=df_data, write=True, ontology_name=ont_name)
 
             for ontology, entity, ont_name in zip([ds_intervention, ds_intervention_syn], ['I', 'I'], ['ds_intervetion', 'ds_intervention_syn'] ) :
-                ds_i_labels = label_ont_and_write( outdir_ds, ontology, picos=entity, df_data=df_data, write=False, ontology_name=ont_name)
+                ds_i_labels = label_ont_and_write( outdir_ds, ontology, picos=entity, df_data=df_data, write=True, ontology_name=ont_name)
         
             for ontology, entity, ont_name in zip([ds_outcome], ['O'], ['ds_outcome'] ) :
-                ds_o_labels = label_ont_and_write( outdir_ds, ontology, picos=entity, df_data=df_data, write=False, ontology_name=ont_name)
+                ds_o_labels = label_ont_and_write( outdir_ds, ontology, picos=entity, df_data=df_data, write=True, ontology_name=ont_name)
     
 
     ##############################################################################################################
@@ -173,29 +161,25 @@ try:
         p_meanage = loadPattern( 'meanage' )
         s_study_type = loadPattern( 'studytype' )
 
-        # ReGeX Labeling Function
+        # # ReGeX Labeling Function
         for reg_lf_i, entity, reg_lf_name in zip([p_sampsize, p_sampsize2, p_agerange, p_agemax, p_meanage, s_study_type], ['P', 'P', 'P', 'P', 'P', 'S'], ['regex_sampsize', 'regex_sampsize2', 'regex_agerange', 'regex_agemax', 'regex_meanage', 'regex_stdtype'] ) : 
-            outdir_reg = f'{args.outdir}/distant_pico/test_ebm_candidate_generation/heuristics/direct'
-            regex_labels = label_ont_and_write( outdir_reg, [reg_lf_i], picos=entity, text=text, token_flatten=df_data_token_flatten, spans=spans, start_spans=start_spans, write=True, ontology_name=reg_lf_name, expand_term=False )
+            outdir_reg = f'{args.outdir}/heuristics/direct'
+            label_regex_and_write( outdir_reg, [reg_lf_i], picos=entity, df_data=df_data, write=True, lf_name=reg_lf_name )
 
-        outdir_heurPattern = f'{args.outdir}/distant_pico/test_ebm_candidate_generation/heuristics/direct'
-        
-        # Heutistic Labeling Functions
-        i_posreg_labels = posPattern_i( text, df_data_token_flatten, df_data_pos_flatten, spans, start_spans, picos='I' )
-        df = pd.DataFrame( {'tokens': df_data_token_flatten, str('i_posreg'): i_posreg_labels })
+        # # Heutistic Labeling Functions
+        outdir_heurPattern = f'{args.outdir}/heuristics/direct'
+
+        1
         filename = 'lf_' + str('i_posreg') + '.tsv'
-        df.to_csv(f'{outdir_heurPattern}/I/{filename}', sep='\t')
+        label_heur_and_write( outdir_heurPattern, picos='I', df_data=df_data, write=True, lf_name=str('i_posreg'))
 
-        pa_regex_heur_labels = heurPattern_pa( text, df_data_token_flatten, df_data_pos_flatten, spans, start_spans, picos='P' )
-        df = pd.DataFrame( {'tokens': df_data_token_flatten, str('pa_regex_heur'): pa_regex_heur_labels })
         filename = 'lf_' + str('pa_regex_heur') + '.tsv'
-        df.to_csv(f'{outdir_heurPattern}/P/{filename}', sep='\t')
+        label_heur_and_write( outdir_heurPattern, picos='P', df_data=df_data, write=True, lf_name=str(filename).replace('.tsv', ''))
 
-        ps_heurPattern_labels = heurPattern_p_sampsize( text, df_data_token_flatten, df_data_pos_flatten, spans, start_spans, picos='P' )
-        df = pd.DataFrame( {'tokens': df_data_token_flatten, str('ps_heurPattern_labels'): ps_heurPattern_labels })
         filename = 'lf_' + str('ps_heurPattern_labels') + '.tsv'
-        df.to_csv(f'{outdir_heurPattern}/P/{filename}', sep='\t')
-        
+        label_heur_and_write( outdir_heurPattern, picos='P', df_data=df_data, write=True, lf_name=str(filename).replace('.tsv', ''))
+
+       
         print('Retrieving hand-crafted dictionaries')
         p_genders = loadDict(f'{args.indir}/Ontologies/participant/gender_sexuality.txt')
         i_comparator = loadDict(f'{args.indir}/Ontologies/intervention/comparator_dict.txt')
@@ -205,9 +189,10 @@ try:
         p_abb = loadAbbreviations(f'{args.indir}/Ontologies/participant/diseaseabbreviations.tsv')
 
         # Dictionary Labeling Function and Abbreviation dictionary Labeling function
-        for ontology, entity, ont_name in zip([p_genders, i_comparator, p_abb, o_endpoints], ['P', 'I', 'P', 'O'], ['dict_gender', 'dict_comparator', 'dict_p_abb', 'dict_o_terms'] ) : 
-            outdir_dict = f'{args.outdir}/distant_pico/test_ebm_candidate_generation/dictionary/direct'
-            label_ont_and_write( outdir_dict, ontology, picos=entity, text=text, token_flatten=df_data_token_flatten, spans=spans, start_spans=start_spans, write=True, ontology_name=ont_name, expand_term=False  )
+        for m in ['fuzzy', 'direct']:
+            for ontology, entity, ont_name in zip([p_genders, i_comparator, p_abb, o_endpoints], ['P', 'I', 'P', 'O'], ['dict_gender', 'dict_comparator', 'dict_p_abb', 'dict_o_terms'] ) : 
+                outdir_dict = f'{args.outdir}/dictionary/{m}'
+                dict_labels = label_ont_and_write( outdir_dict, ontology, picos=entity, df_data=df_data, write=True, ontology_name=ont_name)
 
     #########################################################################################
     # TODO  Level 5 - External Model Labeling function

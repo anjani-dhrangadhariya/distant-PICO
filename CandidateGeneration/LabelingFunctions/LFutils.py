@@ -1,18 +1,27 @@
-import Ontologies
-from Ontologies.ontologyLoader import loadStopWords
-# from CandidateGeneration.Ontologies.ontologyLoader import loadStopWords
-from LabelingFunctions import ontologyLF
-from nltk.tokenize import WhitespaceTokenizer, sent_tokenize, word_tokenize
-from nltk import ngrams
+# from CandidateGeneration.LabelingFunctions.heuristicLF import posPattern_i
+# from LabelingFunctions.heuristicLF import posPattern_i
+import collections
+from multiprocessing.sharedctypes import Value
+import os
 import re
 import sys
-import os
+
+import Ontologies
 import pandas as pd
+from nltk.tokenize import WhitespaceTokenizer, sent_tokenize, word_tokenize
+from Ontologies.ontologyLoader import loadStopWords
+from pytorch_pretrained_bert import BertTokenizer
+
+# from CandidateGeneration.Ontologies.ontologyLoader import loadStopWords
+from LabelingFunctions import heuristicLF, ontologyLF
 
 pico2labelMap = { 'P' : 1, 'I' : 1, 'O' : 1, 'S': 1, '-P' : -1, '-I' : -1, '-O' : -1, '-S' : -1, '!P' : 0, '!I' : 0, '!O' : 0, '!S' : 0 }
 
 # Load stopwords (generic negative label LFs)
 sw_lf = loadStopWords()
+
+# Initialize tokenizer
+tokenizer = BertTokenizer.from_pretrained('bert-base-cased', do_lower_case=False)
 
 def get_text(words, offsets):
 
@@ -59,6 +68,94 @@ def match_term(term, dictionary, case_sensitive, lemmatize=True):
         return [True, label_produced]
 
     return [False, None]
+
+def bert_tokenizer(text):
+    tokens = tokenizer.tokenize(text)
+    toks = []
+
+    curr = ""
+    for t in tokens:
+        if t[0:2] == '##':
+            curr = curr + t[2:]
+        elif curr:
+            toks.append(curr)
+            curr = t
+        elif not curr:
+            curr = t
+        else:
+            toks.append(t)
+            curr = ""
+    if curr:
+        toks.append(curr)
+
+    return toks
+
+def collection_to_dict(G_pos, picos, sign):
+
+    label_dict = {}
+    for k, v in dict(G_pos).items():
+        for k_i, v_i in v.items():
+            key = k + ' ' + k_i
+            if '-' in sign:
+                label_dict[ key ] = str(sign)+str(picos)
+            else:
+                label_dict[ key ] = str(picos)
+
+    return label_dict
+
+def build_word_graph(dictionary, picos, min_occur=25):
+
+    bigram_labels = {}
+
+    G_pos = collections.defaultdict(collections.Counter)
+    G_neg = collections.defaultdict(collections.Counter)
+
+    for text, value in dictionary.items():
+        tokens = bert_tokenizer(text)
+        if len(tokens) == 1:
+            continue
+        if '-' not in value:
+            for i in range(len(tokens)-1):
+                G_pos[tokens[i]][tokens[i+1]] += 1
+        else:
+            for i in range(len(tokens)-1):
+                G_neg[tokens[i]][tokens[i+1]] += 1
+
+    if min_occur:
+        for head in G_pos:
+            rm = []
+            for tail in G_pos[head]:
+                if G_pos[head][tail] < min_occur:
+                    rm.append(tail)
+            for tail in rm:
+                del G_pos[head][tail]
+
+        for head in G_neg:
+            rm = []
+            for tail in G_neg[head]:
+                if G_neg[head][tail] < min_occur:
+                    rm.append(tail)
+            for tail in rm:
+                del G_neg[head][tail]
+
+    # convert graph to dictionary with term:labels
+    G_pos = collection_to_dict(G_pos, picos, '+')
+    G_neg = collection_to_dict(G_neg, picos, '-')
+
+    # bigram_labels
+    for k, v in G_pos.items():
+        if k not in bigram_labels:
+            bigram_labels[k] = v
+    
+    if G_neg:
+        for k,v in G_neg.items():
+            if k not in bigram_labels:
+                bigram_labels[k] = v  
+            else:
+                bigram_labels[k] = '!'+str(picos)
+
+    return bigram_labels
+
 
 def flatten(t):
     return [item for sublist in t for item in sublist]
@@ -285,7 +382,10 @@ def label_umls_and_write(outdir, umls_d, df_data, picos, write):
         labels = get_label_dict( v, picos )
 
         print( 'Fetching the labels for ', str(k) )
-        umls_labels = ontologyLF.OntologyLabelingFunctionX(  df_data['text'], df_data['tokens'], df_data['offsets'], labels, picos=picos, fuzzy_match=fuzzy_match, stopwords_general = sw_lf)
+        if fuzzy_match == False:
+            umls_labels = ontologyLF.OntologyLabelingFunctionX(  df_data['text'], df_data['tokens'], df_data['offsets'], labels, picos=picos, fuzzy_match=fuzzy_match, stopwords_general = sw_lf)
+        else:
+            umls_labels = ontologyLF.OntologyLabelingFunctionX(  df_data['text'], df_data['tokens'], df_data['offsets'], labels, picos=picos, fuzzy_match=fuzzy_match, stopwords_general = sw_lf)
         
         df_data_labels = spansToLabels(matches=umls_labels, df_data=df_data, picos=picos)
 
@@ -323,7 +423,10 @@ def label_ont_and_write(outdir, terms, picos, df_data, write: bool, ontology_nam
     labels = listterms_to_dictterms(terms, picos=picos)
 
     print( 'Fetching the labels for ', str(ontology_name) )
-    nonumls_labels = ontologyLF.OntologyLabelingFunctionX(  df_data['text'], df_data['tokens'], df_data['offsets'], labels, picos=picos, fuzzy_match=fuzzy_match, stopwords_general = sw_lf)
+    if fuzzy_match == False:
+        nonumls_labels = ontologyLF.OntologyLabelingFunctionX(  df_data['text'], df_data['tokens'], df_data['offsets'], labels, picos=picos, fuzzy_match=fuzzy_match, stopwords_general = sw_lf)
+    elif fuzzy_match == True:
+        nonumls_labels = ontologyLF.OntologyLabelingFunctionX(  df_data['text'], df_data['tokens'], df_data['offsets'], labels, picos=picos, fuzzy_match=fuzzy_match, stopwords_general = sw_lf)
 
     # convert labels to spans
     df_data_labels = spansToLabels(matches=nonumls_labels, df_data=df_data, picos=picos)
@@ -337,9 +440,9 @@ def label_ont_and_write(outdir, terms, picos, df_data, write: bool, ontology_nam
     else:
         return df_data
 
-def label_regex_and_write(outdir, terms, picos, df_data, write: bool, lf_name:str):
+def label_regex_and_write(outdir, regex_compiled, picos, df_data, write: bool, lf_name:str):
 
-    regex_labels = ontologyLF.ReGeXLabelingFunction( df_data['text'], df_data['tokens'], df_data['offsets'], [terms], picos=picos )
+    regex_labels = ontologyLF.ReGeXLabelingFunction( df_data['text'], df_data['tokens'], df_data['offsets'], regex_compiled, picos=picos, stopwords_general=sw_lf )
 
     # convert labels to spans
     df_data_labels = spansToLabels(matches=regex_labels, df_data=df_data, picos=picos)
@@ -351,4 +454,30 @@ def label_regex_and_write(outdir, terms, picos, df_data, write: bool, lf_name:st
         filename = 'lf_' + str(lf_name) + '.tsv'
         df_data.to_csv(f'{outdir}/{picos}/{filename}', sep='\t')
     else:
-        return df_data 
+        return df_data
+
+
+def label_heur_and_write( outdir, picos, df_data, write: bool, lf_name: str ):
+
+    labels = []
+
+    if 'i_posreg' in lf_name:
+        labels = heuristicLF.posPattern_i( df_data, picos = picos, stopwords_general=sw_lf, tune_for = 'specificity' )
+
+    if 'lf_pa_regex_heur' in lf_name:
+        labels = heuristicLF.heurPattern_pa( df_data, picos = picos, stopwords_general=sw_lf )
+
+    if 'lf_ps_heurPattern_labels' in lf_name:
+        labels = heuristicLF.heurPattern_p_sampsize( df_data, picos = picos, stopwords_general=sw_lf )
+
+    # convert labels to spans
+    df_data_labels = spansToLabels(matches=labels, df_data=df_data, picos=picos)
+
+    assert len( df_data_labels ) == len( df_data['tokens'] ) == len( df_data['offsets'] )
+    df_data['labels'] = df_data_labels
+
+    if write == True:
+        filename = 'lf_' + str(lf_name) + '.tsv'
+        df_data.to_csv(f'{outdir}/{picos}/{filename}', sep='\t')
+    else:
+        return df_data

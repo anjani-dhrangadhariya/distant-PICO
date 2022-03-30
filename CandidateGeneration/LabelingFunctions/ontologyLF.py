@@ -37,6 +37,11 @@ def OntologyLabelingFunctionX(corpus_text_series,
                              case_sensitive: bool = False,
                              longest_match_only = True):
 
+    # Add bigrams in case 
+    if fuzzy_match == True:
+        source_bigrams = LFutils.build_word_graph( source_terms, picos )
+        source_terms.update(source_bigrams)
+
     # Add stopwords to the dictionary if 
     if stopwords_general:
         for sw in stopwords_general:

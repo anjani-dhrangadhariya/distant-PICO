@@ -27,7 +27,9 @@ Args:
 Returns:
     Formatted training text, tokens and token labels (str, df, df, df, ,df, df)
 '''
-def loadEBMPICO(train_dir, write_to_file):
+def loadEBMPICO(train_dir, outdir, write_to_file):
+
+    outdir = str( outdir )
 
     pmid = []
     text = []
@@ -38,7 +40,18 @@ def loadEBMPICO(train_dir, write_to_file):
     i = []
     o = []
 
-    with open(f'{train_dir}/test_ebm.json', 'r') as rf:
+    filename = ''
+    if 'train' in outdir:
+        filename = 'train_ebm.json'
+        write_file = 'train_ebm_labels_tui_pio3.tsv'
+    if 'test' in outdir and 'ebm' in outdir:
+        filename = 'test_ebm.json'
+        write_file = 'test_ebm_labels_tui_pio3.tsv'
+    if 'test' in outdir and 'physio' in outdir:
+        filename = 'test_physio.json'
+        write_file = 'test_physio_labels_tui_pio3.tsv'
+
+    with open(f'{train_dir}/{filename}', 'r') as rf:
         data = json.load(rf)
         for k,v in data.items():
             pmid.append( k )
@@ -76,18 +89,13 @@ def loadEBMPICO(train_dir, write_to_file):
 
     df_data_p_labels_flatten = [item for sublist in list(df_data['p']) for item in sublist]
     df_data_p_labels_flatten = list(map(int, df_data_p_labels_flatten))
-    # df_data_p_labels_flatten = [-1 if x==0 else x for x in df_data_p_labels_flatten] # -1 == Abstain, 0 = negative
 
     df_data_i_labels_flatten = [item for sublist in list(df_data['i']) for item in sublist]
     df_data_i_labels_flatten = list(map(int, df_data_i_labels_flatten))
-    # df_data_i_labels_flatten = [-1 if x==0 else x for x in df_data_i_labels_flatten] # -1 == Abstain, 0 = negative
 
     df_data_o_labels_flatten = [item for sublist in list(df_data['o']) for item in sublist]
     df_data_o_labels_flatten = list(map(int, df_data_o_labels_flatten))
-    # df_data_0_labels_flatten = [-1 if x==0 else x for x in df_data_o_labels_flatten] # -1 == Abstain, 0 = negative
 
-    text_delete = ' '.join(df_data_token_flatten)
-    # assert len(re.split(' ', text)) == len(df_data_token_flatten) == len( list(WhitespaceTokenizer().span_tokenize(text)) )
 
     write_df = pd.DataFrame(
     {
@@ -100,6 +108,6 @@ def loadEBMPICO(train_dir, write_to_file):
     })
 
     if write_to_file == True:
-        write_df.to_csv('/mnt/nas2/results/Results/systematicReview/distant_pico/EBM_PICO_GT/test_ebm_labels_tui_pio2.tsv', sep='\t')
+        df_data.to_csv(f'/mnt/nas2/results/Results/systematicReview/distant_pico/EBM_PICO_GT/v3/{write_file}', sep='\t')
 
-    return text_delete, df_data, write_df
+    return df_data, write_df
