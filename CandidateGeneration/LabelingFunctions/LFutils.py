@@ -394,7 +394,9 @@ def label_umls_and_write(outdir, umls_d, df_data, picos, write):
 
         if write == True:
             filename = 'lf_' + str(k) + '.tsv'
-            df_data.to_csv(f'{outdir}/{picos}/{filename}', sep='\t')
+            print( filename )
+            df_data.to_csv(f'{outdir}/{filename}', sep='\t')
+            # df_data.to_csv(f'{outdir}/{picos}/{filename}', sep='\t')
 
 
 def listterms_to_dictterms(l:list, picos:str):
