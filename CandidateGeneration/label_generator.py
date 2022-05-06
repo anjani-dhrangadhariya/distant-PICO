@@ -69,7 +69,7 @@ parser.add_argument('-levels', type=bool, default=False) # execute data labeling
 parser.add_argument('-umls_fpath', type=Path, default= 'UMLS/english_subset/umls_preprocessed/umls_tui_pio3_.db')
 parser.add_argument('-ds_fpath', type=Path, default='/mnt/nas2/data/systematicReview/ds_cto_dict' )
 parser.add_argument('-indir', type=Path, default='/mnt/nas2/data/systematicReview' ) # directory with labeling function sources
-parser.add_argument('-outdir', type=Path, default='/mnt/nas2/results/Results/systematicReview/distant_pico/test_physio_candidate_generation/v3' ) # directory path to store the weakly labeled candidates
+parser.add_argument('-outdir', type=Path, default='/mnt/nas2/results/Results/systematicReview/distant_pico/training_ebm_candidate_generation/v3' ) # directory path to store the weakly labeled candidates
 args = parser.parse_args()
 
 try:
@@ -79,7 +79,7 @@ try:
     # Datasets used - EBM-PICO, Hilfiker physio
     ##############################################################################################################
     ebm_nlp = '/mnt/nas2/data/systematicReview/PICO_datasets/EBM_parsed'
-    df_data, df_data_flatten = loadEBMPICO( ebm_nlp, args.outdir, write_to_file = True )
+    df_data, df_data_flatten = loadEBMPICO( ebm_nlp, args.outdir, write_to_file = False )
 
     #########################################################################################
     # Level 1 - UMLS LF's
@@ -97,8 +97,9 @@ try:
 
         for m in ['fuzzy']: # fuzzy = fuzzy bigram match, direct = no fuzzy bigram match
             outdir_umls = f'{args.outdir}/UMLS/{m}'
-            for entity, umls_d in zip(['P', 'I', 'O'], [ umls_p, umls_i, umls_o ]) :
-                label_umls_and_write(outdir_umls, umls_d, df_data, picos=entity, write=True)
+            #for entity, umls_d in zip(['P', 'I', 'O'], [ umls_p, umls_i, umls_o ]) :
+            for entity, umls_d in zip(['P'], [ umls_p ]):
+                label_umls_and_write(outdir_umls, umls_d, df_data, picos=entity, write=False)
 
     
     #########################################################################################
