@@ -17,7 +17,7 @@ def getArguments():
     # List of arguments to set up experiment
     parser = argparse.ArgumentParser()
     parser.add_argument('-entity', type = str, default = 'participant') # train_data = {distant-cto, combined, ebm-pico} 
-    parser.add_argument('-rawcand_file', type = Path, default = '/mnt/nas2/data/systematicReview/clinical_trials_gov/Weak_PICO/PICOS_data_preprocessed/merged_1_0.txt')
+    parser.add_argument('-rawcand_file', type = Path, default = '/mnt/nas2/results/Results/systematicReview/distant_pico/predictions/LabelModels/p/v3/bestmodel.tsv')
     parser.add_argument('-ebm_nlp', type = Path, default = '/mnt/nas2/data/systematicReview/clinical_trials_gov/Weak_PICO/groundtruth/ebm_nlp/p/sentences.txt')
     parser.add_argument('-ebm_gold', type = Path, default = '/mnt/nas2/data/systematicReview/clinical_trials_gov/Weak_PICO/groundtruth/ebm_gold/p/sentences.txt')
     parser.add_argument('-hilfiker', type = Path, default = '/mnt/nas2/data/systematicReview/clinical_trials_gov/Weak_PICO/groundtruth/hilfiker/p/sentences.txt')
@@ -37,7 +37,7 @@ def getArguments():
     parser.add_argument('-model', type = str, default = 'transformercrf') # model = {transformercrf, scibertposcrf, scibertposattencrf, ...} 
     parser.add_argument('-bidrec', type = str, default=True)
 
-    parser.add_argument('-max_eps', type = int, default= 10)
+    parser.add_argument('-max_eps', type = int, default= 1)
     parser.add_argument('-loss', type = str, default = 'general')
     parser.add_argument('-freeze_bert', action='store_false') # store_false = won't freeze BERT
     parser.add_argument('-lr', type = float, default= 5e-4)
@@ -48,7 +48,8 @@ def getArguments():
     parser.add_argument('-parallel', type = str, default = 'false') # false = won't use data parallel
     parser.add_argument('-gpu', type = int, default = device)
 
-    parser.add_argument('-print_every', type = int, default= 1000)
+    parser.add_argument('-print_every', type = int, default= 100)
+    parser.add_argument('-mode', type = str, default= "train")
 
     args = parser.parse_args()
 
