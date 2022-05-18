@@ -20,7 +20,7 @@ import pdb
 import random
 import sys
 import time
-
+import ast
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -49,7 +49,7 @@ from transformers import (AdamW, AutoTokenizer, BertConfig, BertModel,
 from VectorBuilders.contextual_vector_builder import *
 
 def tokenize_and_preserve_labels(sentence, text_labels, pos, tokenizer):
-    dummy_label = 100 # Could be any kind of labels that you can mask
+
     tokenized_sentence = []
     labels = []
     poss = []
@@ -64,6 +64,7 @@ def tokenize_and_preserve_labels(sentence, text_labels, pos, tokenizer):
         # Add the tokenized word to the final tokenized word list
         tokenized_sentence.extend(tokenized_word)
 
+
         # Add the same label to the new list of labels `n_subwords` times
         if n_subwords == 1:
             labels.extend([label] * n_subwords)
@@ -71,9 +72,24 @@ def tokenize_and_preserve_labels(sentence, text_labels, pos, tokenizer):
         elif n_subwords == 0:
             pass
         else:
-            labels.extend([label])
-            labels.extend( [dummy_label] * (n_subwords-1) )
-            poss.extend( [pos_i] * n_subwords ) 
+
+            if isinstance( label, list ) == False:
+                
+                dummy_label = 100
+
+                labels.extend([label])
+                labels.extend( [dummy_label] * (n_subwords-1) )
+                poss.extend( [pos_i] * n_subwords )
+            else:
+
+                dummy_label = [100.00, 100.00]
+
+                labels.extend([label])
+                labels.extend( [dummy_label] * (n_subwords-1) )
+                poss.extend( [pos_i] * n_subwords )                
+
+
+
 
     assert len(tokenized_sentence) == len(labels) == len(poss)
 
@@ -153,22 +169,44 @@ def transform(sentence, text_labels, pos, tokenizer, max_length, pretrained_mode
     elif 'gpt2' in pretrained_model.lower():
         speTok_sentence = addSpecialtokens(truncated_sentence, tokenizer.bos_token_id, tokenizer.eos_token_id)
 
-    speTok_labels = addSpecialtokens(truncated_labels, 0, 0)
+    if any(isinstance(i, list) for i in truncated_labels) == False:
+        speTok_labels = addSpecialtokens(truncated_labels, 0, 0)
+    else:
+        speTok_labels = [[0.0,0.0]] + truncated_labels + [[0.0,0.0]]
+
     speTok_pos = addSpecialtokens(truncated_pos, 0, 0)
 
     # PAD the sequences to max length
     if 'bert' in pretrained_model.lower():
         input_ids = pad_sequences([ speTok_sentence ] , maxlen=max_length, value=tokenizer.pad_token_id, padding="post")
+        input_ids = input_ids[0]
     elif 'gpt2' in pretrained_model.lower():
-        input_ids = pad_sequences([ speTok_sentence ] , maxlen=max_length, value=tokenizer.unk_token_id, padding="post")    
+        input_ids = pad_sequences([ speTok_sentence ] , maxlen=max_length, value=tokenizer.unk_token_id, padding="post") 
+        input_ids = input_ids[0]
 
-    input_labels = pad_sequences([ speTok_labels ] , maxlen=max_length, value=0, padding="post")
+
+    if any(isinstance(i, list) for i in speTok_labels) == False:
+        input_labels = pad_sequences([ speTok_labels ] , maxlen=max_length, value=0, padding="post")
+        input_labels = input_labels[0]
+    else:
+        padding_length = max_length - len(speTok_labels)
+        padding = [ [0.0,0.0] ]  * padding_length
+        input_labels = speTok_labels + padding
+        # Change dtype of list here
+
+        input_labels = np.array( input_labels )
+
     input_pos = pad_sequences([ speTok_pos ] , maxlen=max_length, value=0, padding="post")
+    input_pos = input_pos[0]
+
+    # print( len( input_ids ) , len( input_labels ) , len( input_pos ) )
+    # if len( input_ids ) != len( input_labels ):
+    #     print( input_labels )
 
     assert len( input_ids ) == len( input_labels ) == len( input_pos )
 
     # Get the attention masks
-    attention_masks = createAttnMask( input_ids )
+    attention_masks = createAttnMask( [input_ids] )
 
     assert len(input_ids.squeeze()) == len(input_labels.squeeze()) == len(attention_masks.squeeze()) == len(input_pos.squeeze()) == max_length
 
@@ -178,9 +216,19 @@ def getContextualVectors( annotations_df, tokenizer, pretrained_model, MAX_LEN, 
 
     # Tokenize and preserve labels
     tokenized = []
-    for tokens, labels, pos, nctid in zip(list(annotations_df['tokens']), list(annotations_df['labels']), list(annotations_df['pos']), list(annotations_df['ids'])) :
-        temp = transform(tokens, labels, pos, tokenizer, MAX_LEN, pretrained_model)
-        tokenized.append( temp )
+    for tokens, labels, pos in zip(list(annotations_df['tokens']), list(annotations_df['labels']), list(annotations_df['pos'])) :
+
+        if len( annotations_df ) > 1000:
+            tokens_ = ast.literal_eval( tokens )
+            labels_ = ast.literal_eval( labels )
+            pos_ = ast.literal_eval( pos )
+
+            temp = transform( tokens_, labels_, pos_, tokenizer, MAX_LEN, pretrained_model)
+            tokenized.append( temp )
+        
+        else:
+            temp = transform( tokens, labels, pos, tokenizer, MAX_LEN, pretrained_model)
+            tokenized.append( temp )
 
     tokens, labels, masks, poss = list(zip(*tokenized))
 
