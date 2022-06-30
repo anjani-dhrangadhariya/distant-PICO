@@ -236,7 +236,7 @@ def loadPattern( pattern_name:str ):
 
     if pattern_name == 'samplesize2': # Sample size in ReGeX expression (n=XXXX)
 
-        samp_size_pattern =  r'\( n = [0-9,]+ \)?'
+        samp_size_pattern =  r'(\(\s?n\s?=\s?[0-9]+\s?\))'
         compiled_pattern = re.compile(samp_size_pattern)
         return compiled_pattern
 
