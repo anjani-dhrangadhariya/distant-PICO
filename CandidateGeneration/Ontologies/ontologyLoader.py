@@ -240,21 +240,88 @@ def loadPattern( pattern_name:str ):
         compiled_pattern = re.compile(samp_size_pattern)
         return compiled_pattern
 
-    if pattern_name == 'age1':
+    if pattern_name == 'samplesize3': # Digits expressed as words 1
 
-        age_range_pattern =  r'(([Aa]ge[ds]? )?\b([0-9]{1,2})\b(\s+years?|\s+months?)?(\s+old|-old)?\s?(-|to)\s?\b([0-9]{1,2})\b(\s+years?|\s+months?)+(\s+old|-old)?)'
+        one_to_9 = '((f(ive|our)|s(even|ix)|[tT](hree|wo)|(ni|o)ne|eight))'
+
+        ten_to_19 = '((([sS](even|ix)|[fF](our|if)|[nN]ine)[tT][eE]|[eE](ighte|lev))en|[tT]((hirte)?en|welve))'
+
+        two_digit_prefix = '((s(even|ix)|[tT](hir|wen)|f(if|or)|eigh|nine)ty)'
+
+        par_general = '(patients?|subjects?|participants?|people?|individuals?|persons?|healthy individuals?|healthy adults?|children|toddlers?|adults?|healthy volunteers?|families?|men|women|teenagers?|families|parturients?|females?|males?)+'
+
+        one_to_99 = fr'(({two_digit_prefix}([- ]{one_to_9})?|{ten_to_19}|{one_to_9})+\s?{par_general})' 
+
+        one_to_999 = fr'(({one_to_9}[ ]hundred([ ](and[ ])?{one_to_99})?|{one_to_99})+\s?{par_general})'
+
+        one_to_999_999 = fr'(({one_to_999}[ ]thousand([ ]{one_to_999})?|{one_to_999})+\s?{par_general})'
+
+        compiled_pattern = re.compile(one_to_99)
+
+        return compiled_pattern
+
+    if pattern_name == 'samplesize4': # Digits expressed as words 1
+
+        one_to_9 = '((f(ive|our)|s(even|ix)|[tT](hree|wo)|(ni|o)ne|eight))'
+
+        ten_to_19 = '((([sS](even|ix)|[fF](our|if)|[nN]ine)[tT][eE]|[eE](ighte|lev))en|[tT]((hirte)?en|welve))'
+
+        two_digit_prefix = '((s(even|ix)|[tT](hir|wen)|f(if|or)|eigh|nine)ty)'
+
+        par_general = '(patients?|subjects?|participants?|people?|individuals?|persons?|healthy individuals?|healthy adults?|children|toddlers?|adults?|healthy volunteers?|families?|men|women|teenagers?|families|parturients?|females?|males?)+'
+
+        one_to_99 = fr'(({two_digit_prefix}([- ]{one_to_9})?|{ten_to_19}|{one_to_9})+\s?{par_general})' 
+
+        one_to_999 = fr'(({one_to_9}[ ]hundred([ ](and[ ])?{one_to_99})?|{one_to_99})+\s?{par_general})'
+
+        one_to_999_999 = fr'(({one_to_999}[ ]thousand([ ]{one_to_999})?|{one_to_999})+\s?{par_general})'
+
+        compiled_pattern = re.compile(one_to_999)
+
+        return compiled_pattern
+
+    if pattern_name == 'samplesize5': # Digits expressed as words 1
+
+        one_to_9 = '((f(ive|our)|s(even|ix)|[tT](hree|wo)|(ni|o)ne|eight))'
+
+        ten_to_19 = '((([sS](even|ix)|[fF](our|if)|[nN]ine)[tT][eE]|[eE](ighte|lev))en|[tT]((hirte)?en|welve))'
+
+        two_digit_prefix = '((s(even|ix)|[tT](hir|wen)|f(if|or)|eigh|nine)ty)'
+
+        par_general = '(patients?|subjects?|participants?|people?|individuals?|persons?|healthy individuals?|healthy adults?|children|toddlers?|adults?|healthy volunteers?|families?|men|women|teenagers?|families|parturients?|females?|males?)+'
+
+        one_to_99 = fr'(({two_digit_prefix}([- ]{one_to_9})?|{ten_to_19}|{one_to_9})+\s?{par_general})' 
+
+        one_to_999 = fr'(({one_to_9}[ ]hundred([ ](and[ ])?{one_to_99})?|{one_to_99})+\s?{par_general})'
+
+        one_to_999_999 = fr'(({one_to_999}[ ]thousand([ ]{one_to_999})?|{one_to_999})+\s?{par_general})'
+
+        compiled_pattern = re.compile(one_to_999_999)
+
+        return compiled_pattern
+
+    if pattern_name == 'age1': # XXX: Pattern for age range
+
+        # old pattern: r'(([Aa]ge[ds]? )?\b([0-9]{1,2})\b(\s+years?|\s+months?)?(\s+old|-old)?\s?(-|to)\s?\b([0-9]{1,2})\b(\s+years?|\s+months?)+(\s+old|-old)?)'
+        age_range_pattern =  r'([Aa]ge[ds]?\s+)?(between\s+|range\s+)?([0-9]{1,2}\s?(years?|months?|yr?s?)?\s?(-|and|to)\s?[0-9]{1,2})\s?(years?|months?|yr?s?)+\s?(olds?)?'
         compiled_pattern = re.compile(age_range_pattern)
         return compiled_pattern
 
-    if pattern_name == 'age2':
+    if pattern_name == 'age2':  # under/over/>/< years of age
 
-        age_range_pattern =  r'(([Aa]ge[ds]? ?)\b([0-9]{1,2})\b(\s+years?|\s+months?)?(\s+old|-old)?\s?(and above| and older)?)'
+        age_range_pattern =  r'((age[ds]?)+\s?([uU]nder|[oO]ver|>|≤|≥|<)+\s?\b([0-9]{1,2})\b\s?([yY]ears?|months?|yr?s?)+\s?(age[ds]?)?)'
         compiled_pattern = re.compile(age_range_pattern)
         return compiled_pattern
 
-    if pattern_name == 'meanage':
+    if pattern_name == 'age3': # Participant age min/max, under and over some age, generic age (XX years of age)
 
-        mean_age_pattern = r'(([Mm]ean|[Aa]verage) ?(age) ?(=|was|of|,|:|) ?[0-9.± ()+-\/]+(years?|months?|yr?s?)?)'
+        age_range_pattern =  r'((age[ds]?)?\s?([uU]nder|over|>|≤|≥|<)?\s?([0-9]{1,2})+\s?([yY]ears?|months?|yr?s?)+\s?(of|or|and)?\s?(age|[oO]lde?r?)?)'
+        compiled_pattern = re.compile(age_range_pattern)
+        return compiled_pattern
+
+    if pattern_name == 'meanage': # XXX mean age 
+
+        mean_age_pattern = r'(([Mm]ean|[Aa]verage|[Mm])\s+(age)\s?(=|was|of|,|:|) ?[0-9.± ()+-\/]+(years?|months?|yr?s?)?)'
         compiled_pattern = re.compile(mean_age_pattern)
         return compiled_pattern
 
