@@ -7,10 +7,17 @@ en = spacy.load('en_core_web_sm')
 stopwords = en.Defaults.stop_words
 import string
 
+# lower-casing without altering the Abbreviations
+from Ontologies.transforms import SmartLowercase
+lower_caser =  SmartLowercase()
+
 additional_stopwords = ['of']
 stopwords.update(additional_stopwords)
 def filterSAB():
-    return ['SNOMEDCT_VET', 'NCI_ZFin', 'NCI_ICDC', 'NCI_JAX']
+    return ['SNOMEDCT_VET', 'NCI_ZFin', 'NCI_ICDC', 'NCI_JAX'] # vet UMLS dictionaries
+
+
+
 
 '''
 Description:
@@ -73,3 +80,19 @@ def removeTerms( umls_d, char_threshold ):
         filtered_onto[k] = temp_v
 
     return filtered_onto
+
+def smart_lower_Case(umls_d):
+
+    lowercased_umls_d = dict()
+    for k,v in umls_d.items():
+        
+        v_new = []
+
+        for v_i in v:
+            v_i_0_new = lower_caser(v_i[0])
+            v_i_new = ( v_i_0_new, v_i[1] )
+            v_new.append(v_new)
+
+        lowercased_umls_d[k] = v_new
+
+    return lowercased_umls_d
