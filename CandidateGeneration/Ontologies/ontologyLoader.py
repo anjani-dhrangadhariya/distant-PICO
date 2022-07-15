@@ -30,7 +30,7 @@ translator = str.maketrans(' ', ' ', string.punctuation)
 from Ontologies.ontologyParser import createMySQLConn
 from Ontologies.ontoUtils import (allowedTermLength, countTerm, filterSAB,
                                   preprocessOntology, removeNonHuman,
-                                  removeTerms, termCountThreshold)
+                                  removeTerms, smart_lower_Case, termCountThreshold)
 
 '''
 Description:
@@ -52,8 +52,8 @@ def selectTerminology(conn, pico_category):
 
     pico_category_pattern =  '%'+pico_category+'%'
     cur = conn.cursor()
-    cur.execute("SELECT * FROM terminology1 WHERE ? LIKE ?", (pico_category, pico_category_pattern,))
-    # cur.execute("SELECT * FROM terminology1 WHERE ? LIKE ? LIMIT 50000", (pico_category, pico_category_pattern,))
+    # cur.execute("SELECT * FROM terminology1 WHERE ? LIKE ?", (pico_category, pico_category_pattern,))
+    cur.execute("SELECT * FROM terminology1 WHERE ? LIKE ? LIMIT 50000", (pico_category, pico_category_pattern,))
 
     rows = cur.fetchall()
 
@@ -73,7 +73,7 @@ Args:
 Returns:
     UMLS ontologies (dict): the dictionary containing concepts grouped by Ontology (SAB) for chosen entity
 '''
-def loadUMLSdb(fpath, entity: str, remove_vet: bool = True, min_terms: int = 500, char_threshold:int = 3):
+def loadUMLSdb(fpath, entity: str, remove_vet: bool = True, min_terms: int = 500, char_threshold:int = 3, lower_case: bool = True):
 
     umls = dict()
 
@@ -102,6 +102,10 @@ def loadUMLSdb(fpath, entity: str, remove_vet: bool = True, min_terms: int = 500
     # Remove the SAB with less than X terms
     if min_terms:
         df_new = termCountThreshold( df_new )
+
+    # Lower case - smartlowercase that preserves the abbreviations
+    if lower_case:
+        df_new = smart_lower_Case( df_new )    
 
     return df_new
 
@@ -251,9 +255,7 @@ def loadPattern( pattern_name:str ):
         par_general = '(patients?|subjects?|participants?|people?|individuals?|persons?|healthy individuals?|healthy adults?|children|toddlers?|adults?|healthy volunteers?|families?|men|women|teenagers?|families|parturients?|females?|males?)+'
 
         one_to_99 = fr'(({two_digit_prefix}([- ]{one_to_9})?|{ten_to_19}|{one_to_9})+\s?{par_general})' 
-
         one_to_999 = fr'(({one_to_9}[ ]hundred([ ](and[ ])?{one_to_99})?|{one_to_99})+\s?{par_general})'
-
         one_to_999_999 = fr'(({one_to_999}[ ]thousand([ ]{one_to_999})?|{one_to_999})+\s?{par_general})'
 
         compiled_pattern = re.compile(one_to_99)
@@ -271,9 +273,7 @@ def loadPattern( pattern_name:str ):
         par_general = '(patients?|subjects?|participants?|people?|individuals?|persons?|healthy individuals?|healthy adults?|children|toddlers?|adults?|healthy volunteers?|families?|men|women|teenagers?|families|parturients?|females?|males?)+'
 
         one_to_99 = fr'(({two_digit_prefix}([- ]{one_to_9})?|{ten_to_19}|{one_to_9})+\s?{par_general})' 
-
         one_to_999 = fr'(({one_to_9}[ ]hundred([ ](and[ ])?{one_to_99})?|{one_to_99})+\s?{par_general})'
-
         one_to_999_999 = fr'(({one_to_999}[ ]thousand([ ]{one_to_999})?|{one_to_999})+\s?{par_general})'
 
         compiled_pattern = re.compile(one_to_999)
@@ -291,9 +291,7 @@ def loadPattern( pattern_name:str ):
         par_general = '(patients?|subjects?|participants?|people?|individuals?|persons?|healthy individuals?|healthy adults?|children|toddlers?|adults?|healthy volunteers?|families?|men|women|teenagers?|families|parturients?|females?|males?)+'
 
         one_to_99 = fr'(({two_digit_prefix}([- ]{one_to_9})?|{ten_to_19}|{one_to_9})+\s?{par_general})' 
-
         one_to_999 = fr'(({one_to_9}[ ]hundred([ ](and[ ])?{one_to_99})?|{one_to_99})+\s?{par_general})'
-
         one_to_999_999 = fr'(({one_to_999}[ ]thousand([ ]{one_to_999})?|{one_to_999})+\s?{par_general})'
 
         compiled_pattern = re.compile(one_to_999_999)
@@ -336,6 +334,22 @@ def loadExternalModel(fpath:str ):
     # TODO: Loads an external model (.pth) from a path onto CUDA
 
     return None
+
+def loadAbbreviationDicts(umls_d):
+
+    pos, neg = set(), set()
+
+    for k, v in umls_d.items():
+        for v_i in v:
+            if '-' not in v_i[1] and '!' not in v_i[1]: # positive
+                pos.add(v_i[0])
+
+            elif '-' in v_i[1]: # negative
+                neg.add(v_i[0])
+
+    return pos, neg
+
+
 
 def loadStopWords():
 
