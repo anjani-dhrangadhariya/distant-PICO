@@ -18,7 +18,7 @@ from LabelingFunctions import heuristicLF, ontologyLF
 pico2labelMap = { 'P' : 1, 'I' : 1, 'O' : 1, 'S': 1, '-P' : -1, '-I' : -1, '-O' : -1, '-S' : -1, '!P' : 0, '!I' : 0, '!O' : 0, '!S' : 0 }
 
 # Load stopwords (generic negative label LFs)
-sw_lf = loadStopWords()
+sw = loadStopWords()
 
 # Initialize tokenizer
 tokenizer = BertTokenizer.from_pretrained('bert-base-cased', do_lower_case=False)
@@ -369,12 +369,17 @@ Args:
 Returns:
     df (df): Dataframe with flattened tokens and corresponding weak labels
 '''
-def label_umls_and_write(outdir, umls_d, df_data, picos, write):
+def label_umls_and_write(outdir, umls_d, df_data, picos, arg_options, write):
 
     if str(outdir).split('/')[-1] == 'fuzzy':
         fuzzy_match = True
     else:
         fuzzy_match = False
+
+    if arg_options.stop == True:
+        sw_lf = sw
+    elif arg_options.stop == False:
+        sw_lf = None
 
     for k, v in umls_d.items():
 
@@ -391,10 +396,14 @@ def label_umls_and_write(outdir, umls_d, df_data, picos, write):
 
         assert len( df_data_labels ) == len( df_data['tokens'] ) == len( df_data['offsets'] )
         df_data['labels'] = df_data_labels
+        count_all = 0
+        for counter in df_data_labels:
+            count_all = count_all + len( counter )
+        # print(count_all)
 
         if write == True:
-            filename = 'lf_' + str(k) + '.tsv'
-            print( filename )
+            filename = str(picos) + '/lf_' + str(k) + '.tsv'
+            print( filename , ' : ', count_all )
             df_data.to_csv(f'{outdir}/{filename}', sep='\t')
             # df_data.to_csv(f'{outdir}/{picos}/{filename}', sep='\t')
 
@@ -415,12 +424,17 @@ Args:
 Returns:
     df (df): Dataframe with flattened tokens and corresponding weak labels
 '''
-def label_ont_and_write(outdir, terms, picos, df_data, write: bool, ontology_name:str):
+def label_ont_and_write(outdir, terms, picos, df_data, write: bool, arg_options, ontology_name:str):
 
     if str(outdir).split('/')[-1] == 'fuzzy':
         fuzzy_match = True
     else:
         fuzzy_match = False
+
+    if arg_options.stop == True:
+        sw_lf = sw
+    elif arg_options.stop == False:
+        sw_lf = None
 
     labels = listterms_to_dictterms(terms, picos=picos)
 
@@ -435,16 +449,29 @@ def label_ont_and_write(outdir, terms, picos, df_data, write: bool, ontology_nam
 
     assert len( df_data_labels ) == len( df_data['tokens'] ) == len( df_data['offsets'] )
     df_data['labels'] = df_data_labels
+    count_all = 0
+    for counter in df_data_labels:
+        count_all = count_all + len( counter )
+    # print(count_all)
 
     if write == True:
         filename = 'lf_' + str(ontology_name) + '.tsv'
+        print( filename , ' : ', count_all )
         df_data.to_csv(f'{outdir}/{picos}/{filename}', sep='\t')
     else:
         return df_data
 
-def label_regex_and_write(outdir, regex_compiled, picos, df_data, write: bool, lf_name:str):
+def label_regex_and_write(outdir, regex_compiled, picos, df_data, write: bool, arg_options, lf_name:str):
+
+    if arg_options.stop == True:
+        sw_lf = sw
+    elif arg_options.stop == False:
+        sw_lf = None
 
     regex_labels = ontologyLF.ReGeXLabelingFunction( df_data['text'], df_data['tokens'], df_data['offsets'], regex_compiled, picos=picos, stopwords_general=sw_lf )
+    for i in regex_labels:
+        if len(i) >= 1:
+            print( i )
 
     # convert labels to spans
     df_data_labels = spansToLabels(matches=regex_labels, df_data=df_data, picos=picos)
@@ -459,9 +486,14 @@ def label_regex_and_write(outdir, regex_compiled, picos, df_data, write: bool, l
         return df_data
 
 
-def label_heur_and_write( outdir, picos, df_data, write: bool, lf_name: str ):
+def label_heur_and_write( outdir, picos, df_data, write: bool, arg_options, lf_name: str ):
 
     labels = []
+
+    if arg_options.stop == True:
+        sw_lf = sw
+    elif arg_options.stop == False:
+        sw_lf = None
 
     if 'i_posreg' in lf_name:
         labels = heuristicLF.posPattern_i( df_data, picos = picos, stopwords_general=sw_lf, tune_for = 'specificity' )
@@ -483,3 +515,19 @@ def label_heur_and_write( outdir, picos, df_data, write: bool, lf_name: str ):
         df_data.to_csv(f'{outdir}/{picos}/{filename}', sep='\t')
     else:
         return df_data
+
+
+
+def label_abb_and_write(outdir, positive, negative, picos, df_data, write: bool, arg_options, lf_name:str):
+
+
+    if arg_options.stop == True:
+        sw_lf = sw
+    elif arg_options.stop == False:
+        sw_lf = None
+
+    ontologyLF.AbbrevLabelingFunction( df_data, positive, negative, picos = picos, stopwords_general=sw_lf )
+
+
+
+    return None
