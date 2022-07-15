@@ -229,4 +229,4 @@ def AbbrevLabelingFunction(df_data,
 
     print("--- %s seconds ---" % (time.time() - start_time))
 
-    return corpus_matches
+    return longest_matches
