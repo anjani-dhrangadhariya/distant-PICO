@@ -81,7 +81,7 @@ def removeTerms( umls_d, char_threshold ):
 
     return filtered_onto
 
-def smart_lower_Case(umls_d):
+def smart_lower_Case(umls_d): #TODO: Fix here
 
     lowercased_umls_d = dict()
     for k,v in umls_d.items():
@@ -91,7 +91,7 @@ def smart_lower_Case(umls_d):
         for v_i in v:
             v_i_0_new = lower_caser(v_i[0])
             v_i_new = ( v_i_0_new, v_i[1] )
-            v_new.append(v_new)
+            v_new.append(v_i_new)
 
         lowercased_umls_d[k] = v_new
 
