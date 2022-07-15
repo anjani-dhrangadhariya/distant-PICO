@@ -3,6 +3,7 @@ from multiprocessing.sharedctypes import Value
 from nis import match
 import re
 import time
+from CandGenUtilities.extract_shortlongforms import doc_term_forms
 
 from nltk import ngrams
 from nltk.tokenize import WhitespaceTokenizer, sent_tokenize, word_tokenize
@@ -32,7 +33,7 @@ def OntologyLabelingFunctionX(corpus_text_series,
                              source_terms: dict,
                              picos: str,
                              fuzzy_match: bool,
-                             stopwords_general = list,
+                             stopwords_general,
                              max_ngram: int = 5,
                              case_sensitive: bool = False,
                              longest_match_only = True):
@@ -43,7 +44,7 @@ def OntologyLabelingFunctionX(corpus_text_series,
         source_terms.update(source_bigrams)
 
     # Add stopwords to the dictionary if 
-    if stopwords_general:
+    if isinstance(stopwords_general, list):
         for sw in stopwords_general:
             sw_abstain = '-'+picos
             if sw not in source_terms:
@@ -114,12 +115,12 @@ def ReGeXLabelingFunction(corpus_text_series,
                           corpus_offsets_series,
                           regex_compiled,
                           picos: str,
-                          stopwords_general:list
+                          stopwords_general:list = None
                           ):
 
     # Add stopwords to the lf (Negative labels)
     stop_dict = {}
-    if stopwords_general:
+    if isinstance(stopwords_general, list):
         stop_dict = { sw: '-'+picos for sw in stopwords_general }
 
     corpus_matches = []
@@ -148,5 +149,84 @@ def ReGeXLabelingFunction(corpus_text_series,
 
     print("--- %s seconds ---" % (time.time() - start_time))
 
+
+    return corpus_matches
+
+
+def AbbrevLabelingFunction(df_data,
+                          pos_dict,
+                          neg_dict,
+                          picos: str,
+                          stopwords_general:list = None,
+                          max_ngram: int = 5,
+                          case_sensitive: bool = False,
+                          longest_match_only = True):
+
+    corpus_texts_series = df_data['text']
+    corpus_words_series = df_data['tokens']
+    corpus_pos_series = df_data['pos']
+    corpus_offsets_series = df_data['offsets']
+
+    start_time = time.time()
+
+    corpus_matches = []
+    longest_matches = []
+
+    for texts_series, words_series, pos_series, offsets_series in zip(corpus_texts_series, corpus_words_series, corpus_pos_series, corpus_offsets_series):
+            
+        term_labels_dictionary = doc_term_forms(words_series, pos_dict, neg_dict, pos_series, offsets_series, picos, stopwords_general )
+
+        matches = []
+
+        for i in range(0, len(words_series)):
+
+            match = None
+            start = offsets_series[i]
+
+            for j in range(i + 1, min(i + max_ngram + 1, len(words_series) + 1)):
+                end = offsets_series[j - 1] + len(words_series[j - 1])
+
+                # term types: normalize whitespace & tokenized + whitespace
+                for term in [
+                    re.sub(r'''\s{2,}''', ' ', texts_series[start:end]).strip(),
+                    ' '.join([w for w in words_series[i:j] if w.strip()])
+                ]:
+                    match_result = LFutils.match_term(term, term_labels_dictionary, case_sensitive)
+                    if match_result[0] == True:
+                        match = end
+                        break
+
+                if match:
+                    term = re.sub(r'''\s{2,}''', ' ', texts_series[start:match]).strip()
+                    matches.append(( [start, match], term, match_result[-1] ))
+
+        corpus_matches.append( matches )
+
+        if longest_match_only:
+            # sort on length then end char
+            matches = sorted(matches, key=lambda x: x[0][-1], reverse=1)
+            f_matches = []
+            curr = None
+            for m in matches:
+                if curr is None:
+                    curr = m
+                    continue
+                (i, j), _, _ = m
+                if (i >= curr[0][0] and i <= curr[0][1]) and (j >= curr[0][0] and j <= curr[0][1]):
+                    pass
+                else:
+                    f_matches.append(curr)
+                    curr = m
+            if curr:
+                f_matches.append(curr)
+
+            # if f_matches:
+            longest_matches.append( f_matches )
+
+    # for mat in longest_matches:
+    #     if len(mat) >= 1:
+    #         print( mat )
+
+    print("--- %s seconds ---" % (time.time() - start_time))
 
     return corpus_matches
