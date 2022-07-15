@@ -526,8 +526,16 @@ def label_abb_and_write(outdir, positive, negative, picos, df_data, write: bool,
     elif arg_options.stop == False:
         sw_lf = None
 
-    ontologyLF.AbbrevLabelingFunction( df_data, positive, negative, picos = picos, stopwords_general=sw_lf )
+    labels = ontologyLF.AbbrevLabelingFunction( df_data, positive, negative, picos = picos, stopwords_general=sw_lf )
 
+    # convert labels to spans
+    df_data_labels = spansToLabels(matches=labels, df_data=df_data, picos=picos)
 
+    assert len( df_data_labels ) == len( df_data['tokens'] ) == len( df_data['offsets'] ) 
+    df_data['labels'] = df_data_labels
 
-    return None
+    if write == True:
+        filename = 'lf_' + str(lf_name) + '.tsv'
+        df_data.to_csv(f'{outdir}/{picos}/{filename}', sep='\t')
+    else:
+        return df_data
