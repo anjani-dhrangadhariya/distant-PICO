@@ -469,9 +469,6 @@ def label_regex_and_write(outdir, regex_compiled, picos, df_data, write: bool, a
         sw_lf = None
 
     regex_labels = ontologyLF.ReGeXLabelingFunction( df_data['text'], df_data['tokens'], df_data['offsets'], regex_compiled, picos=picos, stopwords_general=sw_lf )
-    for i in regex_labels:
-        if len(i) >= 1:
-            print( i )
 
     # convert labels to spans
     df_data_labels = spansToLabels(matches=regex_labels, df_data=df_data, picos=picos)
