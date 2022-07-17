@@ -99,24 +99,25 @@ def extract_long_form(i, tokens, pos, token_offsets, max_dup_chars=2):
     matched = False
 
     for indice, t in zip( left_window_indices[::-1],left_window[::-1] ):
-        if t[0] in "()[]-+,":
-            break
+        if t:
+            if t[0] in "()[]-+,":
+                break
 
-        if len(letters) == 1 and t[0].lower() == letters[0]:
-            long_form += [t]
-            long_form_indices += [str(indice)]
-            matched = True
-            break
+            if len(letters) == 1 and t[0].lower() == letters[0]:
+                long_form += [t]
+                long_form_indices += [str(indice)]
+                matched = True
+                break
 
-        elif len(letters) > 1 and t[0].lower() == letters[0]:
-            long_form += [t]
-            long_form_indices += [str(indice)]
-            matched = True
-            letters.pop(0)
+            elif len(letters) > 1 and t[0].lower() == letters[0]:
+                long_form += [t]
+                long_form_indices += [str(indice)]
+                matched = True
+                letters.pop(0)
 
-        else:
-            long_form += [t]
-            long_form_indices += [str(indice)]
+            else:
+                long_form += [t]
+                long_form_indices += [str(indice)]
 
 
     # We didn't find the first letter of our short form, so
