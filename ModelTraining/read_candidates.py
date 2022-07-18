@@ -17,62 +17,33 @@ from memory_profiler import profile
 from sklearn import preprocessing
 from sklearn.model_selection import train_test_split
 
-from VectorBuilders.contextual_vector_builder import *
 from Utilities.experiment_arguments import *
+from VectorBuilders.contextual_vector_builder import *
+
 
 # @profile
-def readRawCandidates( list_NCT, label_type=None ):
+def readRawCandidates( raw_cand_file, label_type=None ):
 
-    nct_ids = []
-    tokens = []
-    labels = []
-    pos = []
+    corpus_df = pd.read_csv(raw_cand_file, sep='\t', header=0)
 
-    with open(list_NCT, 'r', encoding='latin1') as NCT_ids_file:
-
-        for i, eachLine in enumerate(NCT_ids_file):
-            annot = json.loads(eachLine)
-            id_ = annot['id']
-
-            for target_key, target in annot.items():
-
-                if 'id' not in target_key:
-                    for sentence_key, sentence in target.items():
-
-                        if set(sentence['tokens'])!={0}:
-                            tokens.append( sentence['tokens'] )
-                            labels.append( sentence['annotation'] )
-                            nct_ids.append( id_ )
-
-                            # TODO: Generate dummy POS items
-                            pos_i = [0] * len( sentence['tokens'] )
-                            pos.append( pos_i )
-                        else:
-                            print('All the labels are nil')
-
-            if i == 6:
-                break
-
-    corpus_df = pd.DataFrame(
-        {'ids': nct_ids,
-        'tokens': tokens,
-        'labels': labels,
-        'pos': pos
-        })
-
-    df = corpus_df.sample(frac=1).reset_index(drop=True) # Shuffles the dataframe after creation
+    # create dummy pos tags TODO: can remove it
+    pos_tags = corpus_df['pos']
+    dummy_pos_tags = []
+    for i in pos_tags:
+        j = ast.literal_eval( i )
+        dummy = [0] * len(j)
+        dummy_pos_tags.append( str(dummy) )
     
-    # can delete this one (corpusDf)
-    del corpus_df
-    gc.collect() # mark if for garbage collection
+    corpus_df['pos'] = dummy_pos_tags
 
-    return df
+    return corpus_df
 
-def readManuallyAnnoted( input_file_path, label_type=None ):
+def readManuallyAnnoted( input_file_path, entity, label_type=None ):
 
     nct_ids = []
     tokens = []
     labels = []
+    labels_fine = []
     pos = []
 
     with open(input_file_path, 'r', encoding='latin1') as NCT_ids_file:
@@ -83,24 +54,41 @@ def readManuallyAnnoted( input_file_path, label_type=None ):
             for doc_key, document_annotations in annot.items():
 
                 nct_ids.append(doc_key)
-                tokens.append(document_annotations[0])
-                labels.append(document_annotations[1])
-                # TODO: Generate dummy POS items
-                pos_i = [0] * len( document_annotations[0] )
-                pos.append( pos_i )
+                tokens.append(document_annotations['tokens'] )
+                entity_mod = entity + str('s')
+                if entity_mod in document_annotations:
+                    labels.append(document_annotations[entity_mod])
+                else:
+                    dummy_labels = ['0'] * len(document_annotations['tokens'])
+                    labels.append(dummy_labels)
+                
+                fine_entity = entity_mod + str('_fine')
+                if fine_entity in document_annotations:
+                    fine_labels = document_annotations[fine_entity]
+
+                    for counter, f_l in enumerate( fine_labels ):
+                        if f_l == '0':
+                            fine_labels[counter] = '0'
+                        if f_l != '0' and f_l != '0' and f_l != '1':
+                            fine_labels[counter] = '1'
+
+
+                    labels_fine.append(fine_labels)
+                else:
+                    dummy_labels = ['0'] * len(document_annotations['tokens'])
+                    labels_fine.append(dummy_labels)
+
+                dummy_pos = ['0'] * len(document_annotations['pos'])
+                pos.append( dummy_pos )
+
 
     corpus_df = pd.DataFrame(
         {'ids': nct_ids,
         'tokens': tokens,
-        'labels': labels,
+        'labels': labels_fine, #XXX : exchanged labels and labels_fine with attriute : value
+        'labels_fine': labels,
         'pos': pos
         })
-
-    # df = corpus_df.sample(frac=1).reset_index(drop=True) # Shuffles the dataframe after creation
-    
-    # # can delete this one (corpusDf)
-    # del corpus_df
-    # gc.collect() # mark if for garbage collection
 
     return corpus_df
 
@@ -113,11 +101,10 @@ def fetchAndTransformCandidates():
     raw_candidates = readRawCandidates( args.rawcand_file, label_type=None )
     print("--- Took %s seconds to read the raw weakly annotated candidates ---" % (time.time() - start_candidate_reading))
 
-    # Retrieve EBM-PICO dataset here
+    # # Retrieve EBM-PICO dataset here
     start_manual_reading = time.time()
-    ebm_nlp = readManuallyAnnoted( args.ebm_nlp, label_type=None )
-    ebm_gold = readManuallyAnnoted( args.ebm_gold, label_type=None )
-    hilfiker = readManuallyAnnoted( args.hilfiker, label_type=None )
+    ebm_gold = readManuallyAnnoted( args.ebm_gold, entity=args.entity, label_type=None)
+    hilfiker = readManuallyAnnoted( args.hilfiker, entity=args.entity, label_type=None)
     print("--- Took %s seconds to read the manually annotated datasets ---" % (time.time() - start_manual_reading))
 
     start_candidate_transformation = time.time()
@@ -127,17 +114,12 @@ def fetchAndTransformCandidates():
     print("--- Took %s seconds to transform the raw weakly annotated candidates ---" % (time.time() - start_candidate_transformation))
 
     start_manual_transformation = time.time()
-    ebm_nlp_embeddings, ebm_nlp_labels, ebm_nlp_masks, ebm_nlp_pos, tokenizer = getContextualVectors( ebm_nlp, tokenizer, args.embed, args.max_len )
     ebm_gold_embeddings, ebm_gold_labels, ebm_gold_masks, ebm_gold_pos, tokenizer = getContextualVectors( ebm_gold, tokenizer, args.embed, args.max_len )
     hilfiker_embeddings, hilfiker_labels, hilfiker_masks, hilfiker_pos, tokenizer = getContextualVectors( hilfiker, tokenizer, args.embed, args.max_len )
     print("--- Took %s seconds to transform the manually annotated datasets ---" % (time.time() - start_manual_transformation))
 
     candidates_df = raw_candidates.assign(embeddings = pd.Series(input_embeddings).values, label_pads = pd.Series(input_labels).values, attn_masks = pd.Series(input_masks).values, inputpos = pd.Series(input_pos).values) # assign the padded embeddings to the dataframe
-    ebm_nlp_df = ebm_nlp.assign(embeddings = pd.Series(ebm_nlp_embeddings).values, label_pads = pd.Series(ebm_nlp_labels).values, attn_masks = pd.Series(ebm_nlp_masks).values, inputpos = pd.Series(ebm_nlp_pos).values)
     ebm_gold_df = ebm_gold.assign(embeddings = pd.Series(ebm_gold_embeddings).values, label_pads = pd.Series(ebm_gold_labels).values, attn_masks = pd.Series(ebm_gold_masks).values, inputpos = pd.Series(ebm_gold_pos).values)
     hilfiker_df = hilfiker.assign(embeddings = pd.Series(hilfiker_embeddings).values, label_pads = pd.Series(hilfiker_labels).values, attn_masks = pd.Series(hilfiker_masks).values, inputpos = pd.Series(hilfiker_pos).values)
 
-    del input_embeddings, input_labels, input_masks, input_pos, ebm_nlp_embeddings, ebm_nlp_labels, ebm_nlp_masks, ebm_nlp_pos, ebm_gold_embeddings, ebm_gold_labels, ebm_gold_masks, ebm_gold_pos, hilfiker_embeddings, hilfiker_labels, hilfiker_masks, hilfiker_pos, raw_candidates, ebm_nlp, ebm_gold, hilfiker  # Delete the large variables
-    gc.collect()
-    
-    return candidates_df, ebm_nlp_df, ebm_gold_df, hilfiker_df, args, tokenizer, model
+    return candidates_df, ebm_gold_df, hilfiker_df, args, tokenizer, model
