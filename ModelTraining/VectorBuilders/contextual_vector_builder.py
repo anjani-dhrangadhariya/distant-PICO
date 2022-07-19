@@ -186,6 +186,7 @@ def transform(sentence, text_labels, pos, tokenizer, max_length, pretrained_mode
 
 
     if any(isinstance(i, list) for i in speTok_labels) == False:
+        # print( speTok_labels )
         input_labels = pad_sequences([ speTok_labels ] , maxlen=max_length, value=0, padding="post")
         input_labels = input_labels[0]
     else:
@@ -212,22 +213,22 @@ def transform(sentence, text_labels, pos, tokenizer, max_length, pretrained_mode
 
     return input_ids.squeeze(), input_labels.squeeze(), attention_masks.squeeze(), input_pos.squeeze()
 
-def getContextualVectors( annotations_df, tokenizer, pretrained_model, MAX_LEN, pos_encoder = None ):
+def getContextualVectors( annotations_df, tokenizer, pos_encoder = None, args = None, cand_type = None ):
 
     # Tokenize and preserve labels
     tokenized = []
     for tokens, labels, pos in zip(list(annotations_df['tokens']), list(annotations_df['labels']), list(annotations_df['pos'])) :
 
-        if len( annotations_df ) > 1000:
+        if cand_type == 'raw':
             tokens_ = ast.literal_eval( tokens )
             labels_ = ast.literal_eval( labels )
             pos_ = ast.literal_eval( pos )
 
-            temp = transform( tokens_, labels_, pos_, tokenizer, MAX_LEN, pretrained_model)
+            temp = transform( tokens_, labels_, pos_, tokenizer, args.max_len, args.embed)
             tokenized.append( temp )
         
         else:
-            temp = transform( tokens, labels, pos, tokenizer, MAX_LEN, pretrained_model)
+            temp = transform( tokens, labels, pos, tokenizer, args.max_len, args.embed)
             tokenized.append( temp )
 
     tokens, labels, masks, poss = list(zip(*tokenized))
