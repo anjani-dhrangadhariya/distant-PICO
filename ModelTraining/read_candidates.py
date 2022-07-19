@@ -72,7 +72,7 @@ def readManuallyAnnoted( input_file_path, entity, label_type=None ):
                         if f_l != '0' and f_l != '0' and f_l != '1':
                             fine_labels[counter] = '1'
 
-
+                    # print( fine_labels )
                     labels_fine.append(fine_labels)
                 else:
                     dummy_labels = ['0'] * len(document_annotations['tokens'])
@@ -103,23 +103,27 @@ def fetchAndTransformCandidates():
 
     # # Retrieve EBM-PICO dataset here
     start_manual_reading = time.time()
+    ebm_train = readManuallyAnnoted( args.ebm_nlp, entity=args.entity, label_type=None)
     ebm_gold = readManuallyAnnoted( args.ebm_gold, entity=args.entity, label_type=None)
-    hilfiker = readManuallyAnnoted( args.hilfiker, entity=args.entity, label_type=None)
+    ebm_gold_corr = readManuallyAnnoted( args.ebm_gold_corr, entity=args.entity, label_type=None)
     print("--- Took %s seconds to read the manually annotated datasets ---" % (time.time() - start_manual_reading))
 
     start_candidate_transformation = time.time()
     tokenizer, model = choose_tokenizer_type( args.embed )
-    input_embeddings, input_labels, input_masks, input_pos, tokenizer = getContextualVectors( raw_candidates, tokenizer, args.embed, args.max_len )
+    input_embeddings, input_labels, input_masks, input_pos, tokenizer = getContextualVectors( raw_candidates, tokenizer, args = args, cand_type = 'raw' )
     assert len( input_embeddings ) == len( raw_candidates )
     print("--- Took %s seconds to transform the raw weakly annotated candidates ---" % (time.time() - start_candidate_transformation))
 
     start_manual_transformation = time.time()
-    ebm_gold_embeddings, ebm_gold_labels, ebm_gold_masks, ebm_gold_pos, tokenizer = getContextualVectors( ebm_gold, tokenizer, args.embed, args.max_len )
-    hilfiker_embeddings, hilfiker_labels, hilfiker_masks, hilfiker_pos, tokenizer = getContextualVectors( hilfiker, tokenizer, args.embed, args.max_len )
+
+    ebm_train_embeddings, ebm_train_labels, ebm_train_masks, ebm_train_pos, tokenizer = getContextualVectors( ebm_train, tokenizer, args = args )
+    ebm_gold_embeddings, ebm_gold_labels, ebm_gold_masks, ebm_gold_pos, tokenizer = getContextualVectors( ebm_gold, tokenizer, args = args )
+    ebm_gold_corr_embeddings, ebm_gold_corr_labels, ebm_gold_corr_masks, ebm_gold_corr_pos, tokenizer = getContextualVectors( ebm_gold_corr, tokenizer, args = args )
     print("--- Took %s seconds to transform the manually annotated datasets ---" % (time.time() - start_manual_transformation))
 
     candidates_df = raw_candidates.assign(embeddings = pd.Series(input_embeddings).values, label_pads = pd.Series(input_labels).values, attn_masks = pd.Series(input_masks).values, inputpos = pd.Series(input_pos).values) # assign the padded embeddings to the dataframe
+    ebm_train_df = ebm_train.assign(embeddings = pd.Series(ebm_train_embeddings).values, label_pads = pd.Series(ebm_train_labels).values, attn_masks = pd.Series(ebm_train_masks).values, inputpos = pd.Series(ebm_train_pos).values)
     ebm_gold_df = ebm_gold.assign(embeddings = pd.Series(ebm_gold_embeddings).values, label_pads = pd.Series(ebm_gold_labels).values, attn_masks = pd.Series(ebm_gold_masks).values, inputpos = pd.Series(ebm_gold_pos).values)
-    hilfiker_df = hilfiker.assign(embeddings = pd.Series(hilfiker_embeddings).values, label_pads = pd.Series(hilfiker_labels).values, attn_masks = pd.Series(hilfiker_masks).values, inputpos = pd.Series(hilfiker_pos).values)
+    ebm_gold_corr_df = ebm_gold_corr.assign(embeddings = pd.Series(ebm_gold_corr_embeddings).values, label_pads = pd.Series(ebm_gold_corr_labels).values, attn_masks = pd.Series(ebm_gold_corr_masks).values, inputpos = pd.Series(ebm_gold_corr_pos).values)
 
-    return candidates_df, ebm_gold_df, hilfiker_df, args, tokenizer, model
+    return candidates_df, ebm_train_df, ebm_gold_df, ebm_gold_corr_df, args, tokenizer, model
