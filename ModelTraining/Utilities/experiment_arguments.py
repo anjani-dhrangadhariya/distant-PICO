@@ -17,11 +17,16 @@ def getArguments():
     # List of arguments to set up experiment
     parser = argparse.ArgumentParser()
     parser.add_argument('-entity', type = str, default = 'participant') # train_data = {distant-cto, combined, ebm-pico} 
-    parser.add_argument('-rawcand_file', type = Path, default = '/mnt/nas2/results/Results/systematicReview/distant_pico/predictions/LabelModels/p/v3/bestmodel.tsv')
-    parser.add_argument('-ebm_nlp', type = Path, default = '/mnt/nas2/data/systematicReview/clinical_trials_gov/Weak_PICO/groundtruth/ebm_nlp/p/sentences.txt')
-    parser.add_argument('-ebm_gold', type = Path, default = '/mnt/nas2/data/systematicReview/clinical_trials_gov/Weak_PICO/groundtruth/ebm_gold/p/sentences.txt')
-    parser.add_argument('-hilfiker', type = Path, default = '/mnt/nas2/data/systematicReview/clinical_trials_gov/Weak_PICO/groundtruth/hilfiker/p/sentences.txt')
+    parser.add_argument('-rawcand_file', type = Path, default = '/mnt/nas2/results/Results/systematicReview/distant_pico/predictions/LabelModels/p/v4/bestmodel.tsv')
+    parser.add_argument('-ebm_nlp', type = Path, default = '/mnt/nas2/data/systematicReview/PICO_datasets/EBM_parsed/train_ebm.json')
+    parser.add_argument('-ebm_gold', type = Path, default = '/mnt/nas2/data/systematicReview/PICO_datasets/EBM_parsed/test_ebm.json')
+    parser.add_argument('-ebm_gold_corr', type = Path, default = '/mnt/nas2/data/systematicReview/PICO_datasets/EBM_parsed/test_ebm_anjani.json')
 
+    # parser.add_argument('-ebm_nlp', type = Path, default = '/mnt/nas2/data/systematicReview/clinical_trials_gov/Weak_PICO/groundtruth/ebm_nlp/p/sentences.txt')
+    # parser.add_argument('-ebm_gold', type = Path, default = '/mnt/nas2/data/systematicReview/clinical_trials_gov/Weak_PICO/groundtruth/ebm_gold/p/sentences.txt')
+    # parser.add_argument('-hilfiker', type = Path, default = '/mnt/nas2/data/systematicReview/clinical_trials_gov/Weak_PICO/groundtruth/hilfiker/p/sentences.txt')
+
+    parser.add_argument('-supervision', type = str, default = 'fs') # label_type = {fs, ws, hs, ...} 
     parser.add_argument('-label_type', type = str, default = 'seq_lab') # label_type = {seq_lab, BIO, BIOES, ...} 
     parser.add_argument('-text_level', type = str, default = 'sentence') # text_level = {sentence, document} 
     parser.add_argument('-train_data', type = str, default = 'ebm-pico') # train_data = {distant-cto, combined, ebm-pico}
@@ -37,7 +42,7 @@ def getArguments():
     parser.add_argument('-model', type = str, default = 'transformercrf') # model = {transformercrf, scibertposcrf, scibertposattencrf, ...} 
     parser.add_argument('-bidrec', type = str, default=True)
 
-    parser.add_argument('-max_eps', type = int, default= 1)
+    parser.add_argument('-max_eps', type = int, default= 15)
     parser.add_argument('-loss', type = str, default = 'general')
     parser.add_argument('-freeze_bert', action='store_false') # store_false = won't freeze BERT
     parser.add_argument('-lr', type = float, default= 5e-4)
