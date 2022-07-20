@@ -83,7 +83,7 @@ class TRANSFORMERCRF(nn.Module):
         self.loss_fct = nn.CrossEntropyLoss()
 
     
-    def forward(self, input_ids=None, attention_mask=None, labels=None, input_pos=None, mode = None):
+    def forward(self, input_ids=None, attention_mask=None, labels=None, input_pos=None, mode = None, args = None):
 
         # Transformer
         outputs = self.transformer_layer(
@@ -97,7 +97,7 @@ class TRANSFORMERCRF(nn.Module):
         sequence_output = outputs[0]
 
         # mask the unimportant tokens before log_reg
-        if mode == 'test':
+        if mode == 'test' or args.supervision == 'fs':
             mask = (
                 (input_ids != self.tokenizer.pad_token_id)
                 & (input_ids != self.tokenizer.convert_tokens_to_ids(self.tokenizer.cls_token))
@@ -139,7 +139,7 @@ class TRANSFORMERCRF(nn.Module):
         
         average_loss = cumulative_loss /  probablities.shape[0]
 
-        if mode == 'test':
+        if mode == 'test' or args.supervision == 'fs':
             return average_loss, probablities, probablities_mask_expanded, labels, mask, mask
         else:
             return average_loss, probablities, probablities_mask_expanded, labels, label_masks_expanded, mask
