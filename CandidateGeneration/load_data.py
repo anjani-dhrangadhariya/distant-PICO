@@ -27,7 +27,7 @@ Args:
 Returns:
     Formatted training text, tokens and token labels (str, df, df, df, ,df, df)
 '''
-def loadEBMPICO(train_dir, outdir, write_to_file):
+def loadEBMPICO(train_dir, outdir, candgen_version, write_to_file):
 
     outdir = str( outdir )
 
@@ -161,6 +161,6 @@ def loadEBMPICO(train_dir, outdir, write_to_file):
     })
 
     if write_to_file == True:
-        df_data.to_csv(f'/mnt/nas2/results/Results/systematicReview/distant_pico/EBM_PICO_GT/v4/gt/{write_file}', sep='\t')
+        df_data.to_csv(f'/mnt/nas2/results/Results/systematicReview/distant_pico/EBM_PICO_GT/{candgen_version}/gt/{write_file}', sep='\t')
 
     return df_data, write_df
