@@ -162,6 +162,11 @@ def AbbrevLabelingFunction(df_data,
                           case_sensitive: bool = False,
                           longest_match_only = True):
 
+    # Add stopwords to the lf (Negative labels)
+    stop_dict = {}
+    if isinstance(stopwords_general, list):
+        stop_dict = { sw: '-'+picos for sw in stopwords_general }
+
     corpus_texts_series = df_data['text']
     corpus_words_series = df_data['tokens']
     corpus_pos_series = df_data['pos']
@@ -175,6 +180,9 @@ def AbbrevLabelingFunction(df_data,
     for texts_series, words_series, pos_series, offsets_series in zip(corpus_texts_series, corpus_words_series, corpus_pos_series, corpus_offsets_series):
             
         term_labels_dictionary = doc_term_forms(words_series, pos_dict, neg_dict, pos_series, offsets_series, picos, stopwords_general )
+
+        if len(stop_dict) > 0:
+            term_labels_dictionary.update(stop_dict)
 
         matches = []
 
