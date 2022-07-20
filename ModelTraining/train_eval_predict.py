@@ -2,6 +2,7 @@
 # Imports
 ##################################################################################
 # staple imports
+from ast import arg
 import warnings
 
 warnings.simplefilter(action='ignore', category=FutureWarning)
@@ -80,7 +81,10 @@ def flattenIt(x):
     return np.asarray(x.cpu(), dtype=np.float32).flatten()
 
 
-def evaluate(defModel, optimizer, scheduler, development_dataloader, exp_args, epoch_number = None):
+def evaluate(defModel, optimizer, scheduler, development_dataloader, exp_args, epoch_number = None, mode=None):
+    
+    print('The mode is: ', mode)
+
     mean_acc = 0
     mean_loss = 0
     count = 0
@@ -92,6 +96,9 @@ def evaluate(defModel, optimizer, scheduler, development_dataloader, exp_args, e
         all_masks = []
         all_predictions = []
         all_tokens = []
+
+        eval_epochs_logits_coarse_i = np.empty(1, dtype=np.int64)
+        eval_epochs_labels_coarse_i = np.empty(1, dtype=np.int64)
 
         class_rep_temp = []
 
@@ -107,70 +114,99 @@ def evaluate(defModel, optimizer, scheduler, development_dataloader, exp_args, e
             e_labels = e_labels.to(f'cuda:{defModel.device_ids[0]}')
             e_input_pos = e_input_pos.to(f'cuda:{defModel.device_ids[0]}')
 
-            e_loss, e_output, e_labels, e_mask = defModel(e_input_ids, attention_mask=e_input_mask, labels=e_labels, input_pos=e_input_pos) 
+            # print( e_input_ids.shape )
+            # print( e_input_mask.shape )
+            # print( e_labels.shape )
+            # print( e_input_pos.shape )
 
-            # shorten the input_ids to match the e_output shape (This is to retrieve the natural langauge words from the input IDs)
-            e_input_ids = e_input_ids[:, :e_output.shape[1]]
+            e_loss, e_output, e_output_masks, e_labels, e_labels_mask, e_mask = defModel(e_input_ids, attention_mask=e_input_mask, labels=e_labels, input_pos=e_input_pos, mode = mode, args = exp_args) 
 
-            if len(list( e_output.shape )) > 1:
-                if 'crf' not in exp_args.model:
-                    max_probs = torch.max(e_output, dim=2) # get the highest of two probablities
-                    e_logits = max_probs.indices
-                else:
-                    e_logits = e_output 
-            else: 
-                e_logits = e_output
+            # # shorten the input_ids to match the e_output shape (This is to retrieve the natural langauge words from the input IDs)
+            # e_input_ids = e_input_ids[:, :e_output.shape[1]]   
+
+            # if len(list( e_output.shape )) > 1:
+            #     if 'crf' not in exp_args.model:
+            #         max_probs = torch.max(e_output, dim=2) # get the highest of two probablities
+            #         e_logits = max_probs.indices
+            #     else:
+            #         e_logits = e_output 
+            # else: 
+            #     e_logits = e_output
 
             mean_loss += abs( torch.mean(e_loss) ) 
 
             for i in range(0, e_labels.shape[0]):
 
-                masked_preds = torch.masked_select( e_logits[i, ].to(f'cuda:0'), e_mask[i, ] )
-                masked_labs = torch.masked_select( e_labels[i, ].to(f'cuda:0'), e_mask[i, ] )
+                # convert continuous probas to classes for b_output and b_labels
+                e_output_class = torch.argmax(e_output[i, ], dim=1)
+                if mode == 'test' or exp_args.supervision == 'fs':
+                    e_label_class = e_labels[i, ]
+                elif exp_args.supervision == 'ws':
+                    e_label_class = torch.argmax(e_labels[i, ], dim=1)
 
-                temp_cr = classification_report(y_pred= masked_preds.cpu(), y_true=masked_labs.cpu(), labels=list(range(exp_args.num_labels)), output_dict=True) 
-                class_rep_temp.append(temp_cr['macro avg']['f1-score'])
 
-                all_masks.extend( e_mask[i, ] )
-                all_GT.extend( e_labels[i, ] )
-                all_predictions.extend( e_logits[i, ] )
-                all_tokens.extend( e_input_ids[i, ] )          
+                selected_preds_coarse = torch.masked_select( e_output_class, e_mask[i, ])
+                # print( selected_preds_coarse.shape )
+                selected_labs_coarse = torch.masked_select( e_label_class, e_mask[i, ])
+                # print( selected_labs_coarse.shape )
 
-        avg_val_loss = mean_loss / len(development_dataloader)
+                if selected_preds_coarse.shape != selected_labs_coarse.shape:
+                    print( selected_preds_coarse.shape, ' : ', selected_labs_coarse.shape  )
 
-        # stack the list of tensors into a tensor
-        all_masks_tens = torch.stack(( all_masks ))
-        all_GT_tens =  torch.stack(( all_GT ))
-        all_preds_tens = torch.stack(( all_predictions ))
-        all_token_tens = torch.stack(( all_tokens ))
+                selected_preds_coarse = selected_preds_coarse.detach().to("cpu").numpy()
+                selected_labs_coarse = selected_labs_coarse.detach().to("cpu").numpy()
 
-        # mask the prediction tensor
-        selected_preds_coarse = torch.masked_select( all_preds_tens.to(f'cuda:0'), all_masks_tens )
-        # mask the label tensor
-        selected_labs_coarse = torch.masked_select( all_GT_tens.to(f'cuda:0'), all_masks_tens )
-        # mask the natural language token tensor but with attention mask carefully
-        selected_tokens_coarse = torch.masked_select( all_token_tens.to(f'cuda:0'), all_masks_tens )   
+                eval_epochs_logits_coarse_i = np.append(eval_epochs_logits_coarse_i, selected_preds_coarse, 0)
+                eval_epochs_labels_coarse_i = np.append(eval_epochs_labels_coarse_i, selected_labs_coarse, 0)
 
-        # flatten the masked tensors
-        all_pred_flat = flattenIt( selected_preds_coarse )
-        # all_pred_flat = np.asarray(selected_preds_coarse.cpu(), dtype=np.float32).flatten()
-        all_GT_flat = flattenIt( selected_labs_coarse )
-        # all_GT_flat = np.asarray(selected_labs_coarse.cpu(), dtype=np.float32).flatten()
-        all_tokens_flat = flattenIt( selected_tokens_coarse )
-        # all_tokens_flat = np.asarray(selected_tokens_coarse.cpu(), dtype=np.int64).flatten()
+        #         temp_cr = classification_report(y_pred= masked_preds.cpu(), y_true=masked_labs.cpu(), labels=list(range(exp_args.num_labels)), output_dict=True) 
+        #         class_rep_temp.append(temp_cr['macro avg']['f1-score'])
+
+        #         all_masks.extend( e_mask[i, ] )
+        #         all_GT.extend( e_labels[i, ] )
+        #         all_predictions.extend( e_logits[i, ] )
+        #         all_tokens.extend( e_input_ids[i, ] )          
+
+        # avg_val_loss = mean_loss / len(development_dataloader)
+
+        # # stack the list of tensors into a tensor
+        # all_masks_tens = torch.stack(( all_masks ))
+        # all_GT_tens =  torch.stack(( all_GT ))
+        # all_preds_tens = torch.stack(( all_predictions ))
+        # all_token_tens = torch.stack(( all_tokens ))
+
+        # # mask the prediction tensor
+        # selected_preds_coarse = torch.masked_select( all_preds_tens.to(f'cuda:0'), all_masks_tens )
+        # # mask the label tensor
+        # selected_labs_coarse = torch.masked_select( all_GT_tens.to(f'cuda:0'), all_masks_tens )
+        # # mask the natural language token tensor but with attention mask carefully
+        # selected_tokens_coarse = torch.masked_select( all_token_tens.to(f'cuda:0'), all_masks_tens )   
+
+        # # flatten the masked tensors
+        # all_pred_flat = flattenIt( selected_preds_coarse )
+        # # all_pred_flat = np.asarray(selected_preds_coarse.cpu(), dtype=np.float32).flatten()
+        # all_GT_flat = flattenIt( selected_labs_coarse )
+        # # all_GT_flat = np.asarray(selected_labs_coarse.cpu(), dtype=np.float32).flatten()
+        # all_tokens_flat = flattenIt( selected_tokens_coarse )
+        # # all_tokens_flat = np.asarray(selected_tokens_coarse.cpu(), dtype=np.int64).flatten()
 
         # Final classification report and confusion matrix for each epoch
-        val_cr = classification_report(y_pred= all_pred_flat, y_true=all_GT_flat, labels=list(range(exp_args.num_labels)), output_dict=True)
+        val_cr = classification_report(y_pred= eval_epochs_logits_coarse_i, y_true=eval_epochs_labels_coarse_i, labels=list(range(exp_args.num_labels)), output_dict=True)
+        # f1, f1_1 = printMetrics(val_cr, exp_args)
+        # print('Test: Epoch {} with macro average F1: {}, F1 score (entity): {}'.format(epoch_number, f1, f1_1))
+
 
         # confusion_matrix and plot
-        labels = [0, 1, 2, 3, 4]
-        cm = confusion_matrix(all_GT_flat, all_pred_flat, labels, normalize=None)
+        labels = [0, 1]
+        cm = confusion_matrix(eval_epochs_logits_coarse_i, eval_epochs_labels_coarse_i, labels, normalize=None)
 
-    return val_cr, all_pred_flat, all_GT_flat, cm, all_tokens_flat, class_rep_temp        
+    return val_cr, eval_epochs_logits_coarse_i, eval_epochs_labels_coarse_i, cm        
 
                                 
 # Train
 def train(defModel, optimizer, scheduler, train_dataloader, development_dataloader, exp_args, run, eachSeed):
+
+    torch.autograd.set_detect_anomaly(True)
 
     saved_models = []
 
@@ -196,7 +232,7 @@ def train(defModel, optimizer, scheduler, train_dataloader, development_dataload
                 b_masks = batch[2].to(f'cuda:{defModel.device_ids[0]}')
                 b_pos = batch[3].to(f'cuda:{defModel.device_ids[0]}')
 
-                b_loss, b_output, b_labels, b_mask = defModel(input_ids = b_input_ids, attention_mask=b_masks, labels=b_labels, input_pos=b_pos)
+                b_loss, b_output, b_output_masks, b_labels, b_labels_mask, b_mask = defModel(input_ids = b_input_ids, attention_mask=b_masks, labels=b_labels, input_pos=b_pos, args = exp_args)                
 
                 total_train_loss += abs( torch.mean(b_loss) ) 
 
@@ -213,23 +249,26 @@ def train(defModel, optimizer, scheduler, train_dataloader, development_dataload
 
                 for i in range(0, b_labels.shape[0]): # masked select excluding the post padding 
 
-                    selected_preds_coarse = torch.masked_select( b_output[i, ].to(f'cuda:{defModel.device_ids[0]}'), b_mask[i, ])
-                    selected_labs_coarse = torch.masked_select(b_labels[i, ].to(f'cuda:{defModel.device_ids[0]}'), b_mask[i, ])
+                    # convert continuous probas to classes for b_output and b_labels
+                    b_output_class = torch.argmax(b_output[i, ], dim=1)
+                    if exp_args.supervision == 'ws':
+                        b_label_class = torch.argmax(b_labels[i, ], dim=1)
+                    elif exp_args.supervision == 'fs':
+                        b_label_class = b_labels[i, ]
 
-                    train_epoch_logits_coarse_i = np.append(train_epoch_logits_coarse_i, selected_preds_coarse.to("cpu").numpy(), 0)
-                    train_epochs_labels_coarse_i = np.append(train_epochs_labels_coarse_i, selected_labs_coarse.to("cpu").numpy(), 0)
+                    selected_preds_coarse = torch.masked_select( b_output_class, b_mask[i, ])
+                    selected_labs_coarse = torch.masked_select( b_label_class, b_mask[i, ])
+
+                    selected_preds_coarse = selected_preds_coarse.detach().to("cpu").numpy()
+                    selected_labs_coarse = selected_labs_coarse.detach().to("cpu").numpy()
+
+                    train_epoch_logits_coarse_i = np.append(train_epoch_logits_coarse_i, selected_preds_coarse, 0)
+                    train_epochs_labels_coarse_i = np.append(train_epochs_labels_coarse_i, selected_labs_coarse, 0)
 
                 if step % exp_args.print_every == 0:
                     cr = sklearn.metrics.classification_report(y_pred= train_epoch_logits_coarse_i, y_true= train_epochs_labels_coarse_i, labels= list(range(exp_args.num_labels)), output_dict=True)
-                    if exp_args.num_labels == 5:  
-                        f1, f1_1 , f1_2, f1_3, f1_4 = printMetrics(cr, exp_args)
-                        print('Training: Epoch {} with macro average F1: {}, F1 score (P): {}, F1 score (IC): {}, F1 score (O): {}, F1 score (S): {}'.format(epoch_i, f1, f1_1 , f1_2, f1_3, f1_4))
-                    elif exp_args.num_labels == 4:  
-                        f1, f1_1 , f1_2, f1_3 = printMetrics(cr, exp_args)
-                        print('Training: Epoch {} with macro average F1: {}, F1 score (P): {}, F1 score (IC): {}, F1 score (O): {}'.format(epoch_i, f1, f1_1 , f1_2, f1_3))
-                    elif exp_args.num_labels == 2:
-                        f1, f1_1 = printMetrics(cr, exp_args)
-                        print('Training: Epoch {} with macro average F1: {}, F1 score (entity): {}'.format(epoch_i, f1, f1_1))
+                    f1, f1_1 = printMetrics(cr, exp_args)
+                    print('Training: Epoch {} with macro average F1: {}, F1 score (entity): {}'.format(epoch_i, f1, f1_1))
 
 
             ## Calculate the average loss over all of the batches.
@@ -237,28 +276,13 @@ def train(defModel, optimizer, scheduler, train_dataloader, development_dataload
 
             train_cr = classification_report(y_pred= train_epoch_logits_coarse_i, y_true=train_epochs_labels_coarse_i, labels= list(range(exp_args.num_labels)), output_dict=True)             
 
-            # Delete the collected logits and labels
-            del train_epoch_logits_coarse_i, train_epochs_labels_coarse_i
-            gc.collect()
-
-            val_cr, all_pred_flat_coarse, all_GT_flat_coarse, cm, all_tokens_flat, class_rep_temp  = evaluate(defModel, optimizer, scheduler, development_dataloader, exp_args, epoch_i)
-            if exp_args.num_labels == 5:  
-                val_f1, val_f1_1 , val_f1_2, val_f1_3, val_f1_4 = printMetrics(val_cr, exp_args)
-                logMetrics("val f1", val_f1, epoch_i)
-                logMetrics("val f1 P", val_f1_1, epoch_i); logMetrics("val f1 IC", val_f1_2, epoch_i); logMetrics("val f1 O", val_f1_3, epoch_i); logMetrics("val f1 S", val_f1_4, epoch_i)
-                print('Validation: Epoch {} with macro average F1: {}, F1 score (P): {}, F1 score (IC): {}, F1 score (O): {}, F1 score (S): {}'.format(epoch_i, val_f1, val_f1_2 , val_f1_2, val_f1_3, val_f1_4))
-
-            elif exp_args.num_labels == 4:  
-                val_f1, val_f1_1 , val_f1_2, val_f1_3 = printMetrics(val_cr, exp_args)
-                logMetrics("val f1", val_f1, epoch_i)
-                logMetrics("val f1 P", val_f1_1, epoch_i); logMetrics("val f1 IC", val_f1_2, epoch_i); logMetrics("val f1 O", val_f1_3, epoch_i)
-                print('Validation: Epoch {} with macro average F1: {}, F1 score (P): {}, F1 score (IC): {}, F1 score (O): {}'.format(epoch_i, val_f1, val_f1_2 , val_f1_2, val_f1_3))
-            elif exp_args.num_labels == 2:
-                val_f1, val_f1_1 = printMetrics(val_cr, exp_args)
-                logMetrics("val f1", val_f1, epoch_i)
-                string2print = "val f1" + str(exp_args.entity)
-                logMetrics(string2print, val_f1_1, epoch_i)
-                print('Validation: Epoch {} with macro average F1: {}, F1 score (entity): {}'.format(epoch_i, val_f1, val_f1_1))
+            val_cr, eval_epochs_logits_coarse_i, eval_epochs_labels_coarse_i, cm  = evaluate(defModel, optimizer, scheduler, development_dataloader, exp_args, epoch_i)
+           
+            val_f1, val_f1_1 = printMetrics(val_cr, exp_args)
+            #logMetrics("val f1", val_f1, epoch_i)
+            string2print = "val f1" + str(exp_args.entity)
+            # logMetrics(string2print, val_f1_1, epoch_i)
+            print('Validation: Epoch {} with macro average F1: {}, F1 score (entity): {}'.format(epoch_i, val_f1, val_f1_1))
 
             # Process of saving the model
             if val_f1 > best_f1:
