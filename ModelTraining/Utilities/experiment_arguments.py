@@ -16,7 +16,7 @@ def getArguments():
 
     # List of arguments to set up experiment
     parser = argparse.ArgumentParser()
-    parser.add_argument('-entity', type = str, default = 'participant') # train_data = {distant-cto, combined, ebm-pico} 
+    parser.add_argument('-entity', type = str, default = 'participant')
     parser.add_argument('-rawcand_file', type = Path, default = '/mnt/nas2/results/Results/systematicReview/distant_pico/predictions/LabelModels/p/v4/bestmodel.tsv')
     parser.add_argument('-ebm_nlp', type = Path, default = '/mnt/nas2/data/systematicReview/PICO_datasets/EBM_parsed/train_ebm.json')
     parser.add_argument('-ebm_gold', type = Path, default = '/mnt/nas2/data/systematicReview/PICO_datasets/EBM_parsed/test_ebm.json')
