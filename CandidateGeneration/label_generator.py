@@ -63,6 +63,16 @@ print('The random seed is set to: ', seed)
 ################################################################################
 #sw_lf = loadStopWords()
 
+################################################################################
+# Set global variable
+################################################################################
+candgen_version = 'v3' # version = {v3, v4, ...}
+
+if candgen_version == 'v3':
+    if_stopwords = True
+elif candgen_version == 'v4':
+    if_stopwords = False
+
 # Parse arguments for experi flow
 parser = argparse.ArgumentParser()
 parser.add_argument('-level1', type=bool, default=False) # Level1 = UMLS LF's
@@ -75,7 +85,7 @@ parser.add_argument('-levels', type=bool, default=False) # execute data labeling
 parser.add_argument('-umls_fpath', type=Path, default= 'UMLS/english_subset/umls_preprocessed/umls_tui_pio3_.db')
 parser.add_argument('-ds_fpath', type=Path, default='/mnt/nas2/data/systematicReview/ds_cto_dict' )
 parser.add_argument('-indir', type=Path, default='/mnt/nas2/data/systematicReview' ) # directory with labeling function sources
-parser.add_argument('-outdir', type=Path, default='/mnt/nas2/results/Results/systematicReview/distant_pico/test_ebm_anjani_candidate_generation/v3' ) # directory path to store the weakly labeled candidates
+parser.add_argument('-outdir', type=Path, default=f'/mnt/nas2/results/Results/systematicReview/distant_pico/test_physio_candidate_generation/{candgen_version}' ) # directory path to store the weakly labeled candidates
 parser.add_argument('-stop', type=bool, default=True ) # False = Wont have stopword LF, True = Will have stopword LF
 parser.add_argument('-write_cand', type=bool, default=True ) # Should write candidates? True = Yes, False = No
 args = parser.parse_args()
@@ -87,7 +97,7 @@ try:
     # Datasets used - EBM-PICO, Hilfiker physio
     ##############################################################################################################
     ebm_nlp = '/mnt/nas2/data/systematicReview/PICO_datasets/EBM_parsed'
-    df_data, df_data_flatten = loadEBMPICO( ebm_nlp, args.outdir, write_to_file = True )
+    df_data, df_data_flatten = loadEBMPICO( ebm_nlp, args.outdir, candgen_version=candgen_version, write_to_file = False )
 
     #########################################################################################
     # Level 1 - UMLS LF's
@@ -103,14 +113,15 @@ try:
         # umls_i = loadUMLSdb(umls_db, entity='I')
         umls_o = loadUMLSdb(umls_db, entity='O')
 
-        for m in ['fuzzy']: # fuzzy = fuzzy bigram match, direct = no fuzzy bigram match
+        # for m in ['direct', 'fuzzy']: # fuzzy = fuzzy bigram match, direct = no fuzzy bigram match
+        for m in ['direct', 'fuzzy']: # fuzzy = fuzzy bigram match, direct = no fuzzy bigram match
             outdir_umls = f'{args.outdir}/UMLS/{m}'
             # for entity, umls_d in zip(['P', 'I', 'O'], [ umls_p, umls_i, umls_o ]) :
             # for entity, umls_d in zip(['I', 'O'], [ umls_i, umls_o ]) :
             # for entity, umls_d in zip(['P'], [ umls_p ]):
             # for entity, umls_d in zip(['I'], [ umls_i ]):
-            # for entity, umls_d in zip(['O'], [ umls_o ]):
-                # label_umls_and_write(outdir_umls, umls_d, df_data, picos=entity, arg_options=args, write= args.write_cand )
+            for entity, umls_d in zip(['O'], [ umls_o ]):
+                label_umls_and_write(outdir_umls, umls_d, df_data, picos=entity, arg_options=args, write= args.write_cand )
 
 
     #########################################################################################
@@ -148,7 +159,8 @@ try:
         ds_intervention_syn = loadDS(args.ds_fpath, 'intervention_syn')
         ds_outcome = loadDS(args.ds_fpath, 'outcome')
 
-        for m in ['fuzzy']:
+        for m in ['direct', 'fuzzy']:
+        # for m in ['direct']:
             outdir_ds = f'{args.outdir}/ds/{m}'
             for ontology, entity, ont_name in zip([ds_participant], ['P'], ['ds_participant'] ) :
                 ds_p_labels = label_ont_and_write( outdir_ds, ontology, picos=entity, df_data=df_data, write=args.write_cand, arg_options=args, ontology_name=ont_name)
@@ -207,9 +219,9 @@ try:
         print('Retrieving abbreviations dictionaries')  
         p_abb = loadAbbreviations(f'{args.indir}/Ontologies/participant/diseaseabbreviations.tsv')
 
-        # Dictionary Labeling Function and Abbreviation dictionary Labeling function
+        # Dictionary Labeling Function
         for m in ['fuzzy', 'direct']:
-            for ontology, entity, ont_name in zip([p_genders, i_comparator, p_abb, o_endpoints], ['P', 'I', 'P', 'O'], ['dict_gender', 'dict_comparator', 'dict_p_abb', 'dict_o_terms'] ) : 
+            for ontology, entity, ont_name in zip([p_genders, i_comparator, o_endpoints], ['P', 'I', 'O'], ['dict_gender', 'dict_comparator', 'dict_o_terms'] ) : 
                 outdir_dict = f'{args.outdir}/dictionary/{m}'
                 dict_labels = label_ont_and_write( outdir_dict, ontology, picos=entity, df_data=df_data, write=args.write_cand, arg_options=args, ontology_name=ont_name)
 
@@ -231,18 +243,28 @@ try:
 
         for m in ['direct']:
             for ontology, entity, ont_name in zip([(positive_p, negative_p) ], ['P'], ['abb_p'] ) : 
-                outdir_dict = f'{args.outdir}/dictionary/{m}'
+                outdir_dict = f'{args.outdir}/heuristics/{m}'
                 label_abb_and_write(outdir_dict, ontology[0], ontology[1], entity, df_data=df_data, write=args.write_cand, arg_options=args, lf_name=ont_name)
 
         for m in ['direct']:
             for ontology, entity, ont_name in zip([(positive_i, negative_i) ], ['I'], ['abb_i'] ) : 
-                outdir_dict = f'{args.outdir}/dictionary/{m}'
+                outdir_dict = f'{args.outdir}/heuristics/{m}'
                 label_abb_and_write(outdir_dict, ontology[0], ontology[1], entity, df_data=df_data, write=args.write_cand, arg_options=args, lf_name=ont_name)
 
         for m in ['direct']:
             for ontology, entity, ont_name in zip([(positive_o, negative_o) ], ['O'], ['abb_o'] ) : 
-                outdir_dict = f'{args.outdir}/dictionary/{m}'
+                outdir_dict = f'{args.outdir}/heuristics/{m}'
                 label_abb_and_write(outdir_dict, ontology[0], ontology[1], entity, df_data=df_data, write=args.write_cand, arg_options=args, lf_name=ont_name)
+
+
+        print('Retrieving abbreviations dictionaries')  
+        p_abb = loadAbbreviations(f'{args.indir}/Ontologies/participant/diseaseabbreviations.tsv')
+        # Dictionary Labeling Function and Abbreviation dictionary Labeling function
+        for m in ['direct']:
+            for ontology, entity, ont_name in zip([p_abb], ['P'], ['dict_p_abb'] ) : 
+                outdir_dict = f'{args.outdir}/heuristics/{m}'
+                dict_labels = label_ont_and_write( outdir_dict, ontology, picos=entity, df_data=df_data, write=args.write_cand, arg_options=args, ontology_name=ont_name)
+
 
     #########################################################################################
     # TODO  Level 6 - External Model Labeling function
