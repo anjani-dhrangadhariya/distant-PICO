@@ -52,8 +52,8 @@ def selectTerminology(conn, pico_category):
 
     pico_category_pattern =  '%'+pico_category+'%'
     cur = conn.cursor()
-    # cur.execute("SELECT * FROM terminology1 WHERE ? LIKE ?", (pico_category, pico_category_pattern,))
-    cur.execute("SELECT * FROM terminology1 WHERE ? LIKE ? LIMIT 50000", (pico_category, pico_category_pattern,))
+    cur.execute("SELECT * FROM terminology1 WHERE ? LIKE ?", (pico_category, pico_category_pattern,))
+    # cur.execute("SELECT * FROM terminology1 WHERE ? LIKE ? LIMIT 50000", (pico_category, pico_category_pattern,))
 
     rows = cur.fetchall()
 
@@ -232,7 +232,7 @@ Returns:
 '''
 def loadPattern( pattern_name:str ):
 
-    if pattern_name == 'samplesize':
+    if pattern_name == 'samplesize': # Generic pattern 
 
         samp_size_pattern =  r'([0-9]+ ?([a-zA-Z0-9]+)? ?(patients?|subjects?|participants?|people?|individuals?|persons?|healthy individuals?|healthy adults?|children|toddlers?|adults?|healthy volunteers?|families?|men|women|teenagers?|families|parturients?|females?|males?)+)'
         compiled_pattern = re.compile(samp_size_pattern)
@@ -298,7 +298,14 @@ def loadPattern( pattern_name:str ):
 
         return compiled_pattern
 
-    if pattern_name == 'age1': # XXX: Pattern for age range
+    if pattern_name == 'age0': # XXX: Generic pattern for age (not range)
+
+        # old pattern: r'(([Aa]ge[ds]? )?\b([0-9]{1,2})\b(\s+years?|\s+months?)?(\s+old|-old)?\s?(-|to)\s?\b([0-9]{1,2})\b(\s+years?|\s+months?)+(\s+old|-old)?)'
+        age_range_pattern =  r'([Aa]ge[ds]?\s+)?\d+\s+(years?|months?|yr?s?)+(\s+[Aa]ge[ds]?)?'
+        compiled_pattern = re.compile(age_range_pattern)
+        return compiled_pattern
+
+    if pattern_name == 'age1': # XXX: Generic pattern for age range
 
         # old pattern: r'(([Aa]ge[ds]? )?\b([0-9]{1,2})\b(\s+years?|\s+months?)?(\s+old|-old)?\s?(-|to)\s?\b([0-9]{1,2})\b(\s+years?|\s+months?)+(\s+old|-old)?)'
         age_range_pattern =  r'([Aa]ge[ds]?\s+)?(between\s+|range\s+)?([0-9]{1,2}\s?(years?|months?|yr?s?)?\s?(-|and|to)\s?[0-9]{1,2})\s?(years?|months?|yr?s?)+\s?(olds?)?'
