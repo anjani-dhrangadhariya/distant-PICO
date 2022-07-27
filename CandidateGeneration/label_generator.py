@@ -66,7 +66,7 @@ print('The random seed is set to: ', seed)
 ################################################################################
 # Set global variable
 ################################################################################
-candgen_version = 'v3' # version = {v3, v4, ...}
+candgen_version = 'v4' # version = {v3, v4, ...}
 
 if candgen_version == 'v3':
     if_stopwords = True
@@ -78,16 +78,16 @@ parser = argparse.ArgumentParser()
 parser.add_argument('-level1', type=bool, default=False) # Level1 = UMLS LF's
 parser.add_argument('-level2', type=bool, default=False) # Level2: Non-UMLS LF's
 parser.add_argument('-level3', type=bool, default=False) # Level 3 = Distant Supervision LF's
-parser.add_argument('-level4', type=bool, default=False) # Level 4 = Rule based LF's (ReGeX, Heuristics and handcrafted dictionaries)
-parser.add_argument('-level5', type=bool, default=True) # Level 5 = Abbreviation LFs
+parser.add_argument('-level4', type=bool, default=True) # Level 4 = Rule based LF's (ReGeX, Heuristics and handcrafted dictionaries)
+parser.add_argument('-level5', type=bool, default=False) # Level 5 = Abbreviation LFs
 parser.add_argument('-level6', type=bool, default=False) # Level 6 = External Model LF's
 parser.add_argument('-levels', type=bool, default=False) # execute data labeling using all levels
 parser.add_argument('-umls_fpath', type=Path, default= 'UMLS/english_subset/umls_preprocessed/umls_tui_pio3_.db')
 parser.add_argument('-ds_fpath', type=Path, default='/mnt/nas2/data/systematicReview/ds_cto_dict' )
 parser.add_argument('-indir', type=Path, default='/mnt/nas2/data/systematicReview' ) # directory with labeling function sources
 parser.add_argument('-outdir', type=Path, default=f'/mnt/nas2/results/Results/systematicReview/distant_pico/test_physio_candidate_generation/{candgen_version}' ) # directory path to store the weakly labeled candidates
-parser.add_argument('-stop', type=bool, default=True ) # False = Wont have stopword LF, True = Will have stopword LF
-parser.add_argument('-write_cand', type=bool, default=True ) # Should write candidates? True = Yes, False = No
+parser.add_argument('-stop', type=bool, default=False ) # False = Wont have stopword LF, True = Will have stopword LF
+parser.add_argument('-write_cand', type=bool, default=False ) # Should write candidates? True = Yes - Write , False = No - Dont write
 args = parser.parse_args()
 
 try:
@@ -189,6 +189,8 @@ try:
         p_agemax = loadPattern( 'age2' )
         p_agemaxmin = loadPattern( 'age3' )
         p_meanage = loadPattern( 'meanage' )
+
+        i_control = loadPattern( 'control_i' )
 
         s_study_type = loadPattern( 'studytype' )
 
