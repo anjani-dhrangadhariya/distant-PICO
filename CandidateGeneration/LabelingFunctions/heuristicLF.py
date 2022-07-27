@@ -35,7 +35,8 @@ def posPattern_i ( df_data, picos: str, stopwords_general: list, tune_for: str =
 
         regex_matches = []
 
-        for t_i in [  'treatment', 'therapy', 'surgery' ]:
+        # for t_i in [  'treatment', 'therapy', 'surgery' ]: # old 
+        for t_i in [  'treatment', 'therapy', 'surgery', 'intervention', 'condition', 'group', 'arm', 'drug' ]: # new
             if t_i in text:
                 r = re.compile(t_i)
                 matches = [m for m in r.finditer(text)]
