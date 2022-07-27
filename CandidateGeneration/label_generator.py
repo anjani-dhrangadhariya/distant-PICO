@@ -85,9 +85,9 @@ parser.add_argument('-levels', type=bool, default=False) # execute data labeling
 parser.add_argument('-umls_fpath', type=Path, default= 'UMLS/english_subset/umls_preprocessed/umls_tui_pio3_.db')
 parser.add_argument('-ds_fpath', type=Path, default='/mnt/nas2/data/systematicReview/ds_cto_dict' )
 parser.add_argument('-indir', type=Path, default='/mnt/nas2/data/systematicReview' ) # directory with labeling function sources
-parser.add_argument('-outdir', type=Path, default=f'/mnt/nas2/results/Results/systematicReview/distant_pico/test_physio_candidate_generation/{candgen_version}' ) # directory path to store the weakly labeled candidates
-parser.add_argument('-stop', type=bool, default=False ) # False = Wont have stopword LF, True = Will have stopword LF
-parser.add_argument('-write_cand', type=bool, default=False ) # Should write candidates? True = Yes - Write , False = No - Dont write
+parser.add_argument('-outdir', type=Path, default=f'/mnt/nas2/results/Results/systematicReview/distant_pico/test_ebm_anjani_candidate_generation/{candgen_version}' ) # directory path to store the weakly labeled candidates
+parser.add_argument('-stop', type=bool, default=if_stopwords ) # False = Wont have stopword LF, True = Will have stopword LF
+parser.add_argument('-write_cand', type=bool, default=True ) # Should write candidates? True = Yes - Write , False = No - Dont write
 args = parser.parse_args()
 
 try:
@@ -195,7 +195,7 @@ try:
         s_study_type = loadPattern( 'studytype' )
 
         # # ReGeX Labeling Function
-        for reg_lf_i, entity, reg_lf_name in zip([p_sampsize, p_sampsize2, p_sampsize3, p_sampsize4, p_sampsize5, p_age, p_agerange, p_agemax, p_agemaxmin, p_meanage, s_study_type], ['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'S'], ['regex_sampsize', 'regex_sampsize2', 'regex_sampsize3', 'regex_sampsize4', 'regex_sampsize5', 'regex_age', 'regex_agerange', 'regex_agemax', 'regex_agemaxmin', 'regex_meanage', 'regex_stdtype'] ) : 
+        for reg_lf_i, entity, reg_lf_name in zip([p_sampsize, p_sampsize2, p_sampsize3, p_sampsize4, p_sampsize5, p_age, p_agerange, p_agemax, p_agemaxmin, p_meanage, i_control, s_study_type], ['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'I', 'S'], ['regex_sampsize', 'regex_sampsize2', 'regex_sampsize3', 'regex_sampsize4', 'regex_sampsize5', 'regex_age', 'regex_agerange', 'regex_agemax', 'regex_agemaxmin', 'regex_meanage', 'regex_comparator', 'regex_stdtype'] ) : 
         # for reg_lf_i, entity, reg_lf_name in zip([ p_sampsize3 ], ['P'], ['samplesize3'] ) : 
             outdir_reg = f'{args.outdir}/heuristics/direct'
             label_regex_and_write( outdir_reg, [reg_lf_i], picos=entity, df_data=df_data, write=args.write_cand, arg_options=args, lf_name=reg_lf_name )
