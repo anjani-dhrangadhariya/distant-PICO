@@ -55,8 +55,13 @@ def readManuallyAnnoted( input_file_path, entity, label_type=None ):
 
                 nct_ids.append(doc_key)
                 tokens.append(document_annotations['tokens'] )
-                entity_mod = entity + str('s')
+                if entity[-1] != 's':
+                    entity_mod = entity + str('s')
+                else:
+                    entity_mod = entity
+                # print( entity_mod )
                 if entity_mod in document_annotations:
+                    # print( document_annotations[entity_mod] )
                     labels.append(document_annotations[entity_mod])
                 else:
                     dummy_labels = ['0'] * len(document_annotations['tokens'])
@@ -67,9 +72,12 @@ def readManuallyAnnoted( input_file_path, entity, label_type=None ):
                     fine_labels = document_annotations[fine_entity]
 
                     for counter, f_l in enumerate( fine_labels ):
-                        if f_l == '0':
+                        if f_l == '0' or f_l == 0:
                             fine_labels[counter] = '0'
-                        if f_l != '0' and f_l != '0' and f_l != '1':
+                        if f_l == '1' or f_l == 1:
+                            fine_labels[counter] = '1'
+                        if (f_l != '0' and f_l !=  0) and (f_l !=  '1' and f_l != 1):
+                            # print( f_l )
                             fine_labels[counter] = '1'
 
                     # print( fine_labels )
