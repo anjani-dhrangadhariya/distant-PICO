@@ -73,21 +73,25 @@ if candgen_version == 'v3':
 elif candgen_version == 'v4':
     if_stopwords = False
 
+extract_abbs = True
+
+################################################################################
 # Parse arguments for experi flow
+################################################################################
 parser = argparse.ArgumentParser()
 parser.add_argument('-level1', type=bool, default=False) # Level1 = UMLS LF's
 parser.add_argument('-level2', type=bool, default=False) # Level2: Non-UMLS LF's
 parser.add_argument('-level3', type=bool, default=False) # Level 3 = Distant Supervision LF's
-parser.add_argument('-level4', type=bool, default=True) # Level 4 = Rule based LF's (ReGeX, Heuristics and handcrafted dictionaries)
-parser.add_argument('-level5', type=bool, default=False) # Level 5 = Abbreviation LFs
+parser.add_argument('-level4', type=bool, default=False) # Level 4 = Rule based LF's (ReGeX, Heuristics and handcrafted dictionaries)
+parser.add_argument('-level5', type=bool, default=True) # Level 5 = Abbreviation LFs
 parser.add_argument('-level6', type=bool, default=False) # Level 6 = External Model LF's
 parser.add_argument('-levels', type=bool, default=False) # execute data labeling using all levels
 parser.add_argument('-umls_fpath', type=Path, default= 'UMLS/english_subset/umls_preprocessed/umls_tui_pio3_.db')
 parser.add_argument('-ds_fpath', type=Path, default='/mnt/nas2/data/systematicReview/ds_cto_dict' )
 parser.add_argument('-indir', type=Path, default='/mnt/nas2/data/systematicReview' ) # directory with labeling function sources
-parser.add_argument('-outdir', type=Path, default=f'/mnt/nas2/results/Results/systematicReview/distant_pico/test_ebm_anjani_candidate_generation/{candgen_version}' ) # directory path to store the weakly labeled candidates
+parser.add_argument('-outdir', type=Path, default=f'/mnt/nas2/results/Results/systematicReview/distant_pico/test_ebm_candidate_generation/{candgen_version}' ) # directory path to store the weakly labeled candidates
 parser.add_argument('-stop', type=bool, default=if_stopwords ) # False = Wont have stopword LF, True = Will have stopword LF
-parser.add_argument('-write_cand', type=bool, default=True ) # Should write candidates? True = Yes - Write , False = No - Dont write
+parser.add_argument('-write_cand', type=bool, default=False ) # Should write candidates? True = Yes - Write , False = No - Dont write
 args = parser.parse_args()
 
 try:
@@ -232,16 +236,18 @@ try:
     #########################################################################################
     if args.level5 == True or args.levels == True:
 
-        umls_db = f'{args.indir}/{args.umls_fpath}'
-        print('Retrieving UMLS ontology arm (Preprocessing applied)')
-        umls_p  = loadUMLSdb(umls_db, entity='P')
-        positive_p, negative_p = loadAbbreviationDicts(umls_p)
+        if extract_abbs == True:
 
-        umls_i = loadUMLSdb(umls_db, entity='I')
-        positive_i, negative_i = loadAbbreviationDicts(umls_i)
+            umls_db = f'{args.indir}/{args.umls_fpath}'
+            print('Retrieving UMLS ontology arm (Preprocessing applied)')
+            umls_p  = loadUMLSdb(umls_db, entity='P')
+            positive_p, negative_p = loadAbbreviationDicts(umls_p)
 
-        umls_o = loadUMLSdb(umls_db, entity='O')
-        positive_o, negative_o = loadAbbreviationDicts(umls_o)
+            umls_i = loadUMLSdb(umls_db, entity='I')
+            positive_i, negative_i = loadAbbreviationDicts(umls_i)
+
+            umls_o = loadUMLSdb(umls_db, entity='O')
+            positive_o, negative_o = loadAbbreviationDicts(umls_o)
 
         for m in ['direct']:
             for ontology, entity, ont_name in zip([(positive_p, negative_p) ], ['P'], ['abb_p'] ) : 
