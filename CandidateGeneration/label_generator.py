@@ -89,7 +89,7 @@ parser.add_argument('-levels', type=bool, default=False) # execute data labeling
 parser.add_argument('-umls_fpath', type=Path, default= 'UMLS/english_subset/umls_preprocessed/umls_tui_pio3_.db')
 parser.add_argument('-ds_fpath', type=Path, default='/mnt/nas2/data/systematicReview/ds_cto_dict' )
 parser.add_argument('-indir', type=Path, default='/mnt/nas2/data/systematicReview' ) # directory with labeling function sources
-parser.add_argument('-outdir', type=Path, default=f'/mnt/nas2/results/Results/systematicReview/distant_pico/test_ebm_candidate_generation/{candgen_version}' ) # directory path to store the weakly labeled candidates
+parser.add_argument('-outdir', type=Path, default=f'/mnt/nas2/results/Results/systematicReview/distant_pico/test_physio_candidate_generation/{candgen_version}' ) # directory path to store the weakly labeled candidates
 parser.add_argument('-stop', type=bool, default=if_stopwords ) # False = Wont have stopword LF, True = Will have stopword LF
 parser.add_argument('-write_cand', type=bool, default=False ) # Should write candidates? True = Yes - Write , False = No - Dont write
 args = parser.parse_args()
@@ -249,6 +249,33 @@ try:
             umls_o = loadUMLSdb(umls_db, entity='O')
             positive_o, negative_o = loadAbbreviationDicts(umls_o)
 
+            ds_participant = loadDS(args.ds_fpath, 'participant')
+            ds_intervention = loadDS(args.ds_fpath, 'intervention')
+            ds_intervention_syn = loadDS(args.ds_fpath, 'intervention_syn')
+            ds_outcome = loadDS(args.ds_fpath, 'outcome')
+
+            p_DO, p_DO_syn = loadOnt( f'{args.indir}/Ontologies/participant/DOID.csv', delim = ',', term_index = 1, term_syn_index = 2  )
+            p_ctd, p_ctd_syn = loadOnt( f'{args.indir}/Ontologies/participant/CTD_diseases.tsv', delim = '\t', term_index = 0, term_syn_index = 7 )
+            p_HPO, p_HPO_syn = loadOnt( f'{args.indir}/Ontologies/participant/HP.csv', delim = ',', term_index = 1, term_syn_index = 2  )
+            p_abb = loadAbbreviations(f'{args.indir}/Ontologies/participant/diseaseabbreviations.tsv')
+            i_ctd, i_ctd_syn = loadOnt( f'{args.indir}/Ontologies/intervention/CTD_chemicals.tsv', delim = '\t', term_index = 0, term_syn_index = 7 )
+            i_chebi, i_chebi_syn = loadOnt( f'{args.indir}/Ontologies/intervention/CHEBI.csv', delim = ',', term_index = 1, term_syn_index = 2  )
+            o_oae, o_oae_syn = loadOnt( f'{args.indir}/Ontologies/outcome/OAE.csv', delim=',', term_index=1, term_syn_index=2 )
+
+            for i in [ds_participant, p_DO, p_DO_syn, p_ctd, p_ctd_syn, p_HPO, p_HPO_syn, p_abb]:
+                positive_p.update(set( i ))
+
+            for i in [ds_intervention, ds_intervention_syn, i_ctd, i_ctd_syn, i_chebi, i_chebi_syn]:
+                positive_i.update(set( i ))
+
+            for i in [ds_outcome, o_oae, o_oae_syn]:
+                positive_o.update(set( i ))
+
+            for ontology, entity in zip([ (positive_p, negative_p) , (positive_i, negative_i), (positive_o, negative_o) ], ['P', 'I', 'O'] ) : 
+                abbs = AbbreviationFetcher( df_data, ontology[0], ontology[1], entity)
+
+
+        # Load abbreviations into a dictionary
         for m in ['direct']:
             for ontology, entity, ont_name in zip([(positive_p, negative_p) ], ['P'], ['abb_p'] ) : 
                 outdir_dict = f'{args.outdir}/heuristics/{m}'
