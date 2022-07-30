@@ -336,27 +336,17 @@ def loadPattern( pattern_name:str ):
         compiled_pattern = re.compile(mean_age_pattern)
         return compiled_pattern
 
+    if pattern_name == 'control_i':
+
+        control_pattern = r'([tT]reatment-as)?(\(|-)?([cC]ontrols?|[pP]lacebo|[sS]tandard|[uU]sual|[wW]ait[ -]list)+(\)|\s|-|\s+of\s+)+(conditions?|treatments?|therap[y|ies]|groups?|conditions?|treated|care|subjects?)?'
+        compiled_pattern = re.compile(control_pattern)
+        return compiled_pattern  
+
 def loadExternalModel(fpath:str ):
 
     # TODO: Loads an external model (.pth) from a path onto CUDA
 
     return None
-
-def loadAbbreviationDicts(umls_d):
-
-    pos, neg = set(), set()
-
-    for k, v in umls_d.items():
-        for v_i in v:
-            if '-' not in v_i[1] and '!' not in v_i[1]: # positive
-                pos.add(v_i[0])
-
-            elif '-' in v_i[1]: # negative
-                neg.add(v_i[0])
-
-    return pos, neg
-
-
 
 def loadStopWords():
 
@@ -385,3 +375,18 @@ def loadStopWords():
     stopwords_lf.extend(additional_stopwords)
 
     return list( set(stopwords_lf) ) 
+
+
+def loadAbbreviationDicts(umls_d):
+
+    pos, neg = set(), set()
+
+    for k, v in umls_d.items():
+        for v_i in v:
+            if '-' not in v_i[1] and '!' not in v_i[1]: # positive
+                pos.add(v_i[0])
+
+            elif '-' in v_i[1]: # negative
+                neg.add(v_i[0])
+
+    return pos, neg
