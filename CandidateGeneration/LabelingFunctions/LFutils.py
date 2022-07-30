@@ -515,7 +515,7 @@ def label_heur_and_write( outdir, picos, df_data, write: bool, arg_options, lf_n
 
 
 
-def label_abb_and_write(outdir, positive, negative, picos, df_data, write: bool, arg_options, lf_name:str):
+def label_abb_and_write(outdir, abb_source, picos, df_data, write: bool, arg_options, lf_name:str):
 
 
     if arg_options.stop == True:
@@ -523,7 +523,7 @@ def label_abb_and_write(outdir, positive, negative, picos, df_data, write: bool,
     elif arg_options.stop == False:
         sw_lf = None
 
-    labels = ontologyLF.AbbrevLabelingFunction( df_data, positive, negative, picos = picos, stopwords_general=sw_lf )
+    labels = ontologyLF.AbbrevLabelingFunction( df_data, abb_source, picos = picos, stopwords_general=sw_lf )
 
     # convert labels to spans
     df_data_labels = spansToLabels(matches=labels, df_data=df_data, picos=picos)
