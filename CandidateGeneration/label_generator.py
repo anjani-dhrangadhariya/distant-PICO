@@ -66,14 +66,14 @@ print('The random seed is set to: ', seed)
 ################################################################################
 # Set global variable
 ################################################################################
-candgen_version = 'v4' # version = {v3, v4, ...}
+candgen_version = 'v3' # version = {v3, v4, ...}
 
 if candgen_version == 'v3':
     if_stopwords = True
 elif candgen_version == 'v4':
     if_stopwords = False
 
-extract_abbs = True
+extract_abbs = False
 
 ################################################################################
 # Parse arguments for experi flow
@@ -88,10 +88,11 @@ parser.add_argument('-level6', type=bool, default=False) # Level 6 = External Mo
 parser.add_argument('-levels', type=bool, default=False) # execute data labeling using all levels
 parser.add_argument('-umls_fpath', type=Path, default= 'UMLS/english_subset/umls_preprocessed/umls_tui_pio3_.db')
 parser.add_argument('-ds_fpath', type=Path, default='/mnt/nas2/data/systematicReview/ds_cto_dict' )
+parser.add_argument('-abb_fpath', type=Path, default='/mnt/nas2/data/systematicReview/abbreviations' )
 parser.add_argument('-indir', type=Path, default='/mnt/nas2/data/systematicReview' ) # directory with labeling function sources
 parser.add_argument('-outdir', type=Path, default=f'/mnt/nas2/results/Results/systematicReview/distant_pico/test_physio_candidate_generation/{candgen_version}' ) # directory path to store the weakly labeled candidates
 parser.add_argument('-stop', type=bool, default=if_stopwords ) # False = Wont have stopword LF, True = Will have stopword LF
-parser.add_argument('-write_cand', type=bool, default=False ) # Should write candidates? True = Yes - Write , False = No - Dont write
+parser.add_argument('-write_cand', type=bool, default=True ) # Should write candidates? True = Yes - Write , False = No - Dont write
 args = parser.parse_args()
 
 try:
@@ -276,20 +277,37 @@ try:
 
 
         # Load abbreviations into a dictionary
-        for m in ['direct']:
-            for ontology, entity, ont_name in zip([(positive_p, negative_p) ], ['P'], ['abb_p'] ) : 
-                outdir_dict = f'{args.outdir}/heuristics/{m}'
-                label_abb_and_write(outdir_dict, ontology[0], ontology[1], entity, df_data=df_data, write=args.write_cand, arg_options=args, lf_name=ont_name)
+        def get_abbs(entity):
+
+            abb_d = {}
+
+            entity_full = { 'P': 'participant', 'I': 'intervention', 'O': 'outcome' }
+
+            with open( f'{args.abb_fpath}/{entity_full[entity]}/abb_sources.json', 'r' ) as af:
+                for l in af:
+                    data_i = json.loads(l)
+                    abb_d.update( data_i )
+
+            return abb_d
+
+        abb_p = get_abbs('P')
+        abb_i = get_abbs('I')
+        abb_o = get_abbs('O')
 
         for m in ['direct']:
-            for ontology, entity, ont_name in zip([(positive_i, negative_i) ], ['I'], ['abb_i'] ) : 
+            for abb, entity, ont_name in zip([abb_p, abb_i, abb_o], ['P', 'I', 'O'], ['abb_p', 'abb_i', 'abb_o'] ) : 
                 outdir_dict = f'{args.outdir}/heuristics/{m}'
-                label_abb_and_write(outdir_dict, ontology[0], ontology[1], entity, df_data=df_data, write=args.write_cand, arg_options=args, lf_name=ont_name)
+                label_abb_and_write(outdir_dict, abb, entity, df_data=df_data, write=args.write_cand, arg_options=args, lf_name=ont_name)
 
-        for m in ['direct']:
-            for ontology, entity, ont_name in zip([(positive_o, negative_o) ], ['O'], ['abb_o'] ) : 
-                outdir_dict = f'{args.outdir}/heuristics/{m}'
-                label_abb_and_write(outdir_dict, ontology[0], ontology[1], entity, df_data=df_data, write=args.write_cand, arg_options=args, lf_name=ont_name)
+        # for m in ['direct']:
+        #     for ontology, entity, ont_name in zip([(positive_i, negative_i) ], ['I'], ['abb_i'] ) : 
+        #         outdir_dict = f'{args.outdir}/heuristics/{m}'
+        #         label_abb_and_write(outdir_dict, ontology[0], ontology[1], entity, df_data=df_data, write=args.write_cand, arg_options=args, lf_name=ont_name)
+
+        # for m in ['direct']:
+        #     for ontology, entity, ont_name in zip([(positive_o, negative_o) ], ['O'], ['abb_o'] ) : 
+        #         outdir_dict = f'{args.outdir}/heuristics/{m}'
+        #         label_abb_and_write(outdir_dict, ontology[0], ontology[1], entity, df_data=df_data, write=args.write_cand, arg_options=args, lf_name=ont_name)
 
 
         print('Retrieving abbreviations dictionaries')  
