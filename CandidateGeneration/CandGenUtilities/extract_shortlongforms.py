@@ -183,7 +183,7 @@ def get_short_form_index(cand_set):
 
 
 
-def doc_term_forms(words_tokens, pos_dict, neg_dict, pos, offsets, picos, stopwords):
+def doc_term_forms(words_tokens, pos_dict, neg_dict, pos, offsets, picos):
 
     abbrv_map = collections.defaultdict(list)
 
@@ -197,6 +197,7 @@ def doc_term_forms(words_tokens, pos_dict, neg_dict, pos, offsets, picos, stopwo
             continue
 
         abbrv_map[short_form].append( ( long_form, long_form_indices ) )
+
 
     # map each short form to a class label
     term_labels = {}
