@@ -1,6 +1,8 @@
 from cgitb import text
+import json
 from multiprocessing.sharedctypes import Value
 from nis import match
+import os
 import re
 import time
 from CandGenUtilities.extract_shortlongforms import doc_term_forms
@@ -24,8 +26,7 @@ Args:
     fuzzy_match (bool): switch for fuzzy bigram matching 
     max_ngram (int)
     case_sensitive (bool): switch for case sensitive matching
-Returns:
-    generated labels (list): 
+Returns:test_ebm_candidate_generation
 '''
 def OntologyLabelingFunctionX(corpus_text_series, 
                              corpus_words_series,
@@ -153,9 +154,49 @@ def ReGeXLabelingFunction(corpus_text_series,
     return corpus_matches
 
 
-def AbbrevLabelingFunction(df_data,
+def AbbreviationFetcher(df_data,
                           pos_dict,
                           neg_dict,
+                          picos: str):
+
+    # Abbreviations output dir
+    filedict = { 'P': 'participant', 'I': 'intervention', 'O': 'outcome' }
+    out_dir = f'/mnt/nas2/data/systematicReview/abbreviations/{filedict[picos]}/abb_sources.json'
+
+
+    corpus_texts_series = df_data['text']
+    corpus_words_series = df_data['tokens']
+    corpus_pos_series = df_data['pos']
+    corpus_offsets_series = df_data['offsets']
+
+    meta_term_labels = {}
+
+    for texts_series, words_series, pos_series, offsets_series in zip(corpus_texts_series, corpus_words_series, corpus_pos_series, corpus_offsets_series):
+            
+        term_labels_dictionary = doc_term_forms(words_series, pos_dict, neg_dict, pos_series, offsets_series, picos)
+        meta_term_labels.update( term_labels_dictionary )    
+
+
+    with open(out_dir, "a+") as outfile:
+        #json.dump(meta_term_labels, outfile)
+        outfile.write( json.dumps(meta_term_labels) )
+        outfile.write( "\n" )
+
+
+        # if os.stat(out_dir).st_size == 0:
+        #     json.dump(meta_term_labels, outfile)
+        # else:
+        #     with open(out_dir, "r") as tf:
+        #         temp_dict = json.load( tf )
+        #         meta_term_labels.update( temp_dict ) 
+        #         outfile.write( json.dumps(meta_term_labels) )
+        #         outfile.write( '\n' )
+
+    return meta_term_labels
+
+
+def AbbrevLabelingFunction(df_data,
+                          abb_sources,
                           picos: str,
                           stopwords_general:list = None,
                           max_ngram: int = 5,
@@ -179,10 +220,8 @@ def AbbrevLabelingFunction(df_data,
 
     for texts_series, words_series, pos_series, offsets_series in zip(corpus_texts_series, corpus_words_series, corpus_pos_series, corpus_offsets_series):
             
-        term_labels_dictionary = doc_term_forms(words_series, pos_dict, neg_dict, pos_series, offsets_series, picos, stopwords_general )
-
         if len(stop_dict) > 0:
-            term_labels_dictionary.update(stop_dict)
+            abb_sources.update(stop_dict)
 
         matches = []
 
@@ -199,7 +238,7 @@ def AbbrevLabelingFunction(df_data,
                     re.sub(r'''\s{2,}''', ' ', texts_series[start:end]).strip(),
                     ' '.join([w for w in words_series[i:j] if w.strip()])
                 ]:
-                    match_result = LFutils.match_term(term, term_labels_dictionary, case_sensitive)
+                    match_result = LFutils.match_term(term, abb_sources, case_sensitive)
                     if match_result[0] == True:
                         match = end
                         break
