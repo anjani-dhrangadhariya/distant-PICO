@@ -92,11 +92,16 @@ def loadUMLSdb(fpath, entity: str, remove_vet: bool = True, min_terms: int = 500
     if entity == 'O':
         df_new = df.groupby(['SAB']).apply(lambda x: list(zip( x.TERM_PRE , x.O))).to_dict()    
 
+    print( 'Dataframe size: ', len(df_new) )
+
     if remove_vet == True:
         df_new = removeNonHuman(df_new)
 
+    print( 'Dataframe size (vet removed): ', len(df_new) )
+
     # Remove the SAB with non-English ontologies
     df_new = removeNonEnglish(df_new)
+    print( 'Dataframe size (non-English removed): ', len(df_new) )
 
     # Remove terms with less than 'char_threshold characters
     if char_threshold:
@@ -105,6 +110,7 @@ def loadUMLSdb(fpath, entity: str, remove_vet: bool = True, min_terms: int = 500
     # Remove the SAB with less than X terms
     if min_terms:
         df_new = termCountThreshold( df_new )
+    print( 'Dataframe size (min terms removed): ', len(df_new) )
 
     # Lower case - smartlowercase that preserves the abbreviations
     if lower_case:
@@ -335,8 +341,14 @@ def loadPattern( pattern_name:str ):
 
     if pattern_name == 'studytype':
 
-        mean_age_pattern = r'(([Nn]o[nt] )?([rR]andom(i[sz]ed|ly|i[sz]ation)?)+(,? controlled| clinical)?( trials?)?)'
-        compiled_pattern = re.compile(mean_age_pattern)
+        studytype_pattern = r'(([Nn]o[nt] )?([rR]andom(i[sz]ed|ly|i[sz]ation)?)+(,? controlled| clinical)?( trials?)?)'
+        compiled_pattern = re.compile(studytype_pattern)
+        return compiled_pattern
+
+    if pattern_name == 'studytype_basic':
+
+        studytype_pattern = '(\s+([cC]ontroll?e?d?|[cC]linical)?\s([tT]rials?)?\s+)?([rR]andomi?[sz]?e?d?)(\s+([cC]ontroll?e?d?|[cC]linical)?\s([tT]rials?)?)?'
+        compiled_pattern = re.compile(studytype_pattern)
         return compiled_pattern
 
     if pattern_name == 'control_i':
