@@ -28,8 +28,8 @@ en = spacy.load('en_core_web_sm')
 translator = str.maketrans(' ', ' ', string.punctuation)
 
 from Ontologies.ontologyParser import createMySQLConn
-from Ontologies.ontoUtils import (allowedTermLength, countTerm, filterSAB,
-                                  preprocessOntology, removeNonHuman,
+from Ontologies.ontoUtils import (allowedTermLength, countTerm, filterLang, filterSAB,
+                                  preprocessOntology, removeNonEnglish, removeNonHuman,
                                   removeTerms, smart_lower_Case, termCountThreshold)
 
 '''
@@ -94,6 +94,9 @@ def loadUMLSdb(fpath, entity: str, remove_vet: bool = True, min_terms: int = 500
 
     if remove_vet == True:
         df_new = removeNonHuman(df_new)
+
+    # Remove the SAB with non-English ontologies
+    df_new = removeNonEnglish(df_new)
 
     # Remove terms with less than 'char_threshold characters
     if char_threshold:
