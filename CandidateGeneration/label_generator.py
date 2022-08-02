@@ -66,7 +66,7 @@ print('The random seed is set to: ', seed)
 ################################################################################
 # Set global variable
 ################################################################################
-candgen_version = 'v3' # version = {v3, v4, ...}
+candgen_version = 'v4' # version = {v3, v4, ...}
 
 if candgen_version == 'v3':
     if_stopwords = True
@@ -83,16 +83,16 @@ parser.add_argument('-level1', type=bool, default=False) # Level1 = UMLS LF's
 parser.add_argument('-level2', type=bool, default=False) # Level2: Non-UMLS LF's
 parser.add_argument('-level3', type=bool, default=False) # Level 3 = Distant Supervision LF's
 parser.add_argument('-level4', type=bool, default=False) # Level 4 = Rule based LF's (ReGeX, Heuristics and handcrafted dictionaries)
-parser.add_argument('-level5', type=bool, default=True) # Level 5 = Abbreviation LFs
+parser.add_argument('-level5', type=bool, default=False) # Level 5 = Abbreviation LFs
 parser.add_argument('-level6', type=bool, default=False) # Level 6 = External Model LF's
 parser.add_argument('-levels', type=bool, default=False) # execute data labeling using all levels
 parser.add_argument('-umls_fpath', type=Path, default= 'UMLS/english_subset/umls_preprocessed/umls_tui_pio3_.db')
 parser.add_argument('-ds_fpath', type=Path, default='/mnt/nas2/data/systematicReview/ds_cto_dict' )
 parser.add_argument('-abb_fpath', type=Path, default='/mnt/nas2/data/systematicReview/abbreviations' )
 parser.add_argument('-indir', type=Path, default='/mnt/nas2/data/systematicReview' ) # directory with labeling function sources
-parser.add_argument('-outdir', type=Path, default=f'/mnt/nas2/results/Results/systematicReview/distant_pico/test_physio_candidate_generation/{candgen_version}' ) # directory path to store the weakly labeled candidates
+parser.add_argument('-outdir', type=Path, default=f'/mnt/nas2/results/Results/systematicReview/distant_pico/training_ebm_candidate_generation/{candgen_version}' ) # directory path to store the weakly labeled candidates
 parser.add_argument('-stop', type=bool, default=if_stopwords ) # False = Wont have stopword LF, True = Will have stopword LF
-parser.add_argument('-write_cand', type=bool, default=True ) # Should write candidates? True = Yes - Write , False = No - Dont write
+parser.add_argument('-write_cand', type=bool, default=False ) # Should write candidates? True = Yes - Write , False = No - Dont write
 args = parser.parse_args()
 
 try:
@@ -114,8 +114,8 @@ try:
         
         umls_db = f'{args.indir}/{args.umls_fpath}'
         print('Retrieving UMLS ontology arm (Preprocessing applied)')
-        # umls_p  = loadUMLSdb(umls_db, entity='P')
-        # umls_i = loadUMLSdb(umls_db, entity='I')
+        umls_p  = loadUMLSdb(umls_db, entity='P')
+        umls_i = loadUMLSdb(umls_db, entity='I')
         umls_o = loadUMLSdb(umls_db, entity='O')
 
         # for m in ['direct', 'fuzzy']: # fuzzy = fuzzy bigram match, direct = no fuzzy bigram match
@@ -164,9 +164,10 @@ try:
         ds_intervention_syn = loadDS(args.ds_fpath, 'intervention_syn')
         ds_outcome = loadDS(args.ds_fpath, 'outcome')
 
-        for m in ['direct', 'fuzzy']:
-        # for m in ['direct']:
+        # for m in ['direct', 'fuzzy']:
+        for m in ['fuzzy']:
             outdir_ds = f'{args.outdir}/ds/{m}'
+            outdir_ds = f'/mnt/nas2/results/Results/systematicReview/order_free_matching/EBM_PICO_training_matches/{m}' # order-free matching
             for ontology, entity, ont_name in zip([ds_participant], ['P'], ['ds_participant'] ) :
                 ds_p_labels = label_ont_and_write( outdir_ds, ontology, picos=entity, df_data=df_data, write=args.write_cand, arg_options=args, ontology_name=ont_name)
 
@@ -222,13 +223,14 @@ try:
         p_genders = loadDict(f'{args.indir}/Ontologies/participant/gender_sexuality.txt')
         i_comparator = loadDict(f'{args.indir}/Ontologies/intervention/comparator_dict.txt')
         o_endpoints = loadDict(f'{args.indir}/Ontologies/outcome/endpoints_dict.txt')
+        s_dictionary = loadDict(f'{args.indir}/Ontologies/study_type/rct.txt')
 
         print('Retrieving abbreviations dictionaries')  
         p_abb = loadAbbreviations(f'{args.indir}/Ontologies/participant/diseaseabbreviations.tsv')
 
         # Dictionary Labeling Function
         for m in ['fuzzy', 'direct']:
-            for ontology, entity, ont_name in zip([p_genders, i_comparator, o_endpoints], ['P', 'I', 'O'], ['dict_gender', 'dict_comparator', 'dict_o_terms'] ) : 
+            for ontology, entity, ont_name in zip([p_genders, i_comparator, o_endpoints, s_dictionary], ['P', 'I', 'O', 'S'], ['dict_gender', 'dict_comparator', 'dict_o_terms', 'dict_s_type'] ) : 
                 outdir_dict = f'{args.outdir}/dictionary/{m}'
                 dict_labels = label_ont_and_write( outdir_dict, ontology, picos=entity, df_data=df_data, write=args.write_cand, arg_options=args, ontology_name=ont_name)
 
@@ -299,22 +301,12 @@ try:
                 outdir_dict = f'{args.outdir}/heuristics/{m}'
                 label_abb_and_write(outdir_dict, abb, entity, df_data=df_data, write=args.write_cand, arg_options=args, lf_name=ont_name)
 
-        # for m in ['direct']:
-        #     for ontology, entity, ont_name in zip([(positive_i, negative_i) ], ['I'], ['abb_i'] ) : 
-        #         outdir_dict = f'{args.outdir}/heuristics/{m}'
-        #         label_abb_and_write(outdir_dict, ontology[0], ontology[1], entity, df_data=df_data, write=args.write_cand, arg_options=args, lf_name=ont_name)
-
-        # for m in ['direct']:
-        #     for ontology, entity, ont_name in zip([(positive_o, negative_o) ], ['O'], ['abb_o'] ) : 
-        #         outdir_dict = f'{args.outdir}/heuristics/{m}'
-        #         label_abb_and_write(outdir_dict, ontology[0], ontology[1], entity, df_data=df_data, write=args.write_cand, arg_options=args, lf_name=ont_name)
-
-
         print('Retrieving abbreviations dictionaries')  
         p_abb = loadAbbreviations(f'{args.indir}/Ontologies/participant/diseaseabbreviations.tsv')
+        s_abb = loadAbbreviations(f'{args.indir}/Ontologies/study_type/studytype_abbreviations.tsv')
         # Dictionary Labeling Function and Abbreviation dictionary Labeling function
         for m in ['direct']:
-            for ontology, entity, ont_name in zip([p_abb], ['P'], ['dict_p_abb'] ) : 
+            for ontology, entity, ont_name in zip([p_abb, s_abb], ['P', 'S'], ['dict_p_abb', 'dict_s_abb'] ) : 
                 outdir_dict = f'{args.outdir}/heuristics/{m}'
                 dict_labels = label_ont_and_write( outdir_dict, ontology, picos=entity, df_data=df_data, write=args.write_cand, arg_options=args, ontology_name=ont_name)
 
