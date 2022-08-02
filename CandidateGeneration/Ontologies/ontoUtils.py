@@ -17,7 +17,8 @@ def filterSAB():
     return ['SNOMEDCT_VET', 'NCI_ZFin', 'NCI_ICDC', 'NCI_JAX'] # vet UMLS dictionaries
 
 
-
+def filterLang():
+    return ["CPTSP","DMDICD10","ICD10DUT","ICPCBAQ","ICPCDAN","ICPCDUT","ICPCFIN","ICPCFRE","ICPCGER","ICPCHEB","ICPCHUN","ICPCITA","ICPCNOR","ICPCPOR","ICPCSPA","ICPCSWE","ICPC2ICD10DUT","ICPC2EDUT","KCD5","LNC-ZH-CN","LNC-NL-NL","LNC-ET-EE","LNC-FR-BE","LNC-FR-CA","LNC-FR-FR","LNC-DE-AT","LNC-DE-DE","LNC-EL-GR","LNC-IT-IT","LNC-KO-KR","LNC-PL-PL","LNC-PT-BR","LNC-RU-RU","LNC-ES-AR","LNC-ES-MX","LNC-ES-ES","LNC-TR-TR","MDRBPO","MDRCZE","MDRDUT","MDRFRE","MDRGER","MDRHUN","MDRITA","MDRJPN","MDRKOR","MDRPOR","MDRRUS","MDRSPA","MEDLINEPLUS_SPA","MSHSCR","MSHCZE","MSHDUT","MSHFIN","MSHFRE","MSHGER","MSHITA","MSHJPN","MSHLAV","MSHNOR","MSHPOL","MSHPOR","MSHRUS","MSHSPA","MSHSWE","MTHMSTFRE","MTHMSTITA","SCTSPA","TKMT","DMDUMD","WHOFRE","WHOGER","WHOPOR","WHOSPA"]
 
 '''
 Description:
@@ -53,6 +54,17 @@ def countTerm(umls):
         if len(v) > 500:
             flagger = flagger + 1
     return flagger
+
+def removeNonEnglish(umls_d):
+
+
+    # Load the non-English ontology filter
+    non_english_umls = filterLang()
+
+    for i in non_english_umls:
+        umls_d.pop(i, None)
+
+    return umls_d
 
 def removeNonHuman(umls_d):
 
