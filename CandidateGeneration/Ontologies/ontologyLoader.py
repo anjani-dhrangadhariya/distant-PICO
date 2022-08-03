@@ -341,29 +341,29 @@ def loadPattern( pattern_name:str ):
 
     if pattern_name == 'studytype':
 
-        studytype_pattern = r'(([Nn]o[nt] )?([rR]andom(i[sz]ed|ly|i[sz]ation)?)+(,? controlled| clinical)?( trials?)?)'
+        studytype_pattern = r'(([Nn]o[nt][- ])?([rR]andom(i[sz]ed|ly|i[sz]ation)?)+(,? controlled| clinical)?( trials?)?)'
         compiled_pattern = re.compile(studytype_pattern)
         return compiled_pattern
 
     if pattern_name == 'studytype_basic':
 
-        studytype_pattern = '(\s+([cC]ontroll?e?d?|[cC]linical)?\s([tT]rials?)?\s+)?([rR]andomi?[sz]?e?d?)(\s+([cC]ontroll?e?d?|[cC]linical)?\s([tT]rials?)?)?'
+        studytype_pattern = r'(\s+([cC]ontroll?e?d?|[cC]linical)?\s([tT]rials?)?\s+)?([rR]andomi?[sz]?e?d?)(\s+([cC]ontroll?e?d?|[cC]linical)?\s([tT]rials?)?)?'
         compiled_pattern = re.compile(studytype_pattern)
         return compiled_pattern
 
     if pattern_name == 'studytype_basic+':
 
-        studytype_pattern = '(\s+([cC]ontroll?e?d?|[cC]linical)?\s([tT]rials?)?\s+)?([rR]andomi?[sz]?e?d?)(\s+([cC]ontroll?e?d?|[cC]linical)?\s([tT]rials?)?)?(\s+allocation)?'
+        studytype_pattern = r'(\s+([cC]ontroll?e?d?|[cC]linical)?\s([tT]rials?)?\s+)?([rR]andomi?[sz]?e?d?)(\s+([cC]ontroll?e?d?|[cC]linical)?\s([tT]rials?)?)?(\s+allocation)?'
         compiled_pattern = re.compile(studytype_pattern)
         return compiled_pattern
 
     if pattern_name == 'studytype_procedure':
-        studytype_pattern = '"(allocat(ed|ion)\s+)?([rR]andoml?y?|[rR]andomi?[sz]?e?d?)(\s+allocat(ed|ion))?"gm'
+        studytype_pattern = r'(allocat(ed|ion)\s+)?([rR]andoml?y?|[rR]andomi?[sz]?e?d?)(\s+allocat(ed|ion))?'
         compiled_pattern = re.compile(studytype_pattern)
         return compiled_pattern
 
     if pattern_name == 'studytypes_var':
-        studytype_pattern = '([rR]andomi?[sz]?e?d?\s?)?([cC]ross[- ]?over|[pP]arallel|[cC]luster|[fF]actorial|[pP]ragmatic|[sS]uperiority|[nN]on[- ]inferiority)(\s?[cC]linical\s?|\s?design\s?|\s?group\s?)?(\s?[tT]rials?|\s?assignment)?'
+        studytype_pattern = r'([rR]andomi?[sz]?e?d?,?\s?)?([cC]ross[- ]?over|[pP]arallel|[cC]luster|[fF]actorial|[pP]ragmatic|[sS]uperiority|[nN]on[- ]inferiority)(\s?[cC]linical\s?|\s?design\s?|\s?group\s?)?(\s?[tT]rials?|\s?assignment)?'
         compiled_pattern = re.compile(studytype_pattern)
         return compiled_pattern
 
