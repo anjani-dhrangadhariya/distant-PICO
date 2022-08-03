@@ -199,10 +199,13 @@ try:
         i_control = loadPattern( 'control_i' )
 
         s_study_type = loadPattern( 'studytype' )
-        s_study_type_basic =  loadPattern( 'studytype_basic' )
+        s_study_type_basic = loadPattern( 'studytype_basic' )
+        s_study_type_basicplus = loadPattern( 'studytype_basic+' )
+        s_study_type_proc = loadPattern( 'studytype_procedure' )
+        s_study_type_s = loadPattern( 'studytypes_var' )
 
         # # ReGeX Labeling Function
-        for reg_lf_i, entity, reg_lf_name in zip([p_sampsize, p_sampsize2, p_sampsize3, p_sampsize4, p_sampsize5, p_age, p_agerange, p_agemax, p_agemaxmin, p_meanage, i_control, s_study_type, s_study_type_basic], ['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'I', 'S', 'S'], ['regex_sampsize', 'regex_sampsize2', 'regex_sampsize3', 'regex_sampsize4', 'regex_sampsize5', 'regex_age', 'regex_agerange', 'regex_agemax', 'regex_agemaxmin', 'regex_meanage', 'regex_comparator', 'regex_stdtype', 'regex_stdtype_basic'] ) : 
+        for reg_lf_i, entity, reg_lf_name in zip([p_sampsize, p_sampsize2, p_sampsize3, p_sampsize4, p_sampsize5, p_age, p_agerange, p_agemax, p_agemaxmin, p_meanage, i_control, s_study_type, s_study_type_basic, s_study_type_basicplus, s_study_type_s], ['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'I', 'S', 'S', 'S', 'S'], ['regex_sampsize', 'regex_sampsize2', 'regex_sampsize3', 'regex_sampsize4', 'regex_sampsize5', 'regex_age', 'regex_agerange', 'regex_agemax', 'regex_agemaxmin', 'regex_meanage', 'regex_comparator', 'regex_stdtype', 'regex_stdtype_basic', 'regex_stdtype_types'] ) : 
         # for reg_lf_i, entity, reg_lf_name in zip([ p_sampsize3 ], ['P'], ['samplesize3'] ) : 
             outdir_reg = f'{args.outdir}/heuristics/direct'
             label_regex_and_write( outdir_reg, [reg_lf_i], picos=entity, df_data=df_data, write=args.write_cand, arg_options=args, lf_name=reg_lf_name )
