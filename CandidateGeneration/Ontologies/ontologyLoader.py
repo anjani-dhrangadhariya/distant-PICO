@@ -97,11 +97,11 @@ def loadUMLSdb(fpath, entity: str, remove_vet: bool = True, min_terms: int = 500
     if remove_vet == True:
         df_new = removeNonHuman(df_new)
 
-    print( 'Dataframe size (vet removed): ', len(df_new) )
+    # print( 'Dataframe size (vet removed): ', len(df_new) )
 
     # Remove the SAB with non-English ontologies
     df_new = removeNonEnglish(df_new)
-    print( 'Dataframe size (non-English removed): ', len(df_new) )
+    # print( 'Dataframe size (non-English removed): ', len(df_new) )
 
     # Remove terms with less than 'char_threshold characters
     if char_threshold:
@@ -110,7 +110,7 @@ def loadUMLSdb(fpath, entity: str, remove_vet: bool = True, min_terms: int = 500
     # Remove the SAB with less than X terms
     if min_terms:
         df_new = termCountThreshold( df_new )
-    print( 'Dataframe size (min terms removed): ', len(df_new) )
+    # print( 'Dataframe size (min terms removed): ', len(df_new) )
 
     # Lower case - smartlowercase that preserves the abbreviations
     if lower_case:
@@ -337,6 +337,12 @@ def loadPattern( pattern_name:str ):
 
         mean_age_pattern = r'(([Mm]ean|[Aa]verage|[Mm])\s+(age)\s?(=|was|of|,|:|) ?[0-9.± ()+-\/]+(years?|months?|yr?s?)?)'
         compiled_pattern = re.compile(mean_age_pattern)
+        return compiled_pattern
+
+    if pattern_name == 'adverse_o': # XXX adverse reactions
+
+        adverse_out_pattern = r'([sS]evere|[mM]oderate|[sS]erious|[mM]ild)?\s([sS]ide|[aA]dverse)+[\s-](events?|effects?|reactions?|experiences?)+'
+        compiled_pattern = re.compile(adverse_out_pattern)
         return compiled_pattern
 
     if pattern_name == 'studytype':
