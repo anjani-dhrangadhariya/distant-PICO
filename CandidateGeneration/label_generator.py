@@ -82,7 +82,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('-level1', type=bool, default=False) # Level1 = UMLS LF's
 parser.add_argument('-level2', type=bool, default=False) # Level2: Non-UMLS LF's
 parser.add_argument('-level3', type=bool, default=False) # Level 3 = Distant Supervision LF's
-parser.add_argument('-level4', type=bool, default=False) # Level 4 = Rule based LF's (ReGeX, Heuristics and handcrafted dictionaries)
+parser.add_argument('-level4', type=bool, default=True) # Level 4 = Rule based LF's (ReGeX, Heuristics and handcrafted dictionaries)
 parser.add_argument('-level5', type=bool, default=False) # Level 5 = Abbreviation LFs
 parser.add_argument('-level6', type=bool, default=False) # Level 6 = External Model LF's
 parser.add_argument('-levels', type=bool, default=False) # execute data labeling using all levels
@@ -121,11 +121,11 @@ try:
         # for m in ['direct', 'fuzzy']: # fuzzy = fuzzy bigram match, direct = no fuzzy bigram match
         for m in ['direct', 'fuzzy']: # fuzzy = fuzzy bigram match, direct = no fuzzy bigram match
             outdir_umls = f'{args.outdir}/UMLS/{m}'
-            # for entity, umls_d in zip(['P', 'I', 'O'], [ umls_p, umls_i, umls_o ]) :
+            for entity, umls_d in zip(['P', 'I', 'O'], [ umls_p, umls_i, umls_o ]) :
             # for entity, umls_d in zip(['I', 'O'], [ umls_i, umls_o ]) :
             # for entity, umls_d in zip(['P'], [ umls_p ]):
             # for entity, umls_d in zip(['I'], [ umls_i ]):
-            for entity, umls_d in zip(['O'], [ umls_o ]):
+            # for entity, umls_d in zip(['O'], [ umls_o ]):
                 label_umls_and_write(outdir_umls, umls_d, df_data, picos=entity, arg_options=args, write= args.write_cand )
 
 
@@ -135,22 +135,24 @@ try:
     if args.level2 == True or args.levels == True:
 
         print('Retrieving non-UMLS Ontologies  (Preprocessing applied)')
-        p_DO, p_DO_syn = loadOnt( f'{args.indir}/Ontologies/participant/DOID.csv', delim = ',', term_index = 1, term_syn_index = 2  )
-        p_ctd, p_ctd_syn = loadOnt( f'{args.indir}/Ontologies/participant/CTD_diseases.tsv', delim = '\t', term_index = 0, term_syn_index = 7 )
-        p_HPO, p_HPO_syn = loadOnt( f'{args.indir}/Ontologies/participant/HP.csv', delim = ',', term_index = 1, term_syn_index = 2  )
-        i_ctd, i_ctd_syn = loadOnt( f'{args.indir}/Ontologies/intervention/CTD_chemicals.tsv', delim = '\t', term_index = 0, term_syn_index = 7 )
-        i_chebi, i_chebi_syn = loadOnt( f'{args.indir}/Ontologies/intervention/CHEBI.csv', delim = ',', term_index = 1, term_syn_index = 2  )
+        # p_DO, p_DO_syn = loadOnt( f'{args.indir}/Ontologies/participant/DOID.csv', delim = ',', term_index = 1, term_syn_index = 2  )
+        # p_ctd, p_ctd_syn = loadOnt( f'{args.indir}/Ontologies/participant/CTD_diseases.tsv', delim = '\t', term_index = 0, term_syn_index = 7 )
+        # p_HPO, p_HPO_syn = loadOnt( f'{args.indir}/Ontologies/participant/HP.csv', delim = ',', term_index = 1, term_syn_index = 2  )
+        # i_ctd, i_ctd_syn = loadOnt( f'{args.indir}/Ontologies/intervention/CTD_chemicals.tsv', delim = '\t', term_index = 0, term_syn_index = 7 )
+        # i_chebi, i_chebi_syn = loadOnt( f'{args.indir}/Ontologies/intervention/CHEBI.csv', delim = ',', term_index = 1, term_syn_index = 2  )
         o_oae, o_oae_syn = loadOnt( f'{args.indir}/Ontologies/outcome/OAE.csv', delim=',', term_index=1, term_syn_index=2 )
+        o_so, o_so_syn = loadOnt( f'{args.indir}/Ontologies/outcome/SYMP.csv', delim=',', term_index=1, term_syn_index=2 )
+
 
         for m in ['fuzzy', 'direct']:
             outdir_non_umls = f'{args.outdir}/nonUMLS/{m}'
-            for ontology, ont_name in zip([p_HPO, p_HPO_syn, p_DO, p_DO_syn, p_ctd, p_ctd_syn], ['HPO', 'HPO_syn', 'DO', 'DO_syn', 'CTD', 'CTD_syn'] ) :
-               nonUMLS_p_labels = label_ont_and_write( outdir_non_umls, ontology, picos='P', df_data=df_data, write=args.write_cand, arg_options=args, ontology_name=ont_name)
+            # for ontology, ont_name in zip([p_HPO, p_HPO_syn, p_DO, p_DO_syn, p_ctd, p_ctd_syn], ['HPO', 'HPO_syn', 'DO', 'DO_syn', 'CTD', 'CTD_syn'] ) :
+            #    nonUMLS_p_labels = label_ont_and_write( outdir_non_umls, ontology, picos='P', df_data=df_data, write=args.write_cand, arg_options=args, ontology_name=ont_name)
 
-            for ontology, ont_name in zip([i_ctd, i_ctd_syn, i_chebi, i_chebi_syn], ['CTD', 'CTD_syn', 'chebi', 'chebi_syn'] ) :
-                nonUMLS_i_labels = label_ont_and_write( outdir_non_umls, ontology, picos='I', df_data=df_data, write=args.write_cand, arg_options=args, ontology_name=ont_name)
+            # for ontology, ont_name in zip([i_ctd, i_ctd_syn, i_chebi, i_chebi_syn], ['CTD', 'CTD_syn', 'chebi', 'chebi_syn'] ) :
+            #     nonUMLS_i_labels = label_ont_and_write( outdir_non_umls, ontology, picos='I', df_data=df_data, write=args.write_cand, arg_options=args, ontology_name=ont_name)
 
-            for ontology, ont_name in zip([o_oae, o_oae_syn ], ['oae', 'oae_syn'] ) :
+            for ontology, ont_name in zip([o_oae, o_oae_syn, o_so, o_so_syn ], ['oae', 'oae_syn', 'so', 'so_syn'] ) :
                 nonUMLS_o_labels = label_ont_and_write( outdir_non_umls, ontology, picos='O', df_data=df_data, write=args.write_cand, arg_options=args, ontology_name=ont_name)
 
     #########################################################################################
@@ -164,8 +166,8 @@ try:
         ds_intervention_syn = loadDS(args.ds_fpath, 'intervention_syn')
         ds_outcome = loadDS(args.ds_fpath, 'outcome')
 
-        # for m in ['direct', 'fuzzy']:
-        for m in ['fuzzy']:
+        for m in ['direct', 'fuzzy']:
+        # for m in ['fuzzy']:
             outdir_ds = f'{args.outdir}/ds/{m}'
             outdir_ds = f'/mnt/nas2/results/Results/systematicReview/order_free_matching/EBM_PICO_training_matches/{m}' # order-free matching
             for ontology, entity, ont_name in zip([ds_participant], ['P'], ['ds_participant'] ) :
@@ -183,6 +185,7 @@ try:
     ##############################################################################################################
     if args.level4 == True or args.levels == True:
 
+        ###################################### ReGeX Labeling Function ######################################
         print('Retrieving ReGeX patterns')
         p_sampsize = loadPattern( 'samplesize' ) # Generic pattern 
         p_sampsize2 = loadPattern( 'samplesize2' ) # Sample size in ReGeX expression (n=XXXX)
@@ -198,19 +201,22 @@ try:
 
         i_control = loadPattern( 'control_i' )
 
+        o_adverse = loadPattern( 'adverse_o' )
+
         s_study_type = loadPattern( 'studytype' )
         s_study_type_basic = loadPattern( 'studytype_basic' )
         s_study_type_basicplus = loadPattern( 'studytype_basic+' )
         s_study_type_proc = loadPattern( 'studytype_procedure' )
         s_study_type_s = loadPattern( 'studytypes_var' )
 
-        # # ReGeX Labeling Function
-        for reg_lf_i, entity, reg_lf_name in zip([p_sampsize, p_sampsize2, p_sampsize3, p_sampsize4, p_sampsize5, p_age, p_agerange, p_agemax, p_agemaxmin, p_meanage, i_control, s_study_type, s_study_type_basic, s_study_type_basicplus, s_study_type_s], ['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'I', 'S', 'S', 'S', 'S'], ['regex_sampsize', 'regex_sampsize2', 'regex_sampsize3', 'regex_sampsize4', 'regex_sampsize5', 'regex_age', 'regex_agerange', 'regex_agemax', 'regex_agemaxmin', 'regex_meanage', 'regex_comparator', 'regex_stdtype', 'regex_stdtype_basic', 'regex_stdtype_types'] ) : 
+        
+        for reg_lf_i, entity, reg_lf_name in zip([p_sampsize, p_sampsize2, p_sampsize3, p_sampsize4, p_sampsize5, p_age, p_agerange, p_agemax, p_agemaxmin, p_meanage, i_control, o_adverse, s_study_type, s_study_type_basic, s_study_type_basicplus, s_study_type_s], ['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'I', 'O', 'S', 'S', 'S', 'S'], ['regex_sampsize', 'regex_sampsize2', 'regex_sampsize3', 'regex_sampsize4', 'regex_sampsize5', 'regex_age', 'regex_agerange', 'regex_agemax', 'regex_agemaxmin', 'regex_meanage', 'regex_comparator', 'adverse_out' , 'regex_stdtype', 'regex_stdtype_basic', 'regex_stdtype_types'] ) : 
         # for reg_lf_i, entity, reg_lf_name in zip([ p_sampsize3 ], ['P'], ['samplesize3'] ) : 
             outdir_reg = f'{args.outdir}/heuristics/direct'
             label_regex_and_write( outdir_reg, [reg_lf_i], picos=entity, df_data=df_data, write=args.write_cand, arg_options=args, lf_name=reg_lf_name )
 
-        # # Heutistic Labeling Functions
+
+        ######################################  Heutistic Labeling Functions ###################################### 
         outdir_heurPattern = f'{args.outdir}/heuristics/direct'
 
         filename = 'lf_' + str('i_posreg') + '.tsv'
@@ -221,6 +227,9 @@ try:
 
         filename = 'lf_' + str('ps_heurPattern_labels') + '.tsv'
         label_heur_and_write( outdir_heurPattern, picos='P', df_data=df_data, write=args.write_cand, arg_options=args, lf_name=str(filename).replace('.tsv', ''))
+
+        filename = 'lf_' + str('lf_o_heurpattern_labels') + '.tsv'
+        label_heur_and_write( outdir_heurPattern, picos='O', df_data=df_data, write=args.write_cand, arg_options=args, lf_name=str(filename).replace('.tsv', ''))
 
        
         print('Retrieving hand-crafted dictionaries')
