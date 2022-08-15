@@ -103,7 +103,7 @@ def collection_to_dict(G_pos, picos, sign):
 
     return label_dict
 
-def build_word_graph(dictionary, picos, min_occur=25):
+def build_word_graph(dictionary, picos, min_occur=25): # min_occur is a variable that can be tuned. Default = 25
 
     bigram_labels = {}
 
@@ -455,7 +455,7 @@ def label_ont_and_write(outdir, terms, picos, df_data, write: bool, arg_options,
     # print(count_all)
 
     if write == True:
-        filename = 'lf_' + str(ontology_name) + '.tsv'
+        filename = 'lf_' + str(ontology_name) + '.tsv' # _65_bigram
         print( filename , ' : ', count_all )
         df_data.to_csv(f'{outdir}/{picos}/{filename}', sep='\t')
     else:
@@ -500,6 +500,9 @@ def label_heur_and_write( outdir, picos, df_data, write: bool, arg_options, lf_n
 
     if 'lf_ps_heurPattern_labels' in lf_name:
         labels = heuristicLF.heurPattern_p_sampsize( df_data, picos = picos, stopwords_general=sw_lf )
+
+    if 'lf_o_heurpattern_labels' in lf_name:
+        labels = heuristicLF.heurPattern_o_cal( df_data, picos = picos, stopwords_general=sw_lf )
 
     # convert labels to spans
     df_data_labels = spansToLabels(matches=labels, df_data=df_data, picos=picos)

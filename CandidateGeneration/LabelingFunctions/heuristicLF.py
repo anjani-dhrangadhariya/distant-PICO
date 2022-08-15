@@ -181,3 +181,17 @@ def heurPattern_p_sampsize( df_data, picos: str, stopwords_general: list ):
         regex_pos_corpus_matches.append( regex_pos_matches )
 
     return regex_pos_corpus_matches
+
+
+def heurPattern_o_cal( df_data, picos: str, stopwords_general: list ):
+
+    # Add stopwords to the lf (Negative labels)
+    stop_dict = {}
+    if stopwords_general:
+        stop_dict = { sw: '-'+picos for sw in stopwords_general }
+
+
+    
+
+
+    return None
