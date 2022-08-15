@@ -2,6 +2,7 @@ import re
 
 from LabelingFunctions.LFutils import pico2label, posPattern_i_to_labels, heurPattern_pa_to_labels
 
+punct_list = [ '±', '+/-', '!', '#', '$', '%', '&', '(', ')', '*', '+', ',', '-', '.', '/', ':', ';', '<', '=', '>', '?', '@', '\[', '\\', '\]', '^', '_', '{', '|', '}', '~' ] 
 
 '''
 Description:
@@ -183,15 +184,59 @@ def heurPattern_p_sampsize( df_data, picos: str, stopwords_general: list ):
     return regex_pos_corpus_matches
 
 
-def heurPattern_o_cal( df_data, picos: str, stopwords_general: list ):
+def heurPattern_o_cal( df_data, picos: str, stopwords_general: list, tune_for: str = 'specificity'  ):
 
     # Add stopwords to the lf (Negative labels)
     stop_dict = {}
     if stopwords_general:
         stop_dict = { sw: '-'+picos for sw in stopwords_general }
 
-
+    pattern = r'([tT]otal|[aA]verage|[mM]ean|[mM]edian|[cC]omplete|[cC]umulative|[pP]ostoperative)'
+    compiled_pattern = re.compile(pattern)
     
+    corpus_text = df_data['text']
+    corpus_tokens = df_data['tokens']
+    corpus_offsets = df_data['offsets']
+    corpus_pos = df_data['pos']
 
+    regex_pos_corpus_matches = []
 
-    return None
+    for text, tokens, offsets, pos in zip( corpus_text, corpus_tokens, corpus_offsets, corpus_pos ):
+
+        regex_pos_matches = list()
+
+        for counter, t in enumerate( tokens ):
+
+            if compiled_pattern.search( t ): # if the pattern is found
+
+                searched_pattern = compiled_pattern.findall( t )[0]
+
+                matching_indices_i = []
+
+                for i, (p, t_i) in enumerate( zip(pos[ counter: ], tokens) ): # then find the suceeding POS tags
+
+                    if p in [ 'NN', 'NNS', 'NNP', 'NNP', 'JJ' ] and t_i not in punct_list: #  and if they are relevant
+                        
+                        if len( matching_indices_i ) == 0:
+                            matching_indices_i.append( counter )
+                        matching_indices_i.append( counter+i )
+                    else:
+                        break
+
+                temp = list( set(matching_indices_i) )
+                if len( temp ) > 2:
+
+                    start_stop = list( set(matching_indices_i) )
+                    term_match = ' '.join( tokens[start_stop[0] : start_stop[-1]] )
+                    regex_pos_matches.append( ( [ offsets[start_stop[0]], offsets[start_stop[-1]]  ], term_match, picos ) )
+
+        # Match stopwords here
+        for k,v in stop_dict.items():
+            match_indices = [i for i, x in enumerate(tokens) if x == k]
+
+            for m_i in match_indices:
+                regex_pos_matches.append(( [ offsets[m_i], offsets[m_i+1] ], k, v ))
+
+        regex_pos_corpus_matches.append( regex_pos_matches )
+
+    return regex_pos_corpus_matches
