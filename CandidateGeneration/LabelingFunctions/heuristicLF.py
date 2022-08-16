@@ -191,7 +191,7 @@ def heurPattern_o_cal( df_data, picos: str, stopwords_general: list, tune_for: s
     if stopwords_general:
         stop_dict = { sw: '-'+picos for sw in stopwords_general }
 
-    pattern = r'([tT]otal|[aA]verage|[mM]ean|[mM]edian|[cC]omplete|[cC]umulative|[pP]ostoperative)'
+    pattern = r'([tT]otal|[aA]verage|[mM]ean|[mM]edian|[cC]omplete|[cC]umulative|[nN]on-cumulative|[pP]ostoperative)'
     compiled_pattern = re.compile(pattern)
     
     corpus_text = df_data['text']
