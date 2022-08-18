@@ -375,7 +375,7 @@ def loadPattern( pattern_name:str ):
 
     if pattern_name == 'control_i':
 
-        control_pattern = r'([tT]reatment-as)?(\(|-)?([cC]ontrols?|[pP]lacebo|[sS]tandard|[uU]sual|[wW]ait[ -]list)+(\)|\s|-|\s+of\s+)+(conditions?|treatments?|therap[y|ies]|groups?|conditions?|treated|care|subjects?)?'
+        control_pattern = r'([tT]reatment-as)?(\(|-)?([cC]ontrols?|[sS]ham|[pP]lacebo|[sS]tandard|[uU]sual|[wW]ait[ -]list)+(\)|\s|-|\s+of\s+)+(conditions?|treatments?|therap[y|ies]|groups?|conditions?|treated|care|subjects?)?'
         compiled_pattern = re.compile(control_pattern)
         return compiled_pattern  
 
