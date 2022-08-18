@@ -364,7 +364,7 @@ def loadPattern( pattern_name:str ):
         return compiled_pattern
 
     if pattern_name == 'studytype_procedure':
-        studytype_pattern = r'(allocat(ed|ion)\s+)?([rR]andoml?y?|[rR]andomi?[sz]?e?d?)(\s+allocat(ed|ion))?'
+        studytype_pattern = r'(allocat(ed|ion)\s+)?([rR]andoml?y?|[rR]andomi?[sz]?e?d?)(\s+allocat(ed|ion)|\s+divided|\s+administ(ered|ration))?'
         compiled_pattern = re.compile(studytype_pattern)
         return compiled_pattern
 
