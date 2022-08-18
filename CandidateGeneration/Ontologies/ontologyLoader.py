@@ -369,7 +369,7 @@ def loadPattern( pattern_name:str ):
         return compiled_pattern
 
     if pattern_name == 'studytypes_var':
-        studytype_pattern = r'([rR]andomi?[sz]?e?d?,?\s?)?([cC]ross[- ]?over|[pP]arallel|[cC]luster|[fF]actorial|[pP]ragmatic|[sS]uperiority|[nN]on[- ]inferiority|[eE]quivalence)(\s?[cC]linical\s?|\s?design\s?|\s?group\s?)?(\s?[tT]rials?|\s?assignment)?'
+        studytype_pattern = r'([rR]andomi?[sz]?e?d?,?\s?)?([cC]ross[- ]?over|[pP]arallel|[eE]xploratory|[cC]luster|[fF]actorial|[pP]ragmatic|[sS]uperiority|[nN]on[- ]inferiority|[eE]quivalence)(\s?[cC]linical\s?|\s?design\s?|\s?group\s?)?(\s?[tT]rials?|\s?assignment)?'
         compiled_pattern = re.compile(studytype_pattern)
         return compiled_pattern
 
