@@ -373,6 +373,11 @@ def loadPattern( pattern_name:str ):
         compiled_pattern = re.compile(studytype_pattern)
         return compiled_pattern
 
+    if pattern_name == 'studytype_binded':
+        studytype_pattern = r'([sS]ingle|[dD]ouble|[tT]riple|[qQ]uadruple|[oO]pen)+[- ]+(label|blind(ed|ing)?|mask(ed|ing)?)+[, ](controlled\s)?(clinical\s)?(trials?|study)?'
+        compiled_pattern = re.compile(studytype_pattern)
+        return compiled_pattern
+
     if pattern_name == 'control_i':
 
         control_pattern = r'([tT]reatment-as)?(\(|-)?([cC]ontrols?|[sS]ham|[pP]lacebo|[sS]tandard|[uU]sual|[wW]ait[ -]list)+(\)|\s|-|\s+of\s+)+(conditions?|treatments?|therap[y|ies]|groups?|conditions?|treated|care|subjects?)?'
