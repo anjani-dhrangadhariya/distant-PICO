@@ -369,12 +369,18 @@ def loadPattern( pattern_name:str ):
         return compiled_pattern
 
     if pattern_name == 'studytypes_var':
-        studytype_pattern = r'([rR]andomi?[sz]?e?d?,?\s?)?([cC]ross[- ]?over|[pP]arallel|[eE]xploratory|[cC]luster|[fF]actorial|[pP]ragmatic|[sS]uperiority|[nN]on[- ]inferiority|[eE]quivalence)(\s?[cC]linical\s?|\s?design\s?|\s?group\s?)?(\s?[tT]rials?|\s?assignment)?'
+        studytype_pattern = r'([rR]andomi?[sz]?e?d?,?\s?)?([cC]ross[- ]?over|[pP]arallel|[eE]xploratory|[cC]luster|[fF]actorial|[pP]ragmatic|[sS]uperiority|[nN]on[- ]inferiority|[eE]quivalence|[pP]rospective|[rR]etrospective)(\s?[cC]linical\s?|\s?design\s?|\s?group\s?)?(\s?[tT]rials?|\s?assignment)?'
         compiled_pattern = re.compile(studytype_pattern)
         return compiled_pattern
 
     if pattern_name == 'studytype_binded':
         studytype_pattern = r'([sS]ingle|[dD]ouble|[tT]riple|[qQ]uadruple|[oO]pen)+[- ]+(label|blind(ed|ing)?|mask(ed|ing)?)+[, ](controlled\s)?(clinical\s)?(trials?|study)?'
+        compiled_pattern = re.compile(studytype_pattern)
+        return compiled_pattern
+
+    if pattern_name == 'study_phase':
+
+        studytype_pattern = r'(randomi[sz]ed\s)?([pP]hase\s?)((0/1|1/2|2/3|3/4|I/II|II/III|iii|ii|i|iv|III|II|I|IV|0|1|2|3|4)(\s?|,?))+(clinical\s)?(trial|study)?'
         compiled_pattern = re.compile(studytype_pattern)
         return compiled_pattern
 
