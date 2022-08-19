@@ -184,6 +184,73 @@ def heurPattern_p_sampsize( df_data, picos: str, stopwords_general: list ):
     return regex_pos_corpus_matches
 
 
+def heurPattern_s_cal(df_data, picos: str, stopwords_general: list, tune_for: str = 'specificity' ):
+
+    # Add stopwords to the lf (Negative labels)
+    stop_dict = {}
+    if stopwords_general:
+        stop_dict = { sw: '-'+picos for sw in stopwords_general }
+
+    # pattern = r'((clinical|[cC]ontrolled)\s)+([tT]rial|[sS]tudy)+'
+    pattern = r'(((clinical|[cC]ontrolled)\s)+([tT]rial|[sS]tudy)+)'
+    compiled_pattern = re.compile(pattern)
+    
+    corpus_text = df_data['text']
+    corpus_tokens = df_data['tokens']
+    corpus_offsets = df_data['offsets']
+    corpus_pos = df_data['pos']
+
+    regex_pos_corpus_matches = []
+
+    for text, tokens, offsets, pos in zip( corpus_text, corpus_tokens, corpus_offsets, corpus_pos ):
+
+        regex_pos_matches = []
+
+        for i, (t, p) in enumerate( zip(tokens, pos) ):
+            
+            if i != len(pos)-3: # do not go to the last index
+
+                if compiled_pattern.match( ' '.join( tokens[ i:i+2 ] ) ): # if the pattern is found in the study
+                    
+                    # matched = compiled_pattern.findall( ' '.join( tokens[ i:i+2 ] ) )
+                    matched = [m for m in compiled_pattern.finditer(' '.join( tokens[ i:i+2 ] ))]
+                    orig_string =  ' '.join( tokens[ i:i+2 ] )
+
+                    for matched_i in matched:
+
+                        tokens_to_trace = list(reversed(tokens[ 0:i ]))
+                        pos_to_trace = list(reversed(pos[ 0:i ]))
+                        offs_to_trace = list(reversed(offsets[ 0:i ]))
+
+                        back_search_agg = []
+                        back_search_agg_o = []
+
+                        back_search_agg.extend( list(reversed(tokens[ i:i+2 ]) ))
+                        back_search_agg_o.extend( list(reversed(offsets[ i:i+2 ]) ))
+
+
+                        for t_x, p_x, o_x in zip( tokens_to_trace, pos_to_trace, offs_to_trace ):
+
+                            if p_x not in [ 'DT', 'IN', 'CC' ] and t_x not in [ '.', ')', '(', ':', '=', '>', '<' ]:
+                                back_search_agg.append( t_x )
+                                back_search_agg_o.append( o_x )
+                            else:
+                                break
+
+
+                        # print( list(reversed(back_search_agg)) , matched_i.group(0) )
+                        # print( list(reversed(back_search_agg)) , ' '.join( tokens[ i:i+2 ] ) )
+                        tokens_app = list(reversed(back_search_agg))
+                        spans = list(reversed(back_search_agg_o))
+
+                        regex_pos_matches.append( ( [ spans[0], spans[-1]  ], ' '.join(tokens_app), picos ) )
+
+        regex_pos_corpus_matches.append( regex_pos_matches )
+
+    return regex_pos_corpus_matches
+
+
+
 def heurPattern_o_cal( df_data, picos: str, stopwords_general: list, tune_for: str = 'specificity'  ):
 
     # Add stopwords to the lf (Negative labels)
