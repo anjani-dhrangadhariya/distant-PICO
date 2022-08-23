@@ -424,7 +424,7 @@ Args:
 Returns:
     df (df): Dataframe with flattened tokens and corresponding weak labels
 '''
-def label_ont_and_write(outdir, terms, picos, df_data, write: bool, arg_options, ontology_name:str):
+def label_ont_and_write(outdir, terms, picos, df_data, write: bool, arg_options, ontology_name:str, extra_negs:list = None):
 
     if str(outdir).split('/')[-1] == 'fuzzy':
         fuzzy_match = True
@@ -440,9 +440,9 @@ def label_ont_and_write(outdir, terms, picos, df_data, write: bool, arg_options,
 
     print( 'Fetching the labels for ', str(ontology_name) )
     if fuzzy_match == False:
-        nonumls_labels = ontologyLF.OntologyLabelingFunctionX(  df_data['text'], df_data['tokens'], df_data['offsets'], labels, picos=picos, fuzzy_match=fuzzy_match, stopwords_general = sw_lf)
+        nonumls_labels = ontologyLF.OntologyLabelingFunctionX(  df_data['text'], df_data['tokens'], df_data['offsets'], labels, picos=picos, fuzzy_match=fuzzy_match, stopwords_general = sw_lf, extra_negs = extra_negs)
     elif fuzzy_match == True:
-        nonumls_labels = ontologyLF.OntologyLabelingFunctionX(  df_data['text'], df_data['tokens'], df_data['offsets'], labels, picos=picos, fuzzy_match=fuzzy_match, stopwords_general = sw_lf)
+        nonumls_labels = ontologyLF.OntologyLabelingFunctionX(  df_data['text'], df_data['tokens'], df_data['offsets'], labels, picos=picos, fuzzy_match=fuzzy_match, stopwords_general = sw_lf, extra_negs = extra_negs)
 
     # convert labels to spans
     df_data_labels = spansToLabels(matches=nonumls_labels, df_data=df_data, picos=picos)
@@ -461,14 +461,14 @@ def label_ont_and_write(outdir, terms, picos, df_data, write: bool, arg_options,
     else:
         return df_data
 
-def label_regex_and_write(outdir, regex_compiled, picos, df_data, write: bool, arg_options, lf_name:str):
+def label_regex_and_write(outdir, regex_compiled, picos, df_data, write: bool, arg_options, lf_name:str, neg_labs:list = None):
 
     if arg_options.stop == True:
         sw_lf = sw
     elif arg_options.stop == False:
         sw_lf = None
 
-    regex_labels = ontologyLF.ReGeXLabelingFunction( df_data['text'], df_data['tokens'], df_data['offsets'], regex_compiled, picos=picos, stopwords_general=sw_lf )
+    regex_labels = ontologyLF.ReGeXLabelingFunction( df_data['text'], df_data['tokens'], df_data['offsets'], regex_compiled, picos=picos, stopwords_general=sw_lf, neg_labels=neg_labs )
 
     # convert labels to spans
     df_data_labels = spansToLabels(matches=regex_labels, df_data=df_data, picos=picos)
@@ -483,17 +483,17 @@ def label_regex_and_write(outdir, regex_compiled, picos, df_data, write: bool, a
         return df_data
 
 
-def label_heur_and_write( outdir, picos, df_data, write: bool, arg_options, lf_name: str ):
+def label_heur_and_write( outdir, picos, df_data, write: bool, arg_options, lf_name: str, tune_for:str, neg_labs: list ):
 
     labels = []
 
     if arg_options.stop == True:
         sw_lf = sw
     elif arg_options.stop == False:
-        sw_lf = None
+        sw_lf = None   
 
     if 'i_posreg' in lf_name:
-        labels = heuristicLF.posPattern_i( df_data, picos = picos, stopwords_general=sw_lf, tune_for = 'specificity' )
+        labels = heuristicLF.posPattern_i( df_data, picos = picos, stopwords_general=sw_lf, tune_for = tune_for )
 
     if 'lf_pa_regex_heur' in lf_name:
         labels = heuristicLF.heurPattern_pa( df_data, picos = picos, stopwords_general=sw_lf )
@@ -505,7 +505,7 @@ def label_heur_and_write( outdir, picos, df_data, write: bool, arg_options, lf_n
         labels = heuristicLF.heurPattern_o_cal( df_data, picos = picos, stopwords_general=sw_lf )
 
     if 'lf_s_heurpattern_labels' in lf_name:
-        labels = heuristicLF.heurPattern_s_cal( df_data, picos = picos, stopwords_general=sw_lf )
+        labels = heuristicLF.heurPattern_s_cal( df_data, picos = picos, stopwords_general=sw_lf, tune_for = tune_for, neg_labs=neg_labs )
 
     # convert labels to spans
     df_data_labels = spansToLabels(matches=labels, df_data=df_data, picos=picos)
