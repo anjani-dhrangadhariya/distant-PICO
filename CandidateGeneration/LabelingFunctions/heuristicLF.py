@@ -1,6 +1,7 @@
 import re
 
 from LabelingFunctions.LFutils import pico2label, posPattern_i_to_labels, heurPattern_pa_to_labels
+from LabelingFunctions.ontologyLF import OntologyLabelingFunctionX
 
 punct_list = [ '±', '+/-', '!', '#', '$', '%', '&', '(', ')', '*', '+', ',', '-', '.', '/', ':', ';', '<', '=', '>', '?', '@', '\[', '\\', '\]', '^', '_', '{', '|', '}', '~' ] 
 
@@ -77,6 +78,7 @@ def posPattern_i ( df_data, picos: str, stopwords_general: list, tune_for: str =
     return regex_pos_corpus_matches
 
 
+
 '''
 Description:
     Labeling function labels input data (str) with "Participant: Age" label using a heuristic combining ReGeX and a rule
@@ -133,6 +135,8 @@ def heurPattern_pa( df_data, picos: str, stopwords_general: list ):
 
     return regex_pos_corpus_matches
 
+
+
 '''
 TODO: Development remains
 '''
@@ -184,15 +188,24 @@ def heurPattern_p_sampsize( df_data, picos: str, stopwords_general: list ):
     return regex_pos_corpus_matches
 
 
-def heurPattern_s_cal(df_data, picos: str, stopwords_general: list, tune_for: str = 'specificity' ):
+
+def heurPattern_s_cal(df_data, picos: str, stopwords_general: list, tune_for: str = 'specificity', neg_labs: list = None ):
 
     # Add stopwords to the lf (Negative labels)
     stop_dict = {}
     if stopwords_general:
         stop_dict = { sw: '-'+picos for sw in stopwords_general }
 
-    # pattern = r'((clinical|[cC]ontrolled)\s)+([tT]rial|[sS]tudy)+'
-    pattern = r'(((clinical|[cC]ontrolled)\s)+([tT]rial|[sS]tudy)+)'
+    # Add specific negative labels for Study Type class
+    # neg_dict = {}
+    # if neg_labs:
+    #     neg_dict = { nl: '-'+picos for nl in neg_labs }
+
+    if tune_for == 'specificity':
+        pattern = r'(((clinical|[cC]ontrolled)\s)+([tT]rial|[sS]tudy)+)'
+    elif tune_for == 'sensitivity':
+        pattern = r'(((clinical|[cC]ontrolled)\s)?([tT]rial|[sS]tudy)+)'
+
     compiled_pattern = re.compile(pattern)
     
     corpus_text = df_data['text']
@@ -237,15 +250,25 @@ def heurPattern_s_cal(df_data, picos: str, stopwords_general: list, tune_for: st
                             else:
                                 break
 
-
-                        # print( list(reversed(back_search_agg)) , matched_i.group(0) )
-                        # print( list(reversed(back_search_agg)) , ' '.join( tokens[ i:i+2 ] ) )
                         tokens_app = list(reversed(back_search_agg))
                         spans = list(reversed(back_search_agg_o))
 
                         regex_pos_matches.append( ( [ spans[0], spans[-1]  ], ' '.join(tokens_app), picos ) )
 
+        # Match stopwords here
+        for k,v in stop_dict.items():
+            match_indices = [i for i, x in enumerate(tokens) if x == k]
+
+            for m_i in match_indices:
+                regex_pos_matches.append(( [ offsets[m_i], offsets[m_i+1] ], k, v ))
+
         regex_pos_corpus_matches.append( regex_pos_matches )
+
+     # Adds both the extra negative labels and also the stopwords
+    if neg_labs:
+        negative_labels_extra = OntologyLabelingFunctionX(  corpus_text, corpus_tokens, corpus_offsets, dict(), picos=picos, fuzzy_match=False, extra_negs = neg_labs)
+        for counter, m in enumerate( negative_labels_extra ):
+            regex_pos_corpus_matches[counter].extend( m )
 
     return regex_pos_corpus_matches
 
