@@ -34,10 +34,12 @@ def OntologyLabelingFunctionX(corpus_text_series,
                              source_terms: dict,
                              picos: str,
                              fuzzy_match: bool,
-                             stopwords_general,
+                             stopwords_general: list = None,
                              max_ngram: int = 5,
                              case_sensitive: bool = False,
-                             longest_match_only = True):
+                             longest_match_only = True,
+                             extra_negs: list = None):
+
 
     # Add bigrams in case 
     if fuzzy_match == True:
@@ -50,6 +52,14 @@ def OntologyLabelingFunctionX(corpus_text_series,
             sw_abstain = '-'+picos
             if sw not in source_terms:
                 source_terms[sw] = sw_abstain
+
+    # Add Negative labels to the dictionary if 
+    if isinstance(extra_negs, list):
+        print( 'adding negative labels to the list' )
+        for en in extra_negs:
+            en_abstain = '-'+picos
+            if en not in source_terms:
+                source_terms[en] = en_abstain
 
     corpus_matches = []
     longest_matches = []
@@ -78,7 +88,8 @@ def OntologyLabelingFunctionX(corpus_text_series,
 
                 if match:
                     term = re.sub(r'''\s{2,}''', ' ', texts_series[start:match]).strip()
-                    matches.append(( [start, match], term, match_result[-1] ))
+                    if start != match:
+                        matches.append(( [start, match], term, match_result[-1] ))
 
         corpus_matches.append( matches )
 
@@ -116,13 +127,18 @@ def ReGeXLabelingFunction(corpus_text_series,
                           corpus_offsets_series,
                           regex_compiled,
                           picos: str,
-                          stopwords_general:list = None
+                          stopwords_general:list = None,
+                          neg_labels : list = None
                           ):
 
     # Add stopwords to the lf (Negative labels)
     stop_dict = {}
     if isinstance(stopwords_general, list):
         stop_dict = { sw: '-'+picos for sw in stopwords_general }
+    
+    neg_dict = {}
+    if isinstance(neg_labels, list):
+        neg_dict = { nl: '-'+picos for nl in neg_labels }
 
     corpus_matches = []
 
@@ -148,8 +164,13 @@ def ReGeXLabelingFunction(corpus_text_series,
 
         corpus_matches.append(matches)
 
-    print("--- %s seconds ---" % (time.time() - start_time))
+    # Adds both the extra negative labels and also the stopwords
+    if neg_labels:
+        negative_labels_extra = OntologyLabelingFunctionX(  corpus_text_series, corpus_words_series, corpus_offsets_series, dict(), picos=picos, fuzzy_match=False, extra_negs = neg_labels)
+        for counter, m in enumerate( negative_labels_extra ):
+            corpus_matches[counter].extend( m )
 
+    print("--- %s seconds ---" % (time.time() - start_time))
 
     return corpus_matches
 
