@@ -1,3 +1,4 @@
+from re import S
 import pandas as pd
 import json
 import argparse
@@ -42,6 +43,8 @@ def loadEBMPICO(train_dir, outdir, candgen_version, write_to_file):
     i_f = []
     o = []
     o_f = []
+    s = []
+    s_f = []
 
     filename = ''
     if 'train' in outdir and 'anjani' not in outdir:
@@ -69,7 +72,6 @@ def loadEBMPICO(train_dir, outdir, candgen_version, write_to_file):
                 vp = v['participants']
                 p.append( vp )
             else:
-                print('Fake labels generated for Participants')
                 p.append( [ '0' ] * len( v['tokens'] ) )
 
             if 'participants_fine' in v:
@@ -79,7 +81,6 @@ def loadEBMPICO(train_dir, outdir, candgen_version, write_to_file):
                     vp_f = ['0' if x == 'O' else x for x in vp_f ]
                 p_f.append( vp_f )
             else:
-                print('Fake labels generated for Participants fine')
                 p_f.append( [ '0' ] * len( v['tokens'] ) )
 
 
@@ -111,9 +112,24 @@ def loadEBMPICO(train_dir, outdir, candgen_version, write_to_file):
                 o_f.append( vo_f  )
             else:
                 o_f.append( [ '0' ] * len( v['tokens'] ) )
+
+
+            if 'studytype' in v:
+                vs = v['studytype']
+                s.append( vs  )
+            else:
+                s.append( [ '0' ] * len( v['tokens'] ) )
+
+            if 'studytype_fine' in v:
+                vs_f = v['studytype']
+                if 'O' in vs_f:
+                    vs_f = ['0' if x == 'O' else x for x in vs_f ]
+                s_f.append( vs_f  )
+            else:
+                s_f.append( [ '0' ] * len( v['tokens'] ) )
     
 
-    df_data = pd.DataFrame( {'pmid': pmid, 'tokens': tokens, 'pos': pos, 'offsets': char_offsets, 'p': p, 'i': i, 'o': o, 'p_f': p_f, 'i_f': i_f, 'o_f': o_f  } )
+    df_data = pd.DataFrame( {'pmid': pmid, 'tokens': tokens, 'pos': pos, 'offsets': char_offsets, 'p': p, 'i': i, 'o': o, 's': s, 'p_f': p_f, 'i_f': i_f, 'o_f': o_f, 's_f': s_f  } )
     
     text = get_text(df_data['tokens'], df_data['offsets'])
     df_data['text'] = text
@@ -144,7 +160,15 @@ def loadEBMPICO(train_dir, outdir, candgen_version, write_to_file):
     df_data_of_labels_flatten = [item for sublist in list(df_data['o_f']) for item in sublist]
     df_data_of_labels_flatten = list(map(int, df_data_of_labels_flatten))
 
-    print( len(df_data_of_labels_flatten) )
+    #############################################
+
+    df_data_s_labels_flatten = [item for sublist in list(df_data['s']) for item in sublist]
+    df_data_s_labels_flatten = list(map(int, df_data_o_labels_flatten))
+
+    df_data_sf_labels_flatten = [item for sublist in list(df_data['s_f']) for item in sublist]
+    df_data_sf_labels_flatten = list(map(int, df_data_sf_labels_flatten))
+
+    # print( len(df_data_sf_labels_flatten) )
 
 
     write_df = pd.DataFrame(
@@ -158,6 +182,8 @@ def loadEBMPICO(train_dir, outdir, candgen_version, write_to_file):
     'i_f': df_data_if_labels_flatten,
     'o': df_data_o_labels_flatten,
     'o_f': df_data_of_labels_flatten,
+    's': df_data_s_labels_flatten,
+    's_f': df_data_sf_labels_flatten,
     })
 
     if write_to_file == True:
