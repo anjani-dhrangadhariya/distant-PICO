@@ -455,7 +455,7 @@ def label_ont_and_write(outdir, terms, picos, df_data, write: bool, arg_options,
     # print(count_all)
 
     if write == True:
-        filename = 'lf_' + str(ontology_name) + '.tsv' # _65_bigram
+        filename = 'lf_' + str(ontology_name) + '_negs.tsv' 
         print( filename , ' : ', count_all )
         df_data.to_csv(f'{outdir}/{picos}/{filename}', sep='\t')
     else:

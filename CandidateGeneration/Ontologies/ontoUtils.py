@@ -42,7 +42,10 @@ def preprocessOntology(term):
     # remove punctuation
     punctRemove = numRemove.translate(str.maketrans(' ', ' ', string.punctuation))
 
-    return punctRemove
+    # remove extra spaces
+    spc_remove = ' '.join(punctRemove.split())
+
+    return spc_remove
 
 def allowedTermLength(term):
     return True if len(term.split()) > 1 else False
