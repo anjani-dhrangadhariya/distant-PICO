@@ -24,6 +24,7 @@ from asyncore import write
 from collections import Counter, defaultdict
 from functools import reduce
 from itertools import chain
+import itertools
 from random import shuffle
 
 import numpy as np
@@ -80,9 +81,9 @@ extract_abbs = False
 ################################################################################
 parser = argparse.ArgumentParser()
 parser.add_argument('-level1', type=bool, default=False) # Level1 = UMLS LF's
-parser.add_argument('-level2', type=bool, default=False) # Level2: Non-UMLS LF's
+parser.add_argument('-level2', type=bool, default=True) # Level2: Non-UMLS LF's
 parser.add_argument('-level3', type=bool, default=False) # Level 3 = Distant Supervision LF's
-parser.add_argument('-level4', type=bool, default=True) # Level 4 = Rule based LF's (ReGeX, Heuristics and handcrafted dictionaries)
+parser.add_argument('-level4', type=bool, default=False) # Level 4 = Rule based LF's (ReGeX, Heuristics and handcrafted dictionaries)
 parser.add_argument('-level5', type=bool, default=False) # Level 5 = Abbreviation LFs
 parser.add_argument('-level6', type=bool, default=False) # Level 6 = External Model LF's
 parser.add_argument('-levels', type=bool, default=False) # execute data labeling using all levels
@@ -90,12 +91,100 @@ parser.add_argument('-umls_fpath', type=Path, default= 'UMLS/english_subset/umls
 parser.add_argument('-ds_fpath', type=Path, default='/mnt/nas2/data/systematicReview/ds_cto_dict' )
 parser.add_argument('-abb_fpath', type=Path, default='/mnt/nas2/data/systematicReview/abbreviations' )
 parser.add_argument('-indir', type=Path, default='/mnt/nas2/data/systematicReview' ) # directory with labeling function sources
-parser.add_argument('-outdir', type=Path, default=f'/mnt/nas2/results/Results/systematicReview/distant_pico/training_ebm_candidate_generation/{candgen_version}' ) # directory path to store the weakly labeled candidates
+parser.add_argument('-outdir', type=Path, default=f'/mnt/nas2/results/Results/systematicReview/distant_pico/test_physio_candidate_generation/{candgen_version}' ) # directory path to store the weakly labeled candidates
 parser.add_argument('-stop', type=bool, default=if_stopwords ) # False = Wont have stopword LF, True = Will have stopword LF
-parser.add_argument('-write_cand', type=bool, default=False ) # Should write candidates? True = Yes - Write , False = No - Dont write
+parser.add_argument('-write_cand', type=bool, default=True ) # Should write candidates? True = Yes - Write , False = No - Dont write
 args = parser.parse_args()
 
 try:
+
+    ##############################################################################################################
+    # Load labelling sources
+    ############################################################################################################## 
+    print('Retrieving UMLS ontology arm (Preprocessing applied)')
+    umls_db = f'{args.indir}/{args.umls_fpath}'
+    umls_p  = loadUMLSdb(umls_db, entity='P')
+    umls_p_lst = [v_i[0] for k,v in umls_p.items() for v_i in v  if '-' not in v_i[-1] ]               
+
+    umls_i = loadUMLSdb(umls_db, entity='I')
+    umls_i_lst = [v_i[0] for k,v in umls_i.items() for v_i in v  if '-' not in v_i[-1] ]
+
+    umls_o = loadUMLSdb(umls_db, entity='O')
+    umls_o_lst = [v_i[0] for k,v in umls_o.items() for v_i in v  if '-' not in v_i[-1] ]
+
+    print('Retrieving non-UMLS Ontologies  (Preprocessing applied)')
+    p_DO, p_DO_syn = loadOnt( f'{args.indir}/Ontologies/participant/DOID.csv', delim = ',', term_index = 1, term_syn_index = 2  )
+    p_ctd, p_ctd_syn = loadOnt( f'{args.indir}/Ontologies/participant/CTD_diseases.tsv', delim = '\t', term_index = 0, term_syn_index = 7 )
+    p_HPO, p_HPO_syn = loadOnt( f'{args.indir}/Ontologies/participant/HP.csv', delim = ',', term_index = 1, term_syn_index = 2  )
+    i_ctd, i_ctd_syn = loadOnt( f'{args.indir}/Ontologies/intervention/CTD_chemicals.tsv', delim = '\t', term_index = 0, term_syn_index = 7 )
+    i_chebi, i_chebi_syn = loadOnt( f'{args.indir}/Ontologies/intervention/CHEBI.csv', delim = ',', term_index = 1, term_syn_index = 2  )
+    o_oae, o_oae_syn = loadOnt( f'{args.indir}/Ontologies/outcome/OAE.csv', delim=',', term_index=1, term_syn_index=2 )
+    o_so, o_so_syn = loadOnt( f'{args.indir}/Ontologies/outcome/SYMP.csv', delim=',', term_index=1, term_syn_index=2 )
+    s_cto, s_cto_syn = loadOnt( f'{args.indir}/Ontologies/study_type/CTO.csv', delim=',', term_index=1, term_syn_index=2 )
+
+    print('Retrieving distant supervision dictionaries')
+    ds_participant = loadDS(args.ds_fpath, 'participant')
+    ds_intervention = loadDS(args.ds_fpath, 'intervention')
+    ds_intervention_syn = loadDS(args.ds_fpath, 'intervention_syn')
+    ds_outcome = loadDS(args.ds_fpath, 'outcome')
+
+    ######################################  Dictionary Labeling Functions ###############################
+    print('Retrieving hand-crafted dictionaries')
+    p_genders = loadDict(f'{args.indir}/Ontologies/participant/gender_sexuality.txt')
+    i_comparator = loadDict(f'{args.indir}/Ontologies/intervention/comparator_dict.txt')
+    o_endpoints = loadDict(f'{args.indir}/Ontologies/outcome/endpoints_dict.txt')
+    s_dictionary = loadDict(f'{args.indir}/Ontologies/study_type/rct.txt')
+
+    ###################################### ReGeX Labeling Function ######################################
+    print('Retrieving ReGeX patterns')
+    p_sampsize = loadPattern( 'samplesize' ) # Generic pattern 
+    p_sampsize2 = loadPattern( 'samplesize2' ) # Sample size in ReGeX expression (n=XXXX)
+    p_sampsize3 = loadPattern( 'samplesize3' )  # Digits expressed as words 0_999
+    p_sampsize4 = loadPattern( 'samplesize4' )  # Digits expressed as words one_to_999
+    p_sampsize5 = loadPattern( 'samplesize5' )  # Digits expressed as words one_to_999_999
+
+    p_age = loadPattern( 'age0' )
+    p_agerange = loadPattern( 'age1' )
+    p_agemax = loadPattern( 'age2' )
+    p_agemaxmin = loadPattern( 'age3' )
+    p_meanage = loadPattern( 'meanage' )
+
+    i_control = loadPattern( 'control_i' )
+
+    o_adverse = loadPattern( 'adverse_o' )
+
+    s_study_type = loadPattern( 'studytype' )
+    s_study_type_basic = loadPattern( 'studytype_basic' )
+    s_study_type_basicplus = loadPattern( 'studytype_basic+' )
+    s_study_type_proc = loadPattern( 'studytype_procedure' )
+    s_study_type_s = loadPattern( 'studytypes_var' )
+    s_placebo = loadPattern( 'control_i' )
+    s_blinding = loadPattern( 'studytype_binded' )
+    s_phase = loadPattern( 'study_phase' )
+
+    # Load abbreviations into a dictionary
+    def get_abbs(entity):
+
+        abb_d = {}
+
+        entity_full = { 'P': 'participant', 'I': 'intervention', 'O': 'outcome' }
+
+        with open( f'{args.abb_fpath}/{entity_full[entity]}/abb_sources.json', 'r' ) as af:
+            for l in af:
+                data_i = json.loads(l)
+                abb_d.update( data_i )
+
+        return abb_d
+
+    abb_p = get_abbs('P')
+    abb_i = get_abbs('I')
+    abb_o = get_abbs('O')
+
+    negative_labels = itertools.chain(abb_p, abb_o, umls_p_lst, umls_i_lst, umls_o_lst, p_genders, o_endpoints, ds_participant, ds_intervention, ds_intervention_syn, ds_outcome, p_DO, p_DO_syn, p_ctd, p_ctd_syn, p_HPO, p_HPO_syn, o_oae, o_oae_syn, o_so, o_so_syn, i_ctd, i_ctd_syn, i_chebi, i_chebi_syn)
+    negative_labels = list(set(negative_labels))
+
+    # remove intervention comparators
+    negative_labels_filtered = [ i for i in negative_labels if i.lower() not in list(map(str.lower, i_comparator))]
 
     ##############################################################################################################
     # Load training, validation and test datasets
@@ -112,21 +201,14 @@ try:
         # umls_tui_pio2 is used to generate UMLS2 candidate annotations: /systematicReview/distant_pico/candidate_generation/UMLS2
         # umls_v2.db is used to generate UMLS candidate annotations: /systematicReview/distant_pico/candidate_generation/UMLS
         
-        umls_db = f'{args.indir}/{args.umls_fpath}'
-        print('Retrieving UMLS ontology arm (Preprocessing applied)')
-        umls_p  = loadUMLSdb(umls_db, entity='P')
-        umls_i = loadUMLSdb(umls_db, entity='I')
-        umls_o = loadUMLSdb(umls_db, entity='O')
-
-        # for m in ['direct', 'fuzzy']: # fuzzy = fuzzy bigram match, direct = no fuzzy bigram match
         for m in ['direct', 'fuzzy']: # fuzzy = fuzzy bigram match, direct = no fuzzy bigram match
             outdir_umls = f'{args.outdir}/UMLS/{m}'
-            for entity, umls_d in zip(['P', 'I', 'O'], [ umls_p, umls_i, umls_o ]) :
             # for entity, umls_d in zip(['I', 'O'], [ umls_i, umls_o ]) :
             # for entity, umls_d in zip(['P'], [ umls_p ]):
             # for entity, umls_d in zip(['I'], [ umls_i ]):
             # for entity, umls_d in zip(['O'], [ umls_o ]):
-                label_umls_and_write(outdir_umls, umls_d, df_data, picos=entity, arg_options=args, write= args.write_cand )
+            # for entity, umls_d in zip(['P', 'I', 'O'], [ umls_p, umls_i, umls_o ]) :
+                # label_umls_and_write(outdir_umls, umls_d, df_data, picos=entity, arg_options=args, write= args.write_cand )
 
 
     #########################################################################################
@@ -134,50 +216,62 @@ try:
     #########################################################################################
     if args.level2 == True or args.levels == True:
 
-        print('Retrieving non-UMLS Ontologies  (Preprocessing applied)')
-        # p_DO, p_DO_syn = loadOnt( f'{args.indir}/Ontologies/participant/DOID.csv', delim = ',', term_index = 1, term_syn_index = 2  )
-        # p_ctd, p_ctd_syn = loadOnt( f'{args.indir}/Ontologies/participant/CTD_diseases.tsv', delim = '\t', term_index = 0, term_syn_index = 7 )
-        # p_HPO, p_HPO_syn = loadOnt( f'{args.indir}/Ontologies/participant/HP.csv', delim = ',', term_index = 1, term_syn_index = 2  )
-        # i_ctd, i_ctd_syn = loadOnt( f'{args.indir}/Ontologies/intervention/CTD_chemicals.tsv', delim = '\t', term_index = 0, term_syn_index = 7 )
-        # i_chebi, i_chebi_syn = loadOnt( f'{args.indir}/Ontologies/intervention/CHEBI.csv', delim = ',', term_index = 1, term_syn_index = 2  )
-        o_oae, o_oae_syn = loadOnt( f'{args.indir}/Ontologies/outcome/OAE.csv', delim=',', term_index=1, term_syn_index=2 )
-        o_so, o_so_syn = loadOnt( f'{args.indir}/Ontologies/outcome/SYMP.csv', delim=',', term_index=1, term_syn_index=2 )
+        # TODO: Negative labels for each class could be made using ontologies for the other class
+        neg_p = itertools.chain( i_ctd, i_ctd_syn, i_chebi, i_chebi_syn, o_oae, o_oae_syn, o_so, o_so_syn )
+        p_all = itertools.chain( p_HPO, p_HPO_syn, p_DO, p_DO_syn, p_ctd, p_ctd_syn )
+        neg_p_filtered = [ i for i in neg_p if i.lower() not in list(map(str.lower, p_all))]
 
+        neg_i = itertools.chain( p_HPO, p_HPO_syn, p_DO, p_DO_syn, p_ctd, p_ctd_syn, o_oae, o_oae_syn, o_so, o_so_syn )
+        i_all = itertools.chain( i_ctd, i_ctd_syn, i_chebi, i_chebi_syn )
+        neg_i_filtered = [ i for i in neg_i if i.lower() not in list(map(str.lower, i_all))]
+
+        neg_o = itertools.chain( p_HPO, p_HPO_syn, p_DO, p_DO_syn, p_ctd, p_ctd_syn, i_ctd, i_ctd_syn, i_chebi, i_chebi_syn )
+        o_all = itertools.chain( o_oae, o_oae_syn, o_so, o_so_syn )
+        neg_o_filtered = [ i for i in neg_o if i.lower() not in list(map(str.lower, o_all))]
 
         for m in ['fuzzy', 'direct']:
             outdir_non_umls = f'{args.outdir}/nonUMLS/{m}'
-            # for ontology, ont_name in zip([p_HPO, p_HPO_syn, p_DO, p_DO_syn, p_ctd, p_ctd_syn], ['HPO', 'HPO_syn', 'DO', 'DO_syn', 'CTD', 'CTD_syn'] ) :
-            #    nonUMLS_p_labels = label_ont_and_write( outdir_non_umls, ontology, picos='P', df_data=df_data, write=args.write_cand, arg_options=args, ontology_name=ont_name)
+            for ontology, ont_name in zip([p_HPO, p_HPO_syn, p_DO, p_DO_syn, p_ctd, p_ctd_syn], ['HPO', 'HPO_syn', 'DO', 'DO_syn', 'CTD', 'CTD_syn'] ) :
+               nonUMLS_p_labels = label_ont_and_write( outdir_non_umls, ontology, picos='P', df_data=df_data, write=args.write_cand, arg_options=args, ontology_name=ont_name, extra_negs=neg_p_filtered)
 
-            # for ontology, ont_name in zip([i_ctd, i_ctd_syn, i_chebi, i_chebi_syn], ['CTD', 'CTD_syn', 'chebi', 'chebi_syn'] ) :
-            #     nonUMLS_i_labels = label_ont_and_write( outdir_non_umls, ontology, picos='I', df_data=df_data, write=args.write_cand, arg_options=args, ontology_name=ont_name)
+            for ontology, ont_name in zip([i_ctd, i_ctd_syn, i_chebi, i_chebi_syn], ['CTD', 'CTD_syn', 'chebi', 'chebi_syn'] ) :
+                nonUMLS_i_labels = label_ont_and_write( outdir_non_umls, ontology, picos='I', df_data=df_data, write=args.write_cand, arg_options=args, ontology_name=ont_name, extra_negs=neg_i_filtered)
 
             for ontology, ont_name in zip([o_oae, o_oae_syn, o_so, o_so_syn ], ['oae', 'oae_syn', 'so', 'so_syn'] ) :
-                nonUMLS_o_labels = label_ont_and_write( outdir_non_umls, ontology, picos='O', df_data=df_data, write=args.write_cand, arg_options=args, ontology_name=ont_name)
+                nonUMLS_o_labels = label_ont_and_write( outdir_non_umls, ontology, picos='O', df_data=df_data, write=args.write_cand, arg_options=args, ontology_name=ont_name, extra_negs=neg_o_filtered)
+
+            # for ontology, ont_name in zip([s_cto, s_cto_syn ], ['s_cto', 's_cto_syn'] ) :
+            #     nonUMLS_s_labels = label_ont_and_write( outdir_non_umls, ontology, picos='S', df_data=df_data, write=args.write_cand, arg_options=args, ontology_name=ont_name, extra_negs=negative_labels_filtered)
 
     #########################################################################################
     # Level 3 - Distant Supervision LF's
     #########################################################################################
     if args.level3 == True or args.levels == True:
 
-        print('Retrieving distant supervision dictionaries')
-        ds_participant = loadDS(args.ds_fpath, 'participant')
-        ds_intervention = loadDS(args.ds_fpath, 'intervention')
-        ds_intervention_syn = loadDS(args.ds_fpath, 'intervention_syn')
-        ds_outcome = loadDS(args.ds_fpath, 'outcome')
+        neg_p = itertools.chain( ds_intervention, ds_intervention_syn, ds_outcome )
+        neg_p = list(set(neg_p))
+        neg_p_filtered = [ i for i in neg_p if i.lower() not in list(map(str.lower, ds_participant))]
+    
+        neg_i = itertools.chain( ds_participant, ds_outcome )
+        neg_i = list(set(neg_i))
+        ds_i_all = ds_intervention_syn + ds_intervention
+        neg_i_filtered = [ i for i in neg_i if i.lower() not in list(map(str.lower, ds_i_all))]
 
-        for m in ['direct', 'fuzzy']:
-        # for m in ['fuzzy']:
+        neg_o = itertools.chain( ds_intervention, ds_intervention_syn, ds_participant )
+        neg_o = list(set(neg_o))
+        neg_o_filtered = [ i for i in neg_o if i.lower() not in list(map(str.lower, ds_outcome))]
+
+        for m in ['fuzzy', 'direct']:
             outdir_ds = f'{args.outdir}/ds/{m}'
             outdir_ds = f'/mnt/nas2/results/Results/systematicReview/order_free_matching/EBM_PICO_training_matches/{m}' # order-free matching
             for ontology, entity, ont_name in zip([ds_participant], ['P'], ['ds_participant'] ) :
-                ds_p_labels = label_ont_and_write( outdir_ds, ontology, picos=entity, df_data=df_data, write=args.write_cand, arg_options=args, ontology_name=ont_name)
+                ds_p_labels = label_ont_and_write( outdir_ds, ontology, picos=entity, df_data=df_data, write=args.write_cand, arg_options=args, ontology_name=ont_name, extra_negs=neg_p_filtered)
 
             for ontology, entity, ont_name in zip([ds_intervention, ds_intervention_syn], ['I', 'I'], ['ds_intervetion', 'ds_intervention_syn'] ) :
-                ds_i_labels = label_ont_and_write( outdir_ds, ontology, picos=entity, df_data=df_data, write=args.write_cand, arg_options=args, ontology_name=ont_name)
+                ds_i_labels = label_ont_and_write( outdir_ds, ontology, picos=entity, df_data=df_data, write=args.write_cand, arg_options=args, ontology_name=ont_name, extra_negs=neg_i_filtered)
         
             for ontology, entity, ont_name in zip([ds_outcome], ['O'], ['ds_outcome'] ) :
-                ds_o_labels = label_ont_and_write( outdir_ds, ontology, picos=entity, df_data=df_data, write=args.write_cand, arg_options=args, ontology_name=ont_name)
+                ds_o_labels = label_ont_and_write( outdir_ds, ontology, picos=entity, df_data=df_data, write=args.write_cand, arg_options=args, ontology_name=ont_name, extra_negs=neg_o_filtered)
     
 
     ##############################################################################################################
@@ -185,67 +279,56 @@ try:
     ##############################################################################################################
     if args.level4 == True or args.levels == True:
 
-        ###################################### ReGeX Labeling Function ######################################
-        print('Retrieving ReGeX patterns')
-        p_sampsize = loadPattern( 'samplesize' ) # Generic pattern 
-        p_sampsize2 = loadPattern( 'samplesize2' ) # Sample size in ReGeX expression (n=XXXX)
-        p_sampsize3 = loadPattern( 'samplesize3' )  # Digits expressed as words 0_999
-        p_sampsize4 = loadPattern( 'samplesize4' )  # Digits expressed as words one_to_999
-        p_sampsize5 = loadPattern( 'samplesize5' )  # Digits expressed as words one_to_999_999
+        ###################################### Fetch negative labelling function ######################################
 
-        p_age = loadPattern( 'age0' )
-        p_agerange = loadPattern( 'age1' )
-        p_agemax = loadPattern( 'age2' )
-        p_agemaxmin = loadPattern( 'age3' )
-        p_meanage = loadPattern( 'meanage' )
 
-        i_control = loadPattern( 'control_i' )
+        # print('Retrieving abbreviations dictionaries')  
+        # p_abb = loadAbbreviations(f'{args.indir}/Ontologies/participant/diseaseabbreviations.tsv')
 
-        o_adverse = loadPattern( 'adverse_o' )
+        # Dictionary Labeling Function
+        for m in ['fuzzy', 'direct']:
+            for ontology, entity, ont_name in zip([p_genders, i_comparator, o_endpoints, s_dictionary, i_comparator], ['P', 'I', 'O', 'S', 'S'], ['dict_gender', 'dict_comparator', 'dict_o_terms', 'dict_s_type', 'dict_s_comp_type'] ) : 
+                outdir_dict = f'{args.outdir}/dictionary/{m}'
+                if entity == 'S':
+                    dict_labels = label_ont_and_write( outdir_dict, ontology, picos=entity, df_data=df_data, write=args.write_cand, arg_options=args, ontology_name=ont_name, extra_negs=negative_labels_filtered)
+                else:
+                    continue
+                    # dict_labels = label_ont_and_write( outdir_dict, ontology, picos=entity, df_data=df_data, write=args.write_cand, arg_options=args, ontology_name=ont_name)
 
-        s_study_type = loadPattern( 'studytype' )
-        s_study_type_basic = loadPattern( 'studytype_basic' )
-        s_study_type_basicplus = loadPattern( 'studytype_basic+' )
-        s_study_type_proc = loadPattern( 'studytype_procedure' )
-        s_study_type_s = loadPattern( 'studytypes_var' )
 
-        
-        for reg_lf_i, entity, reg_lf_name in zip([p_sampsize, p_sampsize2, p_sampsize3, p_sampsize4, p_sampsize5, p_age, p_agerange, p_agemax, p_agemaxmin, p_meanage, i_control, o_adverse, s_study_type, s_study_type_basic, s_study_type_basicplus, s_study_type_s], ['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'I', 'O', 'S', 'S', 'S', 'S'], ['regex_sampsize', 'regex_sampsize2', 'regex_sampsize3', 'regex_sampsize4', 'regex_sampsize5', 'regex_age', 'regex_agerange', 'regex_agemax', 'regex_agemaxmin', 'regex_meanage', 'regex_comparator', 'adverse_out' , 'regex_stdtype', 'regex_stdtype_basic', 'regex_stdtype_types'] ) : 
-        # for reg_lf_i, entity, reg_lf_name in zip([ p_sampsize3 ], ['P'], ['samplesize3'] ) : 
+        # for reg_lf_i, entity, reg_lf_name in zip([p_sampsize, p_sampsize2, p_sampsize3, p_sampsize4, p_sampsize5, p_age, p_agerange, p_agemax, p_agemaxmin, p_meanage, i_control, o_adverse], ['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'I', 'O'], ['regex_sampsize', 'regex_sampsize2', 'regex_sampsize3', 'regex_sampsize4', 'regex_sampsize5', 'regex_age', 'regex_agerange', 'regex_agemax', 'regex_agemaxmin', 'regex_meanage', 'regex_comparator', 'adverse_out'] ) : 
+        #     outdir_reg = f'{args.outdir}/heuristics/direct'
+        #     label_regex_and_write( outdir_reg, [reg_lf_i], picos=entity, df_data=df_data, write=args.write_cand, arg_options=args, lf_name=reg_lf_name )
+
+        for reg_lf_i, entity, reg_lf_name in zip([s_study_type, s_study_type_basic, s_study_type_basicplus, s_study_type_proc, s_study_type_s, s_placebo, s_blinding, s_phase], ['S', 'S', 'S', 'S', 'S', 'S', 'S', 'S'], ['regex_stdtype', 'regex_stdtype_basic', 'regex_stdtype_basicplus', 'regex_stdtype_proc', 'regex_stdtype_types', 'regex_placebo', 'regex_blinding', 'regex_phase' ] ) : 
             outdir_reg = f'{args.outdir}/heuristics/direct'
-            label_regex_and_write( outdir_reg, [reg_lf_i], picos=entity, df_data=df_data, write=args.write_cand, arg_options=args, lf_name=reg_lf_name )
-
+            print('Regex labeling on...')
+            label_regex_and_write( outdir_reg, [reg_lf_i], picos=entity, df_data=df_data, write=args.write_cand, arg_options=args, lf_name=reg_lf_name, neg_labs = negative_labels_filtered )
 
         ######################################  Heutistic Labeling Functions ###################################### 
         outdir_heurPattern = f'{args.outdir}/heuristics/direct'
 
-        filename = 'lf_' + str('i_posreg') + '.tsv'
-        label_heur_and_write( outdir_heurPattern, picos='I', df_data=df_data, write=args.write_cand, arg_options=args, lf_name=str('i_posreg'))
+        # filename = 'lf_' + str('i_posreg') + '.tsv'
+        # label_heur_and_write( outdir_heurPattern, picos='I', df_data=df_data, write=args.write_cand, arg_options=args, lf_name=str('i_posreg'), tune_for='specificity' )
 
-        filename = 'lf_' + str('pa_regex_heur') + '.tsv'
-        label_heur_and_write( outdir_heurPattern, picos='P', df_data=df_data, write=args.write_cand, arg_options=args, lf_name=str(filename).replace('.tsv', ''))
+        # filename = 'lf_' + str('pa_regex_heur') + '.tsv'
+        # label_heur_and_write( outdir_heurPattern, picos='P', df_data=df_data, write=args.write_cand, arg_options=args, lf_name=str(filename).replace('.tsv', ''))
 
-        filename = 'lf_' + str('ps_heurPattern_labels') + '.tsv'
-        label_heur_and_write( outdir_heurPattern, picos='P', df_data=df_data, write=args.write_cand, arg_options=args, lf_name=str(filename).replace('.tsv', ''))
+        # filename = 'lf_' + str('ps_heurPattern_labels') + '.tsv'
+        # label_heur_and_write( outdir_heurPattern, picos='P', df_data=df_data, write=args.write_cand, arg_options=args, lf_name=str(filename).replace('.tsv', ''))
 
-        filename = 'lf_' + str('lf_o_heurpattern_labels') + '.tsv'
-        label_heur_and_write( outdir_heurPattern, picos='O', df_data=df_data, write=args.write_cand, arg_options=args, lf_name=str(filename).replace('.tsv', ''))
+        # filename = 'lf_' + str('lf_o_heurpattern_labels') + '.tsv'
+        # label_heur_and_write( outdir_heurPattern, picos='O', df_data=df_data, write=args.write_cand, arg_options=args, lf_name=str(filename).replace('.tsv', ''))
 
-       
-        print('Retrieving hand-crafted dictionaries')
-        p_genders = loadDict(f'{args.indir}/Ontologies/participant/gender_sexuality.txt')
-        i_comparator = loadDict(f'{args.indir}/Ontologies/intervention/comparator_dict.txt')
-        o_endpoints = loadDict(f'{args.indir}/Ontologies/outcome/endpoints_dict.txt')
-        s_dictionary = loadDict(f'{args.indir}/Ontologies/study_type/rct.txt')
+        # filename = 'lf_' + str('lf_s_heurpattern_labels') + '.tsv'
+        # label_heur_and_write( outdir_heurPattern, picos='S', df_data=df_data, write=args.write_cand, arg_options=args, lf_name=str(filename).replace('.tsv', ''))
 
-        print('Retrieving abbreviations dictionaries')  
-        p_abb = loadAbbreviations(f'{args.indir}/Ontologies/participant/diseaseabbreviations.tsv')
+        filename = 'lf_' + str('lf_s_heurpattern_labels') + '.tsv'
+        label_heur_and_write( outdir_heurPattern, picos='S', df_data=df_data, write=args.write_cand, arg_options=args, lf_name=str(filename).replace('.tsv', ''), tune_for='specificity', neg_labs=negative_labels_filtered )
 
-        # Dictionary Labeling Function
-        for m in ['fuzzy', 'direct']:
-            for ontology, entity, ont_name in zip([p_genders, i_comparator, o_endpoints, s_dictionary], ['P', 'I', 'O', 'S'], ['dict_gender', 'dict_comparator', 'dict_o_terms', 'dict_s_type'] ) : 
-                outdir_dict = f'{args.outdir}/dictionary/{m}'
-                dict_labels = label_ont_and_write( outdir_dict, ontology, picos=entity, df_data=df_data, write=args.write_cand, arg_options=args, ontology_name=ont_name)
+        filename = 'lf_' + str('lf_s_heurpattern_labels_2') + '.tsv'
+        label_heur_and_write( outdir_heurPattern, picos='S', df_data=df_data, write=args.write_cand, arg_options=args, lf_name=str(filename).replace('.tsv', ''), tune_for='sensitivity', neg_labs=negative_labels_filtered )
+    
 
     #########################################################################################
     # TODO  Level 5 - Abbreviations Labeling function
@@ -291,28 +374,10 @@ try:
                 abbs = AbbreviationFetcher( df_data, ontology[0], ontology[1], entity)
 
 
-        # Load abbreviations into a dictionary
-        def get_abbs(entity):
-
-            abb_d = {}
-
-            entity_full = { 'P': 'participant', 'I': 'intervention', 'O': 'outcome' }
-
-            with open( f'{args.abb_fpath}/{entity_full[entity]}/abb_sources.json', 'r' ) as af:
-                for l in af:
-                    data_i = json.loads(l)
-                    abb_d.update( data_i )
-
-            return abb_d
-
-        abb_p = get_abbs('P')
-        abb_i = get_abbs('I')
-        abb_o = get_abbs('O')
-
-        for m in ['direct']:
-            for abb, entity, ont_name in zip([abb_p, abb_i, abb_o], ['P', 'I', 'O'], ['abb_p', 'abb_i', 'abb_o'] ) : 
-                outdir_dict = f'{args.outdir}/heuristics/{m}'
-                label_abb_and_write(outdir_dict, abb, entity, df_data=df_data, write=args.write_cand, arg_options=args, lf_name=ont_name)
+        # for m in ['direct']:
+        #     for abb, entity, ont_name in zip([abb_p, abb_i, abb_o], ['P', 'I', 'O'], ['abb_p', 'abb_i', 'abb_o'] ) : 
+        #         outdir_dict = f'{args.outdir}/heuristics/{m}'
+        #         label_abb_and_write(outdir_dict, abb, entity, df_data=df_data, write=args.write_cand, arg_options=args, lf_name=ont_name)
 
         print('Retrieving abbreviations dictionaries')  
         p_abb = loadAbbreviations(f'{args.indir}/Ontologies/participant/diseaseabbreviations.tsv')
@@ -321,7 +386,10 @@ try:
         for m in ['direct']:
             for ontology, entity, ont_name in zip([p_abb, s_abb], ['P', 'S'], ['dict_p_abb', 'dict_s_abb'] ) : 
                 outdir_dict = f'{args.outdir}/heuristics/{m}'
-                dict_labels = label_ont_and_write( outdir_dict, ontology, picos=entity, df_data=df_data, write=args.write_cand, arg_options=args, ontology_name=ont_name)
+                if entity == 'S':
+                    dict_labels = label_ont_and_write( outdir_dict, ontology, picos=entity, df_data=df_data, write=args.write_cand, arg_options=args, ontology_name=ont_name, extra_negs=negative_labels_filtered)
+                else:
+                    dict_labels = label_ont_and_write( outdir_dict, ontology, picos=entity, df_data=df_data, write=args.write_cand, arg_options=args, ontology_name=ont_name)
 
 
     #########################################################################################
