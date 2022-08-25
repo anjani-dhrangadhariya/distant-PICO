@@ -455,7 +455,10 @@ def label_ont_and_write(outdir, terms, picos, df_data, write: bool, arg_options,
     # print(count_all)
 
     if write == True:
-        filename = 'lf_' + str(ontology_name) + '_negs.tsv' 
+        if extra_negs:
+            filename = 'lf_' + str(ontology_name) + '_negs.tsv' 
+        else:
+            filename = 'lf_' + str(ontology_name) + '.tsv' 
         print( filename , ' : ', count_all )
         df_data.to_csv(f'{outdir}/{picos}/{filename}', sep='\t')
     else:
@@ -521,7 +524,7 @@ def label_heur_and_write( outdir, picos, df_data, write: bool, arg_options, lf_n
 
 
 
-def label_abb_and_write(outdir, abb_source, picos, df_data, write: bool, arg_options, lf_name:str):
+def label_abb_and_write(outdir, abb_source, picos, df_data, write: bool, arg_options, lf_name:str, extra_negs:list = None):
 
 
     if arg_options.stop == True:
@@ -529,7 +532,7 @@ def label_abb_and_write(outdir, abb_source, picos, df_data, write: bool, arg_opt
     elif arg_options.stop == False:
         sw_lf = None
 
-    labels = ontologyLF.AbbrevLabelingFunction( df_data, abb_source, picos = picos, stopwords_general=sw_lf )
+    labels = ontologyLF.AbbrevLabelingFunction( df_data, abb_source, picos = picos, stopwords_general=sw_lf, neg_labels = None )
 
     # convert labels to spans
     df_data_labels = spansToLabels(matches=labels, df_data=df_data, picos=picos)
@@ -538,7 +541,11 @@ def label_abb_and_write(outdir, abb_source, picos, df_data, write: bool, arg_opt
     df_data['labels'] = df_data_labels
 
     if write == True:
-        filename = 'lf_' + str(lf_name) + '.tsv'
+        if extra_negs:
+            filename = 'lf_' + str(lf_name) + '_negs.tsv'
+        else:
+            filename = 'lf_' + str(lf_name) + '.tsv'
+
         df_data.to_csv(f'{outdir}/{picos}/{filename}', sep='\t')
     else:
         return df_data
