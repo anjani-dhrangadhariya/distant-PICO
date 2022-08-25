@@ -222,7 +222,8 @@ def AbbrevLabelingFunction(df_data,
                           stopwords_general:list = None,
                           max_ngram: int = 5,
                           case_sensitive: bool = False,
-                          longest_match_only = True):
+                          longest_match_only = True,
+                          neg_labels:list = None):
 
     # Add stopwords to the lf (Negative labels)
     stop_dict = {}
@@ -291,9 +292,12 @@ def AbbrevLabelingFunction(df_data,
             # if f_matches:
             longest_matches.append( f_matches )
 
-    # for mat in longest_matches:
-    #     if len(mat) >= 1:
-    #         print( mat )
+    # Adds both the extra negative labels and also the stopwords
+    if neg_labels:
+        negative_labels_extra = OntologyLabelingFunctionX(  corpus_texts_series, corpus_words_series, corpus_offsets_series, dict(), picos=picos, fuzzy_match=False, extra_negs = neg_labels)
+        for counter, m in enumerate( negative_labels_extra ):
+            corpus_matches[counter].extend( m )
+            longest_matches[counter].extend( m )
 
     print("--- %s seconds ---" % (time.time() - start_time))
 
