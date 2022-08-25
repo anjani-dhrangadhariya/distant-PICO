@@ -26,6 +26,7 @@ from functools import reduce
 from itertools import chain
 import itertools
 from random import shuffle
+from typing import Iterator
 
 import numpy as np
 import pandas as pd
@@ -81,7 +82,7 @@ extract_abbs = False
 ################################################################################
 parser = argparse.ArgumentParser()
 parser.add_argument('-level1', type=bool, default=False) # Level1 = UMLS LF's
-parser.add_argument('-level2', type=bool, default=True) # Level2: Non-UMLS LF's
+parser.add_argument('-level2', type=bool, default=False) # Level2: Non-UMLS LF's
 parser.add_argument('-level3', type=bool, default=False) # Level 3 = Distant Supervision LF's
 parser.add_argument('-level4', type=bool, default=False) # Level 4 = Rule based LF's (ReGeX, Heuristics and handcrafted dictionaries)
 parser.add_argument('-level5', type=bool, default=False) # Level 5 = Abbreviation LFs
@@ -93,7 +94,7 @@ parser.add_argument('-abb_fpath', type=Path, default='/mnt/nas2/data/systematicR
 parser.add_argument('-indir', type=Path, default='/mnt/nas2/data/systematicReview' ) # directory with labeling function sources
 parser.add_argument('-outdir', type=Path, default=f'/mnt/nas2/results/Results/systematicReview/distant_pico/test_physio_candidate_generation/{candgen_version}' ) # directory path to store the weakly labeled candidates
 parser.add_argument('-stop', type=bool, default=if_stopwords ) # False = Wont have stopword LF, True = Will have stopword LF
-parser.add_argument('-write_cand', type=bool, default=True ) # Should write candidates? True = Yes - Write , False = No - Dont write
+parser.add_argument('-write_cand', type=bool, default=False ) # Should write candidates? True = Yes - Write , False = No - Dont write
 args = parser.parse_args()
 
 try:
@@ -373,23 +374,35 @@ try:
             for ontology, entity in zip([ (positive_p, negative_p) , (positive_i, negative_i), (positive_o, negative_o) ], ['P', 'I', 'O'] ) : 
                 abbs = AbbreviationFetcher( df_data, ontology[0], ontology[1], entity)
 
+        # add the negative labels
+        neg_abb_p = itertools.chain(abb_i, abb_o )
+        neg_abb_p = list(set(neg_abb_p))
+        neg_abb_p_filtered = [ i for i in neg_abb_p if i.lower() not in list(map(str.lower, abb_p))]
 
-        # for m in ['direct']:
-        #     for abb, entity, ont_name in zip([abb_p, abb_i, abb_o], ['P', 'I', 'O'], ['abb_p', 'abb_i', 'abb_o'] ) : 
-        #         outdir_dict = f'{args.outdir}/heuristics/{m}'
-        #         label_abb_and_write(outdir_dict, abb, entity, df_data=df_data, write=args.write_cand, arg_options=args, lf_name=ont_name)
+        neg_abb_i = itertools.chain(abb_p, abb_o )
+        neg_abb_i = list(set(neg_abb_i))
+        neg_abb_i_filtered = [ i for i in neg_abb_i if i.lower() not in list(map(str.lower, abb_i))]
+
+
+        neg_abb_o = itertools.chain(abb_p, abb_i )
+        neg_abb_o = list(set(neg_abb_o))
+        neg_abb_o_filtered = [ i for i in neg_abb_o if i.lower() not in list(map(str.lower, abb_o))]
+
+        for m in ['direct']:
+            for abb, entity, ont_name, extra_neg_d in zip([abb_p, abb_i, abb_o], ['P', 'I', 'O'], ['abb_p', 'abb_i', 'abb_o'], [neg_abb_p_filtered, neg_abb_i_filtered, neg_abb_o_filtered] ) : 
+                outdir_dict = f'{args.outdir}/heuristics/{m}'
+                label_abb_and_write(outdir_dict, abb, entity, df_data=df_data, write=args.write_cand, arg_options=args, lf_name=ont_name, extra_negs=extra_neg_d)
 
         print('Retrieving abbreviations dictionaries')  
         p_abb = loadAbbreviations(f'{args.indir}/Ontologies/participant/diseaseabbreviations.tsv')
         s_abb = loadAbbreviations(f'{args.indir}/Ontologies/study_type/studytype_abbreviations.tsv')
+
         # Dictionary Labeling Function and Abbreviation dictionary Labeling function
         for m in ['direct']:
-            for ontology, entity, ont_name in zip([p_abb, s_abb], ['P', 'S'], ['dict_p_abb', 'dict_s_abb'] ) : 
+            for ontology, entity, ont_name, extra_neg_d in zip([p_abb, s_abb], ['P', 'S'], ['dict_p_abb', 'dict_s_abb'], [ neg_abb_p_filtered, negative_labels_filtered ] ) : 
                 outdir_dict = f'{args.outdir}/heuristics/{m}'
-                if entity == 'S':
-                    dict_labels = label_ont_and_write( outdir_dict, ontology, picos=entity, df_data=df_data, write=args.write_cand, arg_options=args, ontology_name=ont_name, extra_negs=negative_labels_filtered)
-                else:
-                    dict_labels = label_ont_and_write( outdir_dict, ontology, picos=entity, df_data=df_data, write=args.write_cand, arg_options=args, ontology_name=ont_name)
+                #if entity == 'S':
+                dict_labels = label_ont_and_write( outdir_dict, ontology, picos=entity, df_data=df_data, write=args.write_cand, arg_options=args, ontology_name=ont_name, extra_negs=extra_neg_d)
 
 
     #########################################################################################
