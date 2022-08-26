@@ -53,7 +53,7 @@ def OntologyLabelingFunctionX(corpus_text_series,
             if sw not in source_terms:
                 source_terms[sw] = sw_abstain
 
-    # Add Negative labels to the dictionary if 
+    # Add Negative labels to the dictionary if they are not already defined as positive labels
     if isinstance(extra_negs, list):
         print( 'adding negative labels to the list' )
         for en in extra_negs:
