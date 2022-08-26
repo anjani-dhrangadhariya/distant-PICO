@@ -196,18 +196,20 @@ def spansToLabels(matches, df_data, picos:str):
         L = dict.fromkeys(range( len(list(df_data['offsets'])[counter]) ), abstain_lab) # initialize with abstain labels
         numerical_umls_labels = dict()
 
-        for (char_start, char_end), term, lab in match:
-            
-            # None labels are treated as abstains
-            if not lab:
-                continue
 
-            start, end = get_word_index_span(
-                (char_start, char_end - 1), list(df_data['text'])[counter], list(df_data['offsets'])[counter]
-            )
+        if match:
+            for (char_start, char_end), term, lab in match:
+                
+                # None labels are treated as abstains
+                if not lab:
+                    continue
 
-            for i in range(start, end + 1):
-                L[i] = lab
+                start, end = get_word_index_span(
+                    (char_start, char_end - 1), list(df_data['text'])[counter], list(df_data['offsets'])[counter]
+                )
+
+                for i in range(start, end + 1):
+                    L[i] = lab
         
         # Fetch numerical labels
         for k,v in L.items():
@@ -464,14 +466,14 @@ def label_ont_and_write(outdir, terms, picos, df_data, write: bool, arg_options,
     else:
         return df_data
 
-def label_regex_and_write(outdir, regex_compiled, picos, df_data, write: bool, arg_options, lf_name:str, neg_labs:list = None):
+def label_regex_and_write(outdir, regex_compiled, picos, df_data, write: bool, arg_options, lf_name:str, neg_labs:list = None, neg_regex:list = None):
 
     if arg_options.stop == True:
         sw_lf = sw
     elif arg_options.stop == False:
         sw_lf = None
 
-    regex_labels = ontologyLF.ReGeXLabelingFunction( df_data['text'], df_data['tokens'], df_data['offsets'], regex_compiled, picos=picos, stopwords_general=sw_lf, neg_labels=neg_labs )
+    regex_labels = ontologyLF.ReGeXLabelingFunction( df_data['text'], df_data['tokens'], df_data['offsets'], regex_compiled, picos=picos, stopwords_general=sw_lf, neg_labels=neg_labs, neg_regex=neg_regex )
 
     # convert labels to spans
     df_data_labels = spansToLabels(matches=regex_labels, df_data=df_data, picos=picos)
@@ -480,13 +482,16 @@ def label_regex_and_write(outdir, regex_compiled, picos, df_data, write: bool, a
     df_data['labels'] = df_data_labels
 
     if write == True:
-        filename = 'lf_' + str(lf_name) + '.tsv'
+        if neg_labs or neg_regex:
+            filename = 'lf_' + str(lf_name) + '_negs.tsv'
+        else:
+            filename = 'lf_' + str(lf_name) + '.tsv'
         df_data.to_csv(f'{outdir}/{picos}/{filename}', sep='\t')
     else:
         return df_data
 
 
-def label_heur_and_write( outdir, picos, df_data, write: bool, arg_options, lf_name: str, tune_for:str, neg_labs: list ):
+def label_heur_and_write( outdir, picos, df_data, write: bool, arg_options, lf_name: str, tune_for:str = None, neg_labs: list = None ):
 
     labels = []
 
@@ -517,7 +522,10 @@ def label_heur_and_write( outdir, picos, df_data, write: bool, arg_options, lf_n
     df_data['labels'] = df_data_labels
 
     if write == True:
-        filename = 'lf_' + str(lf_name) + '.tsv'
+        if neg_labs:
+            filename = 'lf_' + str(lf_name) + '_negs.tsv'
+        else:
+            filename = 'lf_' + str(lf_name) + '.tsv'
         df_data.to_csv(f'{outdir}/{picos}/{filename}', sep='\t')
     else:
         return df_data

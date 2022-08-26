@@ -128,7 +128,8 @@ def ReGeXLabelingFunction(corpus_text_series,
                           regex_compiled,
                           picos: str,
                           stopwords_general:list = None,
-                          neg_labels : list = None
+                          neg_labels : list = None,
+                          neg_regex = None
                           ):
 
     # Add stopwords to the lf (Negative labels)
@@ -147,12 +148,21 @@ def ReGeXLabelingFunction(corpus_text_series,
 
         matches = [] # append matches for a single sample
 
-        if regex_compiled[0].search(texts_series.lower()):
+        if regex_compiled[0].search(texts_series.lower()): # emits +1
 
             match_result = [m for m in regex_compiled[0].finditer(texts_series)]
 
             for matches_i in match_result:
                 matches.append(( [ matches_i.span()[0], matches_i.span()[1] ], matches_i.group(0), picos ))
+
+        if neg_regex:
+            for neg_regex_i in neg_regex:
+                if neg_regex_i.search(texts_series.lower()): # emits -1
+                    match_result = [m for m in neg_regex_i.finditer(texts_series)]
+
+                    for matches_i in match_result:
+                        matches.append(( [ matches_i.span()[0], matches_i.span()[1] ], matches_i.group(0), '-'+str(picos) ))
+
 
         #Find stopwrods here
         for k,v in stop_dict.items():
