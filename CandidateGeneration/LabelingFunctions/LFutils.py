@@ -401,7 +401,6 @@ def label_umls_and_write(outdir, umls_d, df_data, picos, arg_options, write):
         count_all = 0
         for counter in df_data_labels:
             count_all = count_all + len( counter )
-        # print(count_all)
 
         if write == True:
             filename = str(picos) + '/lf_' + str(k) + '.tsv'
@@ -454,7 +453,6 @@ def label_ont_and_write(outdir, terms, picos, df_data, write: bool, arg_options,
     count_all = 0
     for counter in df_data_labels:
         count_all = count_all + len( counter )
-    # print(count_all)
 
     if write == True:
         if extra_negs:
