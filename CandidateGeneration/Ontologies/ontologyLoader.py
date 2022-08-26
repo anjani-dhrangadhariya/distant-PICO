@@ -24,6 +24,10 @@ from sklearn.feature_extraction.text import ENGLISH_STOP_WORDS
 #loading the english language small model of spacy
 en = spacy.load('en_core_web_sm')
 
+# lower-casing without altering the Abbreviations
+from Ontologies.transforms import SmartLowercase
+lower_caser =  SmartLowercase()
+
 
 translator = str.maketrans(' ', ' ', string.punctuation)
 
@@ -52,8 +56,8 @@ def selectTerminology(conn, pico_category):
 
     pico_category_pattern =  '%'+pico_category+'%'
     cur = conn.cursor()
-    cur.execute("SELECT * FROM terminology1 WHERE ? LIKE ?", (pico_category, pico_category_pattern,))
-    # cur.execute("SELECT * FROM terminology1 WHERE ? LIKE ? LIMIT 50000", (pico_category, pico_category_pattern,))
+    # cur.execute("SELECT * FROM terminology1 WHERE ? LIKE ?", (pico_category, pico_category_pattern,))
+    cur.execute("SELECT * FROM terminology1 WHERE ? LIKE ? LIMIT 50000", (pico_category, pico_category_pattern,))
 
     rows = cur.fetchall()
 
@@ -101,7 +105,6 @@ def loadUMLSdb(fpath, entity: str, remove_vet: bool = True, min_terms: int = 500
 
     # Remove the SAB with non-English ontologies
     df_new = removeNonEnglish(df_new)
-    # print( 'Dataframe size (non-English removed): ', len(df_new) )
 
     # Remove terms with less than 'char_threshold characters
     if char_threshold:
@@ -227,6 +230,8 @@ def loadDS(fpath:str, picos:str, char_threshold:int = 2):
 
     ds_source = list( set( ds_source ) )
     ds_source_prepro = list(map(preprocessOntology, ds_source))
+
+    ds_source_prepro = [ lower_caser(i) for i in ds_source_prepro if len(i) > 2]
 
     return ds_source_prepro
 
