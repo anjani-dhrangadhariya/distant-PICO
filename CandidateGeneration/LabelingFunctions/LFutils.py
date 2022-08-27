@@ -520,6 +520,7 @@ def label_heur_and_write( outdir, picos, df_data, write: bool, arg_options, lf_n
     df_data['labels'] = df_data_labels
 
     if write == True:
+        #filename = 'lf_' + str(lf_name) + '_negs.tsv'
         if neg_labs:
             filename = 'lf_' + str(lf_name) + '_negs.tsv'
         else:
