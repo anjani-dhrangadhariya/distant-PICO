@@ -16,8 +16,10 @@ def getArguments():
 
     # List of arguments to set up experiment
     parser = argparse.ArgumentParser()
-    parser.add_argument('-entity', type = str, default = 'participant')
-    parser.add_argument('-rawcand_file', type = Path, default = '/mnt/nas2/results/Results/systematicReview/distant_pico/predictions/LabelModels/p/v4/bestmodel.tsv')
+    parser.add_argument('-entity', type = str, default = 'participant') # participant, intervention, outcome
+    parser.add_argument('-rawcand_file', type = Path, default = f'/mnt/nas2/results/Results/systematicReview/distant_pico/predictions/LabelModels/o/v4/UMLS_Ontology/0/stpartition_5_epoch_700_bestmodel_train.tsv')
+    # parser.add_argument('-rawcand_file', type = Path, default = f'/mnt/nas2/results/Results/systematicReview/distant_pico/predictions/LabelModels/p/v4/UMLS_Ontology/0/stpartition_5_epoch_700_bestmodel_train.tsv')
+    # parser.add_argument('-rawcand_file', type = Path, default = f'/mnt/nas2/results/Results/systematicReview/distant_pico/predictions/LabelModels/s/stpartition__epoch_100_bestmodel.tsv')
     parser.add_argument('-ebm_nlp', type = Path, default = '/mnt/nas2/data/systematicReview/PICO_datasets/EBM_parsed/train_ebm.json')
     parser.add_argument('-ebm_gold', type = Path, default = '/mnt/nas2/data/systematicReview/PICO_datasets/EBM_parsed/test_ebm.json')
     parser.add_argument('-ebm_gold_corr', type = Path, default = '/mnt/nas2/data/systematicReview/PICO_datasets/EBM_parsed/test_ebm_anjani.json')
