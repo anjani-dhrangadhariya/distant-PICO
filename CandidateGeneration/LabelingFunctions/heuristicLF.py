@@ -331,7 +331,7 @@ def heurPattern_o_cal( df_data, picos: str, stopwords_general: list, tune_for: s
 
     return regex_pos_corpus_matches
 
-def heurPattern_o_scale( df_data, picos: str, stopwords_general: list, tune_for: str = 'specificity'  ):
+def heurPattern_o_scale( df_data, picos: str, stopwords_general: list, tune_for: str = 'specificity' ): #tune_for: str = 'specificity'
 
     # Add stopwords to the lf (Negative labels)
     stop_dict = {}
@@ -349,7 +349,7 @@ def heurPattern_o_scale( df_data, picos: str, stopwords_general: list, tune_for:
 
         regex_matches = []
 
-        pattern =  r'([sS]cales?|[sS]cores?|[qQ]uestionnaires?|[tT]ests?|[fF]orms?|[rR]ates?|[sS]ymptoms?)'
+        pattern =  r'([sS]cales?|[sS]cores?|[qQ]uestionnaires?|[tT]ests?|\b[fF]orms?\b|[rR]ates?|[sS]ymptoms?)'
         r = re.compile(pattern)
         matches = [m for m in r.finditer(text)]
         regex_matches.extend( matches )
@@ -373,10 +373,9 @@ def heurPattern_o_scale( df_data, picos: str, stopwords_general: list, tune_for:
                 if tune_for == 'specificity':
                     if len( longest_match ) > 1:
                         regex_pos_matches.append( ([longest_match_span[0], longest_match_span[-1]], longest_match, picos) )
-                        # print( ([longest_match_span[0], longest_match_span[-1]], longest_match, picos) )
+                        print( ([longest_match_span[0], longest_match_span[-1]], longest_match, picos) )
                 else:
                     regex_pos_matches.append( ([longest_match_span[0], longest_match_span[0]], longest_match, picos) )
-                    # print( ([longest_match_span[0], longest_match_span[-1]], longest_match, picos) )
 
         # Match stopwords here
         for k,v in stop_dict.items():
