@@ -84,7 +84,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('-level1', type=bool, default=False) # Level1 = UMLS LF's
 parser.add_argument('-level2', type=bool, default=False) # Level2: Non-UMLS LF's
 parser.add_argument('-level3', type=bool, default=False) # Level 3 = Distant Supervision LF's
-parser.add_argument('-level4', type=bool, default=False) # Level 4 = Rule based LF's (ReGeX, Heuristics and handcrafted dictionaries)
+parser.add_argument('-level4', type=bool, default=True) # Level 4 = Rule based LF's (ReGeX, Heuristics and handcrafted dictionaries)
 parser.add_argument('-level5', type=bool, default=False) # Level 5 = Abbreviation LFs
 parser.add_argument('-level6', type=bool, default=False) # Level 6 = External Model LF's
 parser.add_argument('-levels', type=bool, default=False) # execute data labeling using all levels
@@ -92,7 +92,7 @@ parser.add_argument('-umls_fpath', type=Path, default= 'UMLS/english_subset/umls
 parser.add_argument('-ds_fpath', type=Path, default='/mnt/nas2/data/systematicReview/ds_cto_dict' )
 parser.add_argument('-abb_fpath', type=Path, default='/mnt/nas2/data/systematicReview/abbreviations' )
 parser.add_argument('-indir', type=Path, default='/mnt/nas2/data/systematicReview' ) # directory with labeling function sources
-parser.add_argument('-outdir', type=Path, default=f'/mnt/nas2/results/Results/systematicReview/distant_pico/test_physio_candidate_generation/{candgen_version}' ) # directory path to store the weakly labeled candidates
+parser.add_argument('-outdir', type=Path, default=f'/mnt/nas2/results/Results/systematicReview/distant_pico/test_ebm_anjani_candidate_generation/{candgen_version}' ) # directory path to store the weakly labeled candidates
 parser.add_argument('-stop', type=bool, default=if_stopwords ) # False = Wont have stopword LF, True = Will have stopword LF
 parser.add_argument('-write_cand', type=bool, default=False ) # Should write candidates? True = Yes - Write , False = No - Dont write
 args = parser.parse_args()
@@ -241,8 +241,8 @@ try:
             for ontology, ont_name in zip([o_oae, o_oae_syn, o_so, o_so_syn ], ['oae', 'oae_syn', 'so', 'so_syn'] ) :
                 nonUMLS_o_labels = label_ont_and_write( outdir_non_umls, ontology, picos='O', df_data=df_data, write=args.write_cand, arg_options=args, ontology_name=ont_name, extra_negs=neg_o_filtered)
 
-            # for ontology, ont_name in zip([s_cto, s_cto_syn ], ['s_cto', 's_cto_syn'] ) :
-            #     nonUMLS_s_labels = label_ont_and_write( outdir_non_umls, ontology, picos='S', df_data=df_data, write=args.write_cand, arg_options=args, ontology_name=ont_name, extra_negs=negative_labels_filtered)
+            for ontology, ont_name in zip([s_cto, s_cto_syn ], ['s_cto', 's_cto_syn'] ) :
+                nonUMLS_s_labels = label_ont_and_write( outdir_non_umls, ontology, picos='S', df_data=df_data, write=args.write_cand, arg_options=args, ontology_name=ont_name, extra_negs=negative_labels_filtered)
 
     #########################################################################################
     # Level 3 - Distant Supervision LF's
@@ -251,28 +251,24 @@ try:
 
         neg_p = itertools.chain( ds_intervention, ds_intervention_syn, ds_outcome )
         neg_p = list(set(neg_p))
-        neg_p_filtered = [ i for i in neg_p if i.lower() not in list(map(str.lower, ds_participant))]
     
         neg_i = itertools.chain( ds_participant, ds_outcome )
         neg_i = list(set(neg_i))
-        ds_i_all = ds_intervention_syn + ds_intervention
-        neg_i_filtered = [ i for i in neg_i if i.lower() not in list(map(str.lower, ds_i_all))]
 
         neg_o = itertools.chain( ds_intervention, ds_intervention_syn, ds_participant )
         neg_o = list(set(neg_o))
-        neg_o_filtered = [ i for i in neg_o if i.lower() not in list(map(str.lower, ds_outcome))]
 
         for m in ['fuzzy', 'direct']:
             outdir_ds = f'{args.outdir}/ds/{m}'
             outdir_ds = f'/mnt/nas2/results/Results/systematicReview/order_free_matching/EBM_PICO_training_matches/{m}' # order-free matching
             for ontology, entity, ont_name in zip([ds_participant], ['P'], ['ds_participant'] ) :
-                ds_p_labels = label_ont_and_write( outdir_ds, ontology, picos=entity, df_data=df_data, write=args.write_cand, arg_options=args, ontology_name=ont_name, extra_negs=neg_p_filtered)
+                ds_p_labels = label_ont_and_write( outdir_ds, ontology, picos=entity, df_data=df_data, write=args.write_cand, arg_options=args, ontology_name=ont_name, extra_negs=neg_p)
 
             for ontology, entity, ont_name in zip([ds_intervention, ds_intervention_syn], ['I', 'I'], ['ds_intervetion', 'ds_intervention_syn'] ) :
-                ds_i_labels = label_ont_and_write( outdir_ds, ontology, picos=entity, df_data=df_data, write=args.write_cand, arg_options=args, ontology_name=ont_name, extra_negs=neg_i_filtered)
+                ds_i_labels = label_ont_and_write( outdir_ds, ontology, picos=entity, df_data=df_data, write=args.write_cand, arg_options=args, ontology_name=ont_name, extra_negs=neg_i)
         
             for ontology, entity, ont_name in zip([ds_outcome], ['O'], ['ds_outcome'] ) :
-                ds_o_labels = label_ont_and_write( outdir_ds, ontology, picos=entity, df_data=df_data, write=args.write_cand, arg_options=args, ontology_name=ont_name, extra_negs=neg_o_filtered)
+                ds_o_labels = label_ont_and_write( outdir_ds, ontology, picos=entity, df_data=df_data, write=args.write_cand, arg_options=args, ontology_name=ont_name, extra_negs=neg_o)
     
 
     ##############################################################################################################
@@ -281,32 +277,41 @@ try:
     if args.level4 == True or args.levels == True:
 
         ###################################### Fetch negative labelling function ######################################
+        neg_p_dict = itertools.chain( i_comparator, o_endpoints, s_dictionary, i_comparator )
+        neg_p_dict = list(set(neg_p_dict))
+        neg_p_dict_filtered = [ i for i in neg_p_dict if i.lower() not in list(map(str.lower, p_genders))]
 
+        neg_i_dict = itertools.chain( p_genders, o_endpoints )
+        neg_i_dict = list(set(neg_i_dict))
+        neg_i_dict_filtered = [ i for i in neg_i_dict if i.lower() not in list(map(str.lower, i_comparator))]
 
-        # print('Retrieving abbreviations dictionaries')  
-        # p_abb = loadAbbreviations(f'{args.indir}/Ontologies/participant/diseaseabbreviations.tsv')
+        neg_o_dict = itertools.chain( p_genders, i_comparator )
+        neg_o_dict = list(set(neg_o_dict))
+        neg_o_dict_filtered = [ i for i in neg_i_dict if i.lower() not in list(map(str.lower, o_endpoints))]
 
-        # Dictionary Labeling Function
-        for m in ['fuzzy', 'direct']:
-            for ontology, entity, ont_name in zip([p_genders, i_comparator, o_endpoints, s_dictionary, i_comparator], ['P', 'I', 'O', 'S', 'S'], ['dict_gender', 'dict_comparator', 'dict_o_terms', 'dict_s_type', 'dict_s_comp_type'] ) : 
-                outdir_dict = f'{args.outdir}/dictionary/{m}'
-                if entity == 'S':
-                    dict_labels = label_ont_and_write( outdir_dict, ontology, picos=entity, df_data=df_data, write=args.write_cand, arg_options=args, ontology_name=ont_name, extra_negs=negative_labels_filtered)
-                else:
-                    continue
-                    # dict_labels = label_ont_and_write( outdir_dict, ontology, picos=entity, df_data=df_data, write=args.write_cand, arg_options=args, ontology_name=ont_name)
+        # # Dictionary Labeling Function
+        # for m in ['fuzzy', 'direct']:
+        #     for ontology, entity, ont_name, neg_labs  in zip([p_genders, i_comparator, o_endpoints, s_dictionary, i_comparator], ['P', 'I', 'O', 'S', 'S'], ['dict_gender', 'dict_comparator', 'dict_o_terms', 'dict_s_type', 'dict_s_comp_type'], [neg_p_dict_filtered, neg_i_dict_filtered, neg_o_dict_filtered, negative_labels_filtered, negative_labels_filtered] ) : 
+        #         outdir_dict = f'{args.outdir}/dictionary/{m}'
+        #         dict_labels = label_ont_and_write( outdir_dict, ontology, picos=entity, df_data=df_data, write=args.write_cand, arg_options=args, ontology_name=ont_name, extra_negs=neg_labs)
 
+        ######################################  ReGeX Labeling Functions ######################################
+        reg_lfs = [p_sampsize, p_sampsize2, p_sampsize3, p_sampsize4, p_sampsize5, p_age, p_agerange, p_agemax, p_agemaxmin, p_meanage, i_control, o_adverse]
+        ent_reg_lfs = ['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'I', 'O']
+        names_reg_lfs =  ['regex_sampsize', 'regex_sampsize2', 'regex_sampsize3', 'regex_sampsize4', 'regex_sampsize5', 'regex_age', 'regex_agerange', 'regex_agemax', 'regex_agemaxmin', 'regex_meanage', 'regex_comparator', 'adverse_out']
+        neg_reg_lfs = [ [i_control], [i_control], [i_control], [i_control], [i_control], [i_control], [i_control], [i_control], [i_control], [i_control], [ o_adverse, p_sampsize, p_sampsize2, p_sampsize3, p_sampsize4, p_sampsize5, p_age, p_agerange, p_agemax, p_agemaxmin, p_meanage ], [ i_control, p_sampsize, p_sampsize2, p_sampsize3, p_sampsize4, p_sampsize5, p_age, p_agerange, p_agemax, p_agemaxmin, p_meanage ]  ]
 
-        # for reg_lf_i, entity, reg_lf_name in zip([p_sampsize, p_sampsize2, p_sampsize3, p_sampsize4, p_sampsize5, p_age, p_agerange, p_agemax, p_agemaxmin, p_meanage, i_control, o_adverse], ['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'I', 'O'], ['regex_sampsize', 'regex_sampsize2', 'regex_sampsize3', 'regex_sampsize4', 'regex_sampsize5', 'regex_age', 'regex_agerange', 'regex_agemax', 'regex_agemaxmin', 'regex_meanage', 'regex_comparator', 'adverse_out'] ) : 
+        # for reg_lf_i, entity, reg_lf_name, neg_lf_i  in zip(reg_lfs, ent_reg_lfs, names_reg_lfs, neg_reg_lfs) : 
         #     outdir_reg = f'{args.outdir}/heuristics/direct'
-        #     label_regex_and_write( outdir_reg, [reg_lf_i], picos=entity, df_data=df_data, write=args.write_cand, arg_options=args, lf_name=reg_lf_name )
+        #     label_regex_and_write( outdir_reg, [reg_lf_i], picos=entity, df_data=df_data, write=args.write_cand, arg_options=args, lf_name=reg_lf_name, neg_regex = neg_lf_i)
 
-        for reg_lf_i, entity, reg_lf_name in zip([s_study_type, s_study_type_basic, s_study_type_basicplus, s_study_type_proc, s_study_type_s, s_placebo, s_blinding, s_phase], ['S', 'S', 'S', 'S', 'S', 'S', 'S', 'S'], ['regex_stdtype', 'regex_stdtype_basic', 'regex_stdtype_basicplus', 'regex_stdtype_proc', 'regex_stdtype_types', 'regex_placebo', 'regex_blinding', 'regex_phase' ] ) : 
-            outdir_reg = f'{args.outdir}/heuristics/direct'
-            print('Regex labeling on...')
-            label_regex_and_write( outdir_reg, [reg_lf_i], picos=entity, df_data=df_data, write=args.write_cand, arg_options=args, lf_name=reg_lf_name, neg_labs = negative_labels_filtered )
+        # for reg_lf_i, entity, reg_lf_name in zip([s_study_type, s_study_type_basic, s_study_type_basicplus, s_study_type_proc, s_study_type_s, s_placebo, s_blinding, s_phase], ['S', 'S', 'S', 'S', 'S', 'S', 'S', 'S'], ['regex_stdtype', 'regex_stdtype_basic', 'regex_stdtype_basicplus', 'regex_stdtype_proc', 'regex_stdtype_types', 'regex_placebo', 'regex_blinding', 'regex_phase' ] ) : 
+        #     outdir_reg = f'{args.outdir}/heuristics/direct'
+        #     print('Regex labeling on...')
+        #     label_regex_and_write( outdir_reg, [reg_lf_i], picos=entity, df_data=df_data, write=args.write_cand, arg_options=args, lf_name=reg_lf_name, neg_labs = negative_labels_filtered )
 
         ######################################  Heutistic Labeling Functions ###################################### 
+        # TODO: Negative labelling function
         outdir_heurPattern = f'{args.outdir}/heuristics/direct'
 
         # filename = 'lf_' + str('i_posreg') + '.tsv'
@@ -321,14 +326,17 @@ try:
         # filename = 'lf_' + str('lf_o_heurpattern_labels') + '.tsv'
         # label_heur_and_write( outdir_heurPattern, picos='O', df_data=df_data, write=args.write_cand, arg_options=args, lf_name=str(filename).replace('.tsv', ''))
 
+        filename = 'lf_' + str('lf_o2_heurpattern_labels') + '.tsv'
+        label_heur_and_write( outdir_heurPattern, picos='O', df_data=df_data, write=args.write_cand, arg_options=args, lf_name=str(filename).replace('.tsv', ''))
+
         # filename = 'lf_' + str('lf_s_heurpattern_labels') + '.tsv'
         # label_heur_and_write( outdir_heurPattern, picos='S', df_data=df_data, write=args.write_cand, arg_options=args, lf_name=str(filename).replace('.tsv', ''))
 
-        filename = 'lf_' + str('lf_s_heurpattern_labels') + '.tsv'
-        label_heur_and_write( outdir_heurPattern, picos='S', df_data=df_data, write=args.write_cand, arg_options=args, lf_name=str(filename).replace('.tsv', ''), tune_for='specificity', neg_labs=negative_labels_filtered )
+        # filename = 'lf_' + str('lf_s_heurpattern_labels') + '.tsv'
+        # label_heur_and_write( outdir_heurPattern, picos='S', df_data=df_data, write=args.write_cand, arg_options=args, lf_name=str(filename).replace('.tsv', ''), tune_for='specificity', neg_labs=negative_labels_filtered )
 
-        filename = 'lf_' + str('lf_s_heurpattern_labels_2') + '.tsv'
-        label_heur_and_write( outdir_heurPattern, picos='S', df_data=df_data, write=args.write_cand, arg_options=args, lf_name=str(filename).replace('.tsv', ''), tune_for='sensitivity', neg_labs=negative_labels_filtered )
+        # filename = 'lf_' + str('lf_s_heurpattern_labels_2') + '.tsv'
+        # label_heur_and_write( outdir_heurPattern, picos='S', df_data=df_data, write=args.write_cand, arg_options=args, lf_name=str(filename).replace('.tsv', ''), tune_for='sensitivity', neg_labs=negative_labels_filtered )
     
 
     #########################################################################################
@@ -383,7 +391,6 @@ try:
         neg_abb_i = list(set(neg_abb_i))
         neg_abb_i_filtered = [ i for i in neg_abb_i if i.lower() not in list(map(str.lower, abb_i))]
 
-
         neg_abb_o = itertools.chain(abb_p, abb_i )
         neg_abb_o = list(set(neg_abb_o))
         neg_abb_o_filtered = [ i for i in neg_abb_o if i.lower() not in list(map(str.lower, abb_o))]
@@ -401,9 +408,7 @@ try:
         for m in ['direct']:
             for ontology, entity, ont_name, extra_neg_d in zip([p_abb, s_abb], ['P', 'S'], ['dict_p_abb', 'dict_s_abb'], [ neg_abb_p_filtered, negative_labels_filtered ] ) : 
                 outdir_dict = f'{args.outdir}/heuristics/{m}'
-                #if entity == 'S':
                 dict_labels = label_ont_and_write( outdir_dict, ontology, picos=entity, df_data=df_data, write=args.write_cand, arg_options=args, ontology_name=ont_name, extra_negs=extra_neg_d)
-
 
     #########################################################################################
     # TODO  Level 6 - External Model Labeling function
