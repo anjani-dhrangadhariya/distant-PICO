@@ -510,6 +510,9 @@ def label_heur_and_write( outdir, picos, df_data, write: bool, arg_options, lf_n
     if 'lf_o_heurpattern_labels' in lf_name:
         labels = heuristicLF.heurPattern_o_cal( df_data, picos = picos, stopwords_general=sw_lf )
 
+    if 'lf_o2_heurpattern_labels' in lf_name:
+        labels = heuristicLF.heurPattern_o_scale( df_data, picos = picos, stopwords_general=sw_lf )
+
     if 'lf_s_heurpattern_labels' in lf_name:
         labels = heuristicLF.heurPattern_s_cal( df_data, picos = picos, stopwords_general=sw_lf, tune_for = tune_for, neg_labs=neg_labs )
 

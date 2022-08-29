@@ -1,3 +1,4 @@
+# from ast import pattern
 import re
 
 from LabelingFunctions.LFutils import pico2label, posPattern_i_to_labels, heurPattern_pa_to_labels
@@ -328,4 +329,63 @@ def heurPattern_o_cal( df_data, picos: str, stopwords_general: list, tune_for: s
 
         regex_pos_corpus_matches.append( regex_pos_matches )
 
+    return regex_pos_corpus_matches
+
+def heurPattern_o_scale( df_data, picos: str, stopwords_general: list, tune_for: str = 'specificity'  ):
+
+    # Add stopwords to the lf (Negative labels)
+    stop_dict = {}
+    if stopwords_general:
+        stop_dict = { sw: '-'+picos for sw in stopwords_general }
+
+    corpus_text = df_data['text']
+    corpus_tokens = df_data['tokens']
+    corpus_offsets = df_data['offsets']
+    corpus_pos = df_data['pos']
+
+    regex_pos_corpus_matches = []
+
+    for text, tokens, offsets, pos in zip( corpus_text, corpus_tokens, corpus_offsets, corpus_pos ):
+
+        regex_matches = []
+
+        pattern =  r'([sS]cales?|[sS]cores?|[qQ]uestionnaires?|[tT]ests?|[fF]orms?|[rR]ates?|[sS]ymptoms?)'
+        r = re.compile(pattern)
+        matches = [m for m in r.finditer(text)]
+        regex_matches.extend( matches )
+
+        regex_pos_matches = []
+
+        for m in regex_matches:
+            if m.span()[0] in offsets:
+                index = offsets.index( m.span()[0] )
+
+                longest_match = []
+                longest_match_span = []
+
+                for i, pos_i in enumerate(reversed( pos[ :index ] )):
+                    if pos_i in ['NN', 'NNS', 'NNP', 'NNPS', 'JJ', 'JJS', 'JJR' 'VB', 'VBD', 'VBZ', 'VBN', 'VBP', 'VBG', 'CD']:
+                        longest_match = tokens[ index-i : index+1 ] 
+                        longest_match_span = offsets[ index-i : index+1 ] 
+                    else:
+                        break
+
+                if tune_for == 'specificity':
+                    if len( longest_match ) > 1:
+                        regex_pos_matches.append( ([longest_match_span[0], longest_match_span[-1]], longest_match, picos) )
+                        # print( ([longest_match_span[0], longest_match_span[-1]], longest_match, picos) )
+                else:
+                    regex_pos_matches.append( ([longest_match_span[0], longest_match_span[0]], longest_match, picos) )
+                    # print( ([longest_match_span[0], longest_match_span[-1]], longest_match, picos) )
+
+        # Match stopwords here
+        for k,v in stop_dict.items():
+            match_indices = [i for i, x in enumerate(tokens) if x == k]
+
+            for m_i in match_indices:
+                regex_matches.append(( [ offsets[m_i], offsets[m_i+1] ], k, v ))
+
+        regex_pos_corpus_matches.append( regex_pos_matches )
+
+    
     return regex_pos_corpus_matches
