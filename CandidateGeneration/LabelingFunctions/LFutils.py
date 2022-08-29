@@ -475,6 +475,10 @@ def label_regex_and_write(outdir, regex_compiled, picos, df_data, write: bool, a
 
     # convert labels to spans
     df_data_labels = spansToLabels(matches=regex_labels, df_data=df_data, picos=picos)
+    count_all = 0
+    for counter in df_data_labels:
+        count_all = count_all + len( counter )
+
 
     assert len( df_data_labels ) == len( df_data['tokens'] ) == len( df_data['offsets'] )
     df_data['labels'] = df_data_labels
@@ -484,6 +488,7 @@ def label_regex_and_write(outdir, regex_compiled, picos, df_data, write: bool, a
             filename = 'lf_' + str(lf_name) + '_negs.tsv'
         else:
             filename = 'lf_' + str(lf_name) + '.tsv'
+        print( filename , ' : ', count_all )
         df_data.to_csv(f'{outdir}/{picos}/{filename}', sep='\t')
     else:
         return df_data
@@ -518,16 +523,23 @@ def label_heur_and_write( outdir, picos, df_data, write: bool, arg_options, lf_n
 
     # convert labels to spans
     df_data_labels = spansToLabels(matches=labels, df_data=df_data, picos=picos)
+    count_all = 0
+    for counter in df_data_labels:
+        count_all = count_all + len( counter )
 
     assert len( df_data_labels ) == len( df_data['tokens'] ) == len( df_data['offsets'] )
     df_data['labels'] = df_data_labels
+    count_all = 0
+    for counter in df_data_labels:
+        count_all = count_all + len( counter )
 
     if write == True:
-        #filename = 'lf_' + str(lf_name) + '_negs.tsv'
-        if neg_labs:
-            filename = 'lf_' + str(lf_name) + '_negs.tsv'
-        else:
-            filename = 'lf_' + str(lf_name) + '.tsv'
+        filename = 'lf_' + str(lf_name) + '_negs.tsv'
+        # if neg_labs:
+        #     filename = 'lf_' + str(lf_name) + '_negs.tsv'
+        # else:
+        #     filename = 'lf_' + str(lf_name) + '.tsv'
+        print( filename , ' : ', count_all )
         df_data.to_csv(f'{outdir}/{picos}/{filename}', sep='\t')
     else:
         return df_data
@@ -549,13 +561,16 @@ def label_abb_and_write(outdir, abb_source, picos, df_data, write: bool, arg_opt
 
     assert len( df_data_labels ) == len( df_data['tokens'] ) == len( df_data['offsets'] ) 
     df_data['labels'] = df_data_labels
+    count_all = 0
+    for counter in df_data_labels:
+        count_all = count_all + len( counter )
 
     if write == True:
         if extra_negs:
             filename = 'lf_' + str(lf_name) + '_negs.tsv'
         else:
             filename = 'lf_' + str(lf_name) + '.tsv'
-
+        print( filename , ' : ', count_all )
         df_data.to_csv(f'{outdir}/{picos}/{filename}', sep='\t')
     else:
         return df_data
