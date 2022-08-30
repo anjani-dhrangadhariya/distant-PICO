@@ -121,7 +121,7 @@ class TRANSFORMERCRF(nn.Module):
             label_masks_expanded = mask.unsqueeze(-1).expand(labels.size())
             labels_masked = labels * label_masks_expanded.long()
 
-        # log reg
+        # linear layer (log reg) to emit class probablities
         probablities = F.relu ( self.hidden2tag( sequence_output ) )
         probablities_mask_expanded = mask.unsqueeze(-1).expand(probablities.size())
         probablities_masked = probablities * probablities_mask_expanded.float()
