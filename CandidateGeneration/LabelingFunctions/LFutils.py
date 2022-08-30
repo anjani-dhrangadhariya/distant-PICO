@@ -518,6 +518,15 @@ def label_heur_and_write( outdir, picos, df_data, write: bool, arg_options, lf_n
     if 'lf_o2_heurpattern_labels' in lf_name:
         labels = heuristicLF.heurPattern_o_scale( df_data, picos = picos, stopwords_general=sw_lf )
 
+    if 'lf_o3_heurpattern_labels' in lf_name:
+        labels = heuristicLF.heurPattern_o_generic( df_data, picos = picos, stopwords_general=sw_lf )
+
+    if 'lf_o4_heurpattern_labels' in lf_name:
+        labels = heuristicLF.heurPattern_o_measurables( df_data, picos = picos, stopwords_general=sw_lf )
+
+    if 'lf_o5_heurpattern_labels' in lf_name:
+        labels = heuristicLF.heurPattern_o_passive_measure( df_data, picos = picos, stopwords_general=sw_lf )
+
     if 'lf_s_heurpattern_labels' in lf_name:
         labels = heuristicLF.heurPattern_s_cal( df_data, picos = picos, stopwords_general=sw_lf, tune_for = tune_for, neg_labs=neg_labs )
 
@@ -534,11 +543,11 @@ def label_heur_and_write( outdir, picos, df_data, write: bool, arg_options, lf_n
         count_all = count_all + len( counter )
 
     if write == True:
-        filename = 'lf_' + str(lf_name) + '_negs.tsv'
-        # if neg_labs:
-        #     filename = 'lf_' + str(lf_name) + '_negs.tsv'
-        # else:
-        #     filename = 'lf_' + str(lf_name) + '.tsv'
+        # filename = 'lf_' + str(lf_name) + '_negs.tsv'
+        if neg_labs:
+            filename = 'lf_' + str(lf_name) + '_negs.tsv'
+        else:
+            filename = 'lf_' + str(lf_name) + '.tsv'
         print( filename , ' : ', count_all )
         df_data.to_csv(f'{outdir}/{picos}/{filename}', sep='\t')
     else:
