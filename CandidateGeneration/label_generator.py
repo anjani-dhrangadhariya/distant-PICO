@@ -89,9 +89,9 @@ for candgen_version in ['v4', 'v3']: # version = {v3, v4, ...}
 
         parser = argparse.ArgumentParser()
         parser.add_argument('-level1', type=bool, default=False) # Level1 = UMLS LF's
-        parser.add_argument('-level2', type=bool, default=True) # Level2: Non-UMLS LF's
+        parser.add_argument('-level2', type=bool, default=False) # Level2: Non-UMLS LF's
         parser.add_argument('-level3', type=bool, default=False) # Level 3 = Distant Supervision LF's
-        parser.add_argument('-level4', type=bool, default=False) # Level 4 = Rule based LF's (ReGeX, Heuristics and handcrafted dictionaries)
+        parser.add_argument('-level4', type=bool, default=True) # Level 4 = Rule based LF's (ReGeX, Heuristics and handcrafted dictionaries)
         parser.add_argument('-level5', type=bool, default=False) # Level 5 = Abbreviation LFs
         parser.add_argument('-level6', type=bool, default=False) # Level 6 = External Model LF's
         parser.add_argument('-levels', type=bool, default=False) # execute data labeling using all levels
@@ -101,7 +101,8 @@ for candgen_version in ['v4', 'v3']: # version = {v3, v4, ...}
         parser.add_argument('-indir', type=Path, default='/mnt/nas2/data/systematicReview' ) # directory with labeling function sources
         parser.add_argument('-outdir', type=Path, default=f'/mnt/nas2/results/Results/systematicReview/distant_pico/{input_file}_candidate_generation/{candgen_version}' ) # directory path to store the weakly labeled candidates
         parser.add_argument('-stop', type=bool, default=if_stopwords ) # False = Wont have stopword LF, True = Will have stopword LF
-        parser.add_argument('-write_cand', type=bool, default=False ) # Should write candidates? True = Yes - Write , False = No - Dont write
+        parser.add_argument('-write_cand', type=bool, default=False
+         ) # Should write candidates? True = Yes - Write , False = No - Dont write
         args = parser.parse_args()
 
         try:
@@ -139,6 +140,7 @@ for candgen_version in ['v4', 'v3']: # version = {v3, v4, ...}
             o_ontotox, o_ontotox_syn = loadOnt( f'{args.indir}/Ontologies/outcome/ONTOTOX.csv', delim=',', term_index=1, term_syn_index=2 )
             
             s_cto, s_cto_syn = loadOnt( f'{args.indir}/Ontologies/study_type/CTO.csv', delim=',', term_index=1, term_syn_index=2 )
+
 
             print('Retrieving distant supervision dictionaries')
             ds_participant = loadDS(args.ds_fpath, 'participant')
@@ -344,10 +346,13 @@ for candgen_version in ['v4', 'v3']: # version = {v3, v4, ...}
                 #     outdir_reg = f'{args.outdir}/heuristics/direct'
                 #     label_regex_and_write( outdir_reg, [reg_lf_i], picos=entity, df_data=df_data, write=args.write_cand, arg_options=args, lf_name=reg_lf_name, neg_regex = neg_lf_i)
 
-                # for reg_lf_i, entity, reg_lf_name in zip([s_study_type, s_study_type_basic, s_study_type_basicplus, s_study_type_proc, s_study_type_s, s_placebo, s_blinding, s_phase], ['S', 'S', 'S', 'S', 'S', 'S', 'S', 'S'], ['regex_stdtype', 'regex_stdtype_basic', 'regex_stdtype_basicplus', 'regex_stdtype_proc', 'regex_stdtype_types', 'regex_placebo', 'regex_blinding', 'regex_phase' ] ) : 
-                #     outdir_reg = f'{args.outdir}/heuristics/direct'
-                #     print('Regex labeling on...')
-                #     label_regex_and_write( outdir_reg, [reg_lf_i], picos=entity, df_data=df_data, write=args.write_cand, arg_options=args, lf_name=reg_lf_name, neg_labs = negative_labels_filtered )
+                for reg_lf_i, entity, reg_lf_name in zip([s_study_type, s_study_type_basic, s_study_type_basicplus, s_study_type_proc, s_study_type_s, s_placebo, s_blinding, s_phase], ['S', 'S', 'S', 'S', 'S', 'S', 'S', 'S'], ['regex_stdtype', 'regex_stdtype_basic', 'regex_stdtype_basicplus', 'regex_stdtype_proc', 'regex_stdtype_types', 'regex_placebo', 'regex_blinding', 'regex_phase' ] ) : 
+                    outdir_reg = f'{args.outdir}/heuristics/direct'
+                    print('Regex labeling on...')
+                    if if_negs == True:
+                        label_regex_and_write( outdir_reg, [reg_lf_i], picos=entity, df_data=df_data, write=args.write_cand, arg_options=args, lf_name=reg_lf_name, neg_labs = negative_labels_filtered )
+                    else:
+                        label_regex_and_write( outdir_reg, [reg_lf_i], picos=entity, df_data=df_data, write=args.write_cand, arg_options=args, lf_name=reg_lf_name )
 
                 ######################################  Heutistic Labeling Functions ###################################### 
                 # TODO: Negative labelling function
@@ -374,8 +379,8 @@ for candgen_version in ['v4', 'v3']: # version = {v3, v4, ...}
                 # filename = 'lf_' + str('lf_o4_heurpattern_labels') + '.tsv'
                 # label_heur_and_write( outdir_heurPattern, picos='O', df_data=df_data, write=args.write_cand, arg_options=args, lf_name=str(filename).replace('.tsv', ''))
 
-                filename = 'lf_' + str('lf_o5_heurpattern_labels') + '.tsv'
-                label_heur_and_write( outdir_heurPattern, picos='O', df_data=df_data, write=args.write_cand, arg_options=args, lf_name=str(filename).replace('.tsv', ''))
+                # filename = 'lf_' + str('lf_o5_heurpattern_labels') + '.tsv'
+                # label_heur_and_write( outdir_heurPattern, picos='O', df_data=df_data, write=args.write_cand, arg_options=args, lf_name=str(filename).replace('.tsv', ''))
 
                 # filename = 'lf_' + str('lf_s_heurpattern_labels') + '.tsv'
                 # label_heur_and_write( outdir_heurPattern, picos='S', df_data=df_data, write=args.write_cand, arg_options=args, lf_name=str(filename).replace('.tsv', ''))
