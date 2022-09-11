@@ -64,7 +64,6 @@ def tokenize_and_preserve_labels(sentence, text_labels, pos, tokenizer):
         # Add the tokenized word to the final tokenized word list
         tokenized_sentence.extend(tokenized_word)
 
-
         # Add the same label to the new list of labels `n_subwords` times
         if n_subwords == 1:
             labels.extend([label] * n_subwords)
@@ -87,9 +86,6 @@ def tokenize_and_preserve_labels(sentence, text_labels, pos, tokenizer):
                 labels.extend([label])
                 labels.extend( [dummy_label] * (n_subwords-1) )
                 poss.extend( [pos_i] * n_subwords )                
-
-
-
 
     assert len(tokenized_sentence) == len(labels) == len(poss)
 
@@ -127,23 +123,40 @@ def addSpecialtokens(eachText, start_token, end_token):
 ##################################################################################
 # Generates attention masks
 ##################################################################################
-def createAttnMask(input_ids):
+def createAttnMask(input_ids, input_lbs):
+
+    # Mask the abstains
+    # if isinstance(labels[0], int) == False:
+    #     labels = mask_abstains(labels)
+
     # Add attention masks
     # Create attention masks
     attention_masks = []
 
     # For each sentence...
-    for sent in input_ids:
+    for sent, lab in zip(input_ids, input_lbs):
         
         # Create the attention mask.
         #   - If a token ID is 0, then it's padding, set the mask to 0.
         #   - If a token ID is > 0, then it's a real token, set the mask to 1.
-        att_mask = [int(token_id > 0) for token_id in sent]
+        att_mask = [ int(token_id > 0) for token_id in sent ]
+
+        if isinstance(lab[0], np.ndarray):
+            #print( type(lab[0]) )
+            for counter, l in enumerate(lab):
+                if len(set(l)) == 1 and list(set(l))[0] == 0.5:
+                    att_mask[counter] = 0
         
         # Store the attention mask for this sentence.
         attention_masks.append(att_mask)
 
     return np.asarray(attention_masks, dtype=np.uint8)
+
+def mask_abstains(text_labels):
+
+    labels = [ [ 100.00, 100.00 ] if label == [0.5, 0.5] else label for label in text_labels ] # mask the abstain probablities
+
+    return labels
 
 
 def transform(sentence, text_labels, pos, tokenizer, max_length, pretrained_model):
@@ -207,7 +220,8 @@ def transform(sentence, text_labels, pos, tokenizer, max_length, pretrained_mode
     assert len( input_ids ) == len( input_labels ) == len( input_pos )
 
     # Get the attention masks
-    attention_masks = createAttnMask( [input_ids] )
+    # TODO: Also mask the input ids that have labels [0.5,0.5]
+    attention_masks = createAttnMask( [input_ids], [input_labels] ) 
 
     assert len(input_ids.squeeze()) == len(input_labels.squeeze()) == len(attention_masks.squeeze()) == len(input_pos.squeeze()) == max_length
 
