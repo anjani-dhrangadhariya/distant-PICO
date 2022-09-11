@@ -55,13 +55,13 @@ def readManuallyAnnoted( input_file_path, entity, label_type=None ):
 
                 nct_ids.append(doc_key)
                 tokens.append(document_annotations['tokens'] )
-                if entity[-1] != 's':
+                if entity[-1] != 's' and entity != 'studytype':
                     entity_mod = entity + str('s')
                 else:
                     entity_mod = entity
-                # print( entity_mod )
+                # print( 'The keys for this document are: ', document_annotations.keys() )
+
                 if entity_mod in document_annotations:
-                    # print( document_annotations[entity_mod] )
                     labels.append(document_annotations[entity_mod])
                 else:
                     dummy_labels = ['0'] * len(document_annotations['tokens'])
@@ -104,6 +104,20 @@ def readManuallyAnnoted( input_file_path, entity, label_type=None ):
 def fetchAndTransformCandidates():
 
     args = getArguments() # get all the experimental arguments
+
+    # Print the experiment details
+    print('The experiment on ', args.entity, ' entity class using ', args.embed, ' running for ', args.max_eps, ' epochs.'  )
+
+    #  Seed everything
+    def seed_everything( seed ):
+        random.seed(seed)
+        os.environ['PYTHONHASHSEED'] = str(seed)
+        np.random.seed(seed)
+        torch.manual_seed(seed)
+        torch.cuda.manual_seed(seed)
+        torch.cuda.manual_seed_all(seed)
+        torch.backends.cudnn.deterministic = True
+    seed_everything( int(args.seed) )
 
     start_candidate_reading = time.time()
     raw_candidates = readRawCandidates( args.rawcand_file, label_type=None )
