@@ -35,6 +35,10 @@ def choose_tokenizer_type(pretrained_model):
         tokenizer_ = AutoTokenizer.from_pretrained("microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract")
         model_ = AutoModel.from_pretrained("microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract", output_hidden_states=True, output_attentions=False)
 
+    elif 'BioLinkBERT' in pretrained_model:
+        tokenizer_ = AutoTokenizer.from_pretrained("michiyasunaga/BioLinkBERT-base")
+        model_ = AutoModel.from_pretrained("michiyasunaga/BioLinkBERT-base")
+
     return tokenizer_ , model_
 
 ##################################################################################
