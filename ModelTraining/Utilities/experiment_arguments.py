@@ -15,14 +15,27 @@ print('You are using ', torch.cuda.get_device_name(0), ' : ', device , ' device'
 def getArguments():
 
     # List of arguments to set up experiment
+
+    rawcand_file = f'/mnt/nas2/results/Results/systematicReview/distant_pico/predictions/LabelModels/i/v4/UMLS/42/stpartition_9_epoch_100_bestmodel_train.tsv'
+
     parser = argparse.ArgumentParser()
-    parser.add_argument('-entity', type = str, default = 'participant') # participant, intervention, outcome
-    parser.add_argument('-rawcand_file', type = Path, default = f'/mnt/nas2/results/Results/systematicReview/distant_pico/predictions/LabelModels/p/v4/UMLS/1/stpartition_4_epoch_600_bestmodel_train.tsv')
-    # parser.add_argument('-rawcand_file', type = Path, default = f'/mnt/nas2/results/Results/systematicReview/distant_pico/predictions/LabelModels/p/v4/UMLS_Ontology/0/stpartition_5_epoch_700_bestmodel_train.tsv')
-    # parser.add_argument('-rawcand_file', type = Path, default = f'/mnt/nas2/results/Results/systematicReview/distant_pico/predictions/LabelModels/s/stpartition__epoch_100_bestmodel.tsv')
+    parser.add_argument('-entity', type = str, default = 'outcome') # participant, intervention, outcome, study type
+    parser.add_argument('-rawcand_file', type = Path, default = rawcand_file )
     parser.add_argument('-ebm_nlp', type = Path, default = '/mnt/nas2/data/systematicReview/PICO_datasets/EBM_parsed/train_ebm.json')
     parser.add_argument('-ebm_gold', type = Path, default = '/mnt/nas2/data/systematicReview/PICO_datasets/EBM_parsed/test_ebm.json')
     parser.add_argument('-ebm_gold_corr', type = Path, default = '/mnt/nas2/data/systematicReview/PICO_datasets/EBM_parsed/test_ebm_anjani.json')
+
+    # file saving arguments from the rawcand_file
+    ent = str(rawcand_file).split('/')[9]
+    version = str(rawcand_file).split('/')[10]
+    exp_level = str(rawcand_file).split('/')[11]
+    seed = str(rawcand_file).split('/')[12]
+    #seed = 42
+
+    parser.add_argument('-ent', type = str, default = ent)
+    parser.add_argument('-version', type = str, default = version)
+    parser.add_argument('-exp_level', type = str, default = exp_level)
+    parser.add_argument('-seed', type = str, default = seed)
 
     # parser.add_argument('-ebm_nlp', type = Path, default = '/mnt/nas2/data/systematicReview/clinical_trials_gov/Weak_PICO/groundtruth/ebm_nlp/p/sentences.txt')
     # parser.add_argument('-ebm_gold', type = Path, default = '/mnt/nas2/data/systematicReview/clinical_trials_gov/Weak_PICO/groundtruth/ebm_gold/p/sentences.txt')
@@ -40,7 +53,7 @@ def getArguments():
     parser.add_argument('-num_labels', type = int, default = 2) # 2 for binary (O-span vs. P/I/O) classification, 5 for multiclass (PICO) classification
 
     parser.add_argument('-embed_type', type = str, default = 'contextual') # embed_type = {contextual, semantic} 
-    parser.add_argument('-embed', type = str, default = 'pubmedbert') # embed = {scibert, bert, biobert, pubmedbert ...} 
+    parser.add_argument('-embed', type = str, default = 'BioLinkBERT') # embed = {scibert, bert, biobert, pubmedbert, BioLinkBERT ...} 
     parser.add_argument('-model', type = str, default = 'transformercrf') # model = {transformercrf, scibertposcrf, scibertposattencrf, ...} 
     parser.add_argument('-bidrec', type = str, default=True)
 
