@@ -204,7 +204,7 @@ def evaluate(defModel, optimizer, scheduler, development_dataloader, exp_args, e
 
                                 
 # Train
-def train(defModel, optimizer, scheduler, train_dataloader, development_dataloader, exp_args, run, eachSeed):
+def train(defModel, optimizer, scheduler, train_dataloader, development_dataloader, exp_args):
 
     torch.autograd.set_detect_anomaly(True)
 
@@ -287,14 +287,22 @@ def train(defModel, optimizer, scheduler, train_dataloader, development_dataload
             # Process of saving the model
             if val_f1 > best_f1:
 
-                base_path = "/mnt/nas2/results/Results/systematicReview/distant_pico/FS/" + str(exp_args.entity) + "/" + str(exp_args.model)
-                if not os.path.exists( base_path ):
-                    oldmask = os.umask(000)
-                    os.makedirs(base_path)
-                    os.umask(oldmask)
+                if exp_args.supervision == 'ws':
+                    base_path = "/mnt/nas2/results/Results/systematicReview/distant_pico/models/Transformers/" + str(exp_args.supervision) + '/' + str(exp_args.ent) + "/" + str(exp_args.version) + "/" + str(exp_args.exp_level) + "/" + str(exp_args.seed)
+                    if not os.path.exists( base_path ):
+                        oldmask = os.umask(000)
+                        os.makedirs(base_path)
+                        os.umask(oldmask)
+                elif exp_args.supervision == 'fs':
+                    base_path = "/mnt/nas2/results/Results/systematicReview/distant_pico/models/Transformers/" + str(exp_args.supervision) + '/' + str(exp_args.ent) + "/" + str(exp_args.seed)
+                    if not os.path.exists( base_path ):
+                        oldmask = os.umask(000)
+                        os.makedirs(base_path)
+                        os.umask(oldmask)
+
 
                 print("Best validation F1 improved from {} to {} ...".format( best_f1, val_f1 ))
-                model_name_here = base_path + '/' +str(eachSeed) + '_' + str(epoch_i) + '.pth'
+                model_name_here = base_path + '/' + str(exp_args.embed) + '_epoch_' + str(epoch_i) + '.pth'
                 print('Saving the best model for epoch {} with mean F1 score of {} '.format(epoch_i, val_f1 )) 
                 torch.save(defModel.state_dict(), model_name_here)
                 best_f1 = val_f1
