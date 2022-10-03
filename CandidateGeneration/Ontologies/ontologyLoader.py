@@ -85,7 +85,7 @@ def loadUMLSdb(fpath, entity: str, remove_vet: bool = True, min_terms: int = 500
 
     rows = selectTerminology(conn, entity)
 
-    df = pd.DataFrame(rows, columns=['idx', 'SAB', 'TUI', 'CUI', 'TERM', 'STY', 'P', 'I', 'O', 'TERM_PRE'])
+    df = pd.DataFrame(rows, columns=['idx', 'SAB', 'TUI', 'CUI', 'TERM', 'STY', 'P', 'I', 'O', 'S', 'TERM_PRE'])
 
     # df['TERM_PRE'] = df.TERM.apply(preprocessOntology)
 
@@ -94,7 +94,9 @@ def loadUMLSdb(fpath, entity: str, remove_vet: bool = True, min_terms: int = 500
     if entity == 'I':
         df_new = df.groupby(['SAB']).apply(lambda x: list(zip( x.TERM_PRE , x.I))).to_dict()
     if entity == 'O':
-        df_new = df.groupby(['SAB']).apply(lambda x: list(zip( x.TERM_PRE , x.O))).to_dict()    
+        df_new = df.groupby(['SAB']).apply(lambda x: list(zip( x.TERM_PRE , x.O))).to_dict()
+    if entity == 'S':
+        df_new = df.groupby(['SAB']).apply(lambda x: list(zip( x.TERM_PRE , x.S))).to_dict()   
 
     print( 'Dataframe size: ', len(df_new) )
 
