@@ -156,6 +156,7 @@ def init_sqlite_tables(fpath, dataframe):
                     P text NOT NULL,
                     I text NOT NULL,
                     O text NOT NULL,
+                    S text NOT NULL,
                     TERM_PRE text NOT NULL                  
                 );"""
     conn.execute(sql)
@@ -170,7 +171,7 @@ def init_sqlite_tables(fpath, dataframe):
 
     rows = list(dataframe.itertuples())
     conn.executemany(
-        "INSERT into terminology1(SAB, TUI, CUI, TERM, STY, P, I, O, TERM_PRE) values (?,?,?,?,?,?,?, ?, ?)", rows)
+        "INSERT into terminology1(SAB, TUI, CUI, TERM, STY, P, I, O, S, TERM_PRE) values (?,?,?,?,?,?,?, ?, ?, ?)", rows)
     conn.commit()
     conn.close()
 
@@ -221,7 +222,7 @@ def cui2tuiMapper(indir, outdir, tui2pio):
 
         rd = csv.reader(pio_fp, delimiter="\t", quotechar='"')
         for row in rd:
-            tui2pio_mapping[row[0]] = [ row[2] , row[3], row[4] ]
+            tui2pio_mapping[row[0]] = [ row[2] , row[3], row[4], row[5] ]
 
         for line in fp:
             row = line.strip('').split('|')
@@ -236,7 +237,7 @@ def cui2tuiMapper(indir, outdir, tui2pio):
     # MRCONSO.RRF
     with open(f'{indir}/MRCONSO.RRF', 'r') as fp, open(
             f'{outdir}/concepts.tsv', 'w') as op:
-        op.write('SAB\tTUI\tCUI\tTERM\tSTY\tP\tI\tO\n')
+        op.write('SAB\tTUI\tCUI\tTERM\tSTY\tP\tI\tO\tS\n')
         for line in fp:
             row = line.strip().split('|')
             cui, sab, term = row[0], row[11], row[14]
@@ -244,7 +245,7 @@ def cui2tuiMapper(indir, outdir, tui2pio):
                 continue
             for tui in cui_to_tui[cui]:
                 val = tui2pio_mapping[tui]
-                op.write(f'{sab}\t{tui}\t{cui}\t{term}\t{tui_to_sty[tui]}\t{val[0]}\t{val[1]}\t{val[2]}\n')
+                op.write(f'{sab}\t{tui}\t{cui}\t{term}\t{tui_to_sty[tui]}\t{val[0]}\t{val[1]}\t{val[2]}\t{val[3]}\n')
 
 
     print('Completed mapping CUIs to TUIs and stored the file in directory: ', outdir)
@@ -266,7 +267,8 @@ def cui2tuiMapper(indir, outdir, tui2pio):
             'STY': 'object',
             'P': 'object',
             'I': 'object',
-            'O': 'object'
+            'O': 'object',
+            'S': 'object'
         }
     )
 
@@ -277,10 +279,10 @@ def cui2tuiMapper(indir, outdir, tui2pio):
     # df = df.merge( df.TERM_PRE.apply(getPOStags) , left_index=True, right_index=True )
 
     # Open the written file and load it into MySQL
-    init_sqlite_tables(f'{outdir}/umls_tui_pio3_.db', df)
+    init_sqlite_tables(f'{outdir}/umls_tui_pios4_.db', df)
 
 indir = '/mnt/nas2/data/systematicReview/UMLS/english_subset/2021AB/META'
 outdir = '/mnt/nas2/data/systematicReview/UMLS/english_subset/umls_preprocessed'
-f_tui2pio = '/mnt/nas2/data/systematicReview/UMLS/english_subset/umls_preprocessed/tui_pio_v3.tsv'
+f_tui2pio = '/mnt/nas2/data/systematicReview/UMLS/english_subset/umls_preprocessed/tui_pio_v4.tsv'
 
 # cui2tuiMapper(indir, outdir, f_tui2pio)
